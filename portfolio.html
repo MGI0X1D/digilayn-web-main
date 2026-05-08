@@ -103,7 +103,7 @@
     <section>
         <div class="flex items-center gap-4 mb-12">
             <span class="w-12 h-1 bg-green-500 rounded-full"></span>
-            <h2 class="text-3xl font-bold tracking-tight">The R&D Sandboxes</h2>
+            <h2 class="text-3xl font-bold tracking-tight">Live Production App</h2>
         </div>
 
         <div class="card overflow-hidden rounded-3xl border-l-8 border-l-green-500">
@@ -111,49 +111,73 @@
                 <div class="flex-1">
                     <div class="flex items-center gap-3 mb-4">
                         <span class="text-xs font-black uppercase bg-green-500 text-white px-2 py-1 rounded">Production Live</span>
-                        <h3 class="text-3xl font-bold">Layn Rider & Driver</h3>
+                        <h3 class="text-3xl font-bold">Poortjie Operator</h3>
                     </div>
+
                     <p class="text-lg opacity-90 mb-8 leading-relaxed">
-                        My personal production playground. Built to test the limits of modern Android SDKs, resource-efficient backend integration with Firebase, and real-world scalability.
+                        Poortjie Operator is a live Android transport operations platform built for managing local transport workflows.
+                        Owners can manage bookings, assign drivers, monitor operations, and coordinate transport activity in real time.
                     </p>
+
                     <ul class="space-y-4 mb-8">
                         <li class="flex items-center gap-3">
                             <i class="fas fa-check-circle text-green-500"></i>
-                            <span>Firebase Authentication & Firestore</span>
+                            <span>Email Authentication & Secure Firebase Backend</span>
                         </li>
+
                         <li class="flex items-center gap-3">
                             <i class="fas fa-check-circle text-green-500"></i>
-                            <span>Real-time Google Maps Integration</span>
+                            <span>Google Maps, Places & Trip Location Management</span>
                         </li>
+
                         <li class="flex items-center gap-3">
                             <i class="fas fa-check-circle text-green-500"></i>
-                            <span>Serverless Frontend-Only Architecture</span>
+                            <span>Real-Time Driver Assignment & Operational Notifications</span>
+                        </li>
+
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span>Cloud Functions, Firestore & Push Notifications</span>
                         </li>
                     </ul>
                 </div>
+
                 <div class="w-full md:w-80 space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <a href="LaynRider.apk" class="h-48 bg-slate-100 dark:bg-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 text-center hover:bg-green-500/10 transition border border-transparent hover:border-green-500/20 group">
-                            <i class="fas fa-car text-3xl mb-2 text-green-500 group-hover:scale-110 transition"></i>
-                            <span class="text-xs font-bold uppercase mb-2">Rider App</span>
-                            <span class="text-[10px] bg-green-500 text-white px-2 py-1 rounded-full">Download APK</span>
-                        </a>
-                        <a href="LaynDriver.apk" class="h-48 bg-slate-100 dark:bg-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 text-center hover:bg-green-500/10 transition border border-transparent hover:border-green-500/20 group">
-                            <i class="fas fa-user-tie text-3xl mb-2 text-green-500 group-hover:scale-110 transition"></i>
-                            <span class="text-xs font-bold uppercase mb-2">Driver App</span>
-                            <span class="text-[10px] bg-green-500 text-white px-2 py-1 rounded-full">Download APK</span>
-                        </a>
-                    </div>
-                    
+                    <a href="Poortjie_Operator.apk"
+                       class="h-56 bg-slate-100 dark:bg-slate-800 rounded-2xl flex flex-col items-center justify-center p-6 text-center hover:bg-green-500/10 transition border border-transparent hover:border-green-500/20 group">
+
+                        <i class="fas fa-bus text-5xl mb-4 text-green-500 group-hover:scale-110 transition"></i>
+
+                        <span class="text-sm font-bold uppercase mb-3">Poortjie Operator</span>
+
+                        <span class="text-xs bg-green-500 text-white px-4 py-2 rounded-full font-bold">
+                        Download APK
+                    </span>
+                    </a>
+
                     <div class="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-2xl">
                         <h4 class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase mb-2 flex items-center gap-2">
-                            <i class="fas fa-exclamation-triangle"></i> Installation Note
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Installation Note
                         </h4>
+
                         <p class="text-[10px] opacity-80 leading-relaxed">
-                            Since these are sandboxed R&D builds not hosted on the Play Store, your device will flag them as <strong>"Unknown Apps"</strong>. 
-                            <br><br>
-                            To install, you'll need to "Allow from this source" when prompted. Don't worry, these are clean builds from my private repository used for testing latest SDK features.
+                            Poortjie Operator is currently awaiting Google Play Store approval.
+                            If installing directly via APK, your Android device may show an "Unknown App" warning.
+                            You may need to allow installation from this source to continue.
                         </p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 text-center">
+                        <a href="terms.html"
+                           class="text-xs text-green-600 dark:text-green-400 hover:underline font-semibold">
+                            Terms & Conditions
+                        </a>
+
+                        <a href="privacy.html"
+                           class="text-xs text-green-600 dark:text-green-400 hover:underline font-semibold">
+                            Privacy Policy
+                        </a>
                     </div>
                 </div>
             </div>
