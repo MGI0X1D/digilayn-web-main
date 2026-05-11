@@ -1,48 +1,61 @@
 // theme.js - Universal theme handler
 (function() {
     const html = document.documentElement;
-    const themeIcon = document.getElementById('theme-icon');
-    const menuThemeIcon = document.getElementById('menu-theme-icon');
 
-    const setIcon = (iconElement) => {
-        if (!iconElement) return;
-        if (html.classList.contains('dark')) {
-            iconElement.textContent = '☀️';
+    // 1. Apply theme based on saved preference or system preference
+    const applyTheme = () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            if (savedTheme === 'dark') {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
         } else {
-            iconElement.textContent = '🌙';
+            // Fallback to system default if no manual preference is saved
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
         }
     };
 
-    const updateAllIcons = () => {
-        setIcon(themeIcon);
-        setIcon(menuThemeIcon);
-    };
+    // Initial check
+    applyTheme();
 
-    // 1. Immediate application (to prevent flash of unstyled content)
-    if (localStorage.getItem('theme') === 'dark') {
-        html.classList.add('dark');
-    } else {
-        html.classList.remove('dark');
-    }
-
-    // 2. DOMContentLoaded logic
-    const initTheme = () => {
-        updateAllIcons();
-
-        const themeToggle = document.getElementById('theme-toggle');
-        const menuThemeToggle = document.getElementById('menu-theme-toggle');
-
-        const toggleTheme = () => {
-            const isDark = html.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            updateAllIcons();
-            
-            // Dispatch event for any other listeners
+    // Listen for system changes (only apply if no manual preference is set)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (!localStorage.getItem('theme')) {
+            if (e.matches) {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
             window.dispatchEvent(new Event('themeChanged'));
+        }
+    });
+
+    // 2. DOMContentLoaded logic for pages that still have a toggle
+    const initTheme = () => {
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        const updateIcon = () => {
+            if (!themeIcon) return;
+            themeIcon.textContent = html.classList.contains('dark') ? '☀️' : '🌙';
         };
 
-        if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
-        if (menuThemeToggle) menuThemeToggle.addEventListener('click', toggleTheme);
+        updateIcon();
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const isDark = html.classList.toggle('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                updateIcon();
+                window.dispatchEvent(new Event('themeChanged'));
+            });
+        }
     };
 
     if (document.readyState === 'loading') {
