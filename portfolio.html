@@ -3,181 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio | Musa Mgijima</title>
-    <meta name="developer" content="Musa Mgijima">
+    <title>Portfolio | Digilayn</title>
     <meta name="author" content="Musa Mgijima">
-    <meta name="description" content="Portfolio of Musa Mgijima, an Android Developer showcasing personal projects and passion for mobile and web development.">
-    <meta name="copyright" content="© 2026 Musa Mgijima. All rights reserved.">
-    <meta name="robots" content="index,follow">
-    <meta name="theme-color" content="#22c55e">
+    <meta name="description" content="Digilayn portfolio showing public builds, operational systems, mobile apps, and web projects.">
+    
+<meta name="theme-color" content="#22c55e">
+<link rel="icon" href="favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
+<link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+<link rel="manifest" href="favicon/site.webmanifest">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        darkMode: 'class'
+    }
+</script>
+<link rel="stylesheet" href="styles/main.css">
 
-    <link rel="icon" href="favicon/favicon.ico">
-    <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
-    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
-    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
-    <link rel="manifest" href="favicon/site.webmanifest">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class'
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="styles/main.css">
-    <style>
-        .gradient-text {
-            background: linear-gradient(to right, #22c55e, #10b981);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .project-card:hover .project-icon {
-            transform: scale(1.1) rotate(5deg);
-        }
-    </style>
 </head>
-<body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+
+<body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+
+<nav class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-6 pointer-events-none">
+    <a href="index.html" class="pointer-events-auto text-sm font-black tracking-wide px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+        digilayn
+    </a>
+
+    <div class="flex items-center gap-3 pointer-events-auto">
+        <a href="portfolio.html" class="hidden sm:inline-flex text-sm font-bold px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+            Portfolio
+        </a>
+        <a href="mgijima.html" class="hidden sm:inline-flex text-sm font-bold px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+            Founder
+        </a>
+        <button id="theme-toggle" class="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200 dark:border-slate-700 transition-transform hover:scale-110 active:scale-95" aria-label="Toggle Theme">
+            <span id="theme-icon" class="text-xl">🌓</span>
+        </button>
+    </div>
+</nav>
 
 
-<header class="max-w-5xl mx-auto pt-32 pb-16 px-6">
-    <div class="flex flex-col md:flex-row items-center gap-12">
-        <div class="flex-1 text-center md:text-left">
-            <h1 class="text-6xl font-extrabold mb-4 tracking-tight">My <span class="gradient-text">Portfolio</span></h1>
-            <p class="text-xl opacity-90 leading-relaxed mb-8">
-                Crafting digital experiences through native Android mastery, cross-platform innovation with Flutter, and a hobbyist love for pure HTML web development.
-            </p>
-            <div class="flex flex-wrap justify-center md:justify-start gap-4">
-                <a href="mgijima.html" class="px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-lg">View Resume</a>
-                <a href="mailto:mgi0x1d@gmail.com" class="px-8 py-3 border-2 border-green-600 text-green-600 dark:text-green-400 font-bold rounded-lg hover:bg-green-600 hover:text-white transition">Get in Touch</a>
-            </div>
-        </div>
-        <div class="hidden md:block w-64 h-64 bg-green-500/10 rounded-3xl rotate-3 border-2 border-green-500/20 p-4">
-             <div class="w-full h-full bg-green-500/20 rounded-2xl flex items-center justify-center">
-                 <i class="fab fa-android text-8xl text-green-500 animate-pulse"></i>
-             </div>
+<header class="max-w-6xl mx-auto pt-28 pb-16 px-6">
+    <div class="max-w-4xl">
+        <p class="text-sm font-black uppercase tracking-[0.3em] text-green-500 mb-4">Portfolio & Proof of Work</p>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">Systems built around real operations</h1>
+        <p class="text-xl opacity-90 leading-relaxed mb-10">
+            Digilayn’s public work focuses on practical software for businesses and communities: mobile apps, web systems, dashboards, booking flows, and operational tools.
+        </p>
+
+        <div class="flex flex-wrap gap-4">
+            <a href="https://wa.me/27815532209" target="_blank" class="px-8 py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition transform hover:scale-105">
+                Discuss a Project
+            </a>
+            <a href="mgijima.html" class="px-8 py-4 border border-green-500 text-green-600 dark:text-green-400 font-black rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition">
+                Meet the Builder
+            </a>
         </div>
     </div>
 </header>
 
-<main class="max-w-5xl mx-auto px-6 space-y-24 pb-32">
+<main class="max-w-6xl mx-auto px-6 space-y-24 pb-24">
 
     <section>
-        <div class="flex items-center gap-4 mb-12">
-            <span class="w-12 h-1 bg-green-500 rounded-full"></span>
-            <h2 class="text-3xl font-bold tracking-tight">The Mobile Passion</h2>
-        </div>
-        
-        <div class="grid md:grid-cols-2 gap-8">
-            <div class="card p-8 rounded-3xl project-card group">
-                <div class="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center mb-6 project-icon transition-transform">
-                    <i class="fab fa-android text-3xl text-green-500"></i>
-                </div>
-                <h3 class="text-2xl font-bold mb-3">Native Android</h3>
-                <p class="opacity-80 mb-6 leading-relaxed">
-                    Deep expertise in Kotlin. Currently leading legacy migrations for <strong>major financial systems</strong>, enforcing Clean Architecture, and building responsive UIs with Jetpack Compose. I am also leading the integration of secure authentication using the <strong>NokNok SDK</strong>.
-                </p>
-                <div class="flex flex-wrap gap-2">
-                    <span class="text-[10px] font-bold px-2 py-1 bg-green-500/10 text-green-600 rounded">KOTLIN</span>
-                    <span class="text-[10px] font-bold px-2 py-1 bg-green-500/10 text-green-600 rounded">JETPACK COMPOSE</span>
-                    <span class="text-[10px] font-bold px-2 py-1 bg-green-500/10 text-green-600 rounded">MVVM</span>
-                </div>
-            </div>
-
-            <div class="card p-8 rounded-3xl project-card group">
-                <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 project-icon transition-transform">
-                    <i class="fas fa-layer-group text-3xl text-blue-500"></i>
-                </div>
-                <h3 class="text-2xl font-bold mb-3">Multi-Platform Vision</h3>
-                <p class="opacity-80 mb-6 leading-relaxed">
-                    Leveraging Dart and Flutter to create beautiful cross-platform applications. I've also started exploring <strong>Kotlin Multiplatform (KMP)</strong> to share logic across Android and iOS, bringing native performance to both worlds.
-                </p>
-                <div class="flex flex-wrap gap-2">
-                    <span class="text-[10px] font-bold px-2 py-1 bg-blue-500/10 text-blue-600 rounded">FLUTTER</span>
-                    <span class="text-[10px] font-bold px-2 py-1 bg-blue-500/10 text-blue-600 rounded">KMP</span>
-                    <span class="text-[10px] font-bold px-2 py-1 bg-blue-500/10 text-blue-600 rounded">DART</span>
-                    <span class="text-[10px] font-bold px-2 py-1 bg-blue-500/10 text-blue-600 rounded">IOS EXPLORATION</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="flex items-center gap-4 mb-12">
-            <span class="w-12 h-1 bg-green-500 rounded-full"></span>
-            <h2 class="text-3xl font-bold tracking-tight">Live Production App</h2>
-        </div>
+        <h2 class="text-3xl font-bold mb-12 flex items-center gap-4">
+            <span class="w-12 h-1 bg-green-500"></span> Featured Active Build
+        </h2>
 
         <div class="card overflow-hidden rounded-3xl border-l-8 border-l-green-500">
-            <div class="p-10 flex flex-col md:flex-row gap-12 items-center">
-                <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-4">
-                        <span class="text-xs font-black uppercase bg-green-500 text-white px-2 py-1 rounded">Production Live</span>
-                        <h3 class="text-3xl font-bold">Poortjie Operator</h3>
+            <div class="p-8 md:p-12 grid lg:grid-cols-[1fr_320px] gap-12 items-center">
+                <div>
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <span class="text-xs font-black uppercase bg-green-500 text-white px-3 py-1 rounded-full">Active Public Build</span>
+                        <span class="text-xs font-black uppercase bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">Transport Operations</span>
                     </div>
 
-                    <p class="text-lg opacity-90 mb-8 leading-relaxed">
-                        Poortjie Operator is a live Android transport operations platform built for managing local transport workflows.
-                        Owners can manage bookings, assign drivers, monitor operations, and coordinate transport activity in real time.
+                    <h3 class="text-4xl font-extrabold mb-6">Poortjie Operator</h3>
+
+                    <p class="text-lg opacity-90 mb-6 leading-relaxed">
+                        Poortjie Operator is an Android operational platform being built for small local transport operations. It focuses on the real workflow between operators, drivers, bookings, trip updates, and visibility.
                     </p>
 
-                    <ul class="space-y-4 mb-8">
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check-circle text-green-500"></i>
-                            <span>Email Authentication & Secure Firebase Backend</span>
-                        </li>
+                    <p class="opacity-80 mb-8 leading-relaxed">
+                        The purpose of the build is to prove Digilayn’s ability to turn messy manual coordination into a structured system that supports daily business operations.
+                    </p>
 
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check-circle text-green-500"></i>
-                            <span>Google Maps, Places & Trip Location Management</span>
-                        </li>
-
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check-circle text-green-500"></i>
-                            <span>Real-Time Driver Assignment & Operational Notifications</span>
-                        </li>
-
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check-circle text-green-500"></i>
-                            <span>Cloud Functions, Firestore & Push Notifications</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="w-full md:w-80 space-y-4">
-                    <a href="Poortjie_Operator.apk"
-                       class="h-56 bg-slate-100 dark:bg-slate-800 rounded-2xl flex flex-col items-center justify-center p-6 text-center hover:bg-green-500/10 transition border border-transparent hover:border-green-500/20 group">
-
-                        <i class="fas fa-bus text-5xl mb-4 text-green-500 group-hover:scale-110 transition"></i>
-
-                        <span class="text-sm font-bold uppercase mb-3">Poortjie Operator</span>
-
-                        <span class="text-xs bg-green-500 text-white px-4 py-2 rounded-full font-bold">
-                        Download APK
-                    </span>
-                    </a>
-
-                    <div class="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-2xl">
-                        <h4 class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase mb-2 flex items-center gap-2">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Installation Note
-                        </h4>
-
-                        <p class="text-[10px] opacity-80 leading-relaxed">
-                            Poortjie Operator is currently awaiting Google Play Store approval.
-                            If installing directly via APK, your Android device may show an "Unknown App" warning.
-                            You may need to allow installation from this source to continue.
-                        </p>
+                    <div class="grid md:grid-cols-2 gap-4 mb-8">
+                        <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                            <p class="font-bold mb-1">Operations Dashboard</p>
+                            <p class="text-sm opacity-80">Manage bookings, monitor workflow, and keep operational visibility.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                            <p class="font-bold mb-1">Driver Assignment</p>
+                            <p class="text-sm opacity-80">Assign work to drivers and keep trip status updated.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                            <p class="font-bold mb-1">Firebase Backend</p>
+                            <p class="text-sm opacity-80">Authentication, Firestore records, and cloud-backed workflows.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                            <p class="font-bold mb-1">Notifications</p>
+                            <p class="text-sm opacity-80">Operational updates for key booking and trip events.</p>
+                        </div>
                     </div>
 
-                    <div class="flex flex-col gap-2 text-center">
-                        <a href="poortjie/operator/terms.html"
-                           class="text-xs text-green-600 dark:text-green-400 hover:underline font-semibold">
-                            Terms & Conditions
+                    <div class="flex flex-wrap gap-4">
+                        <a href="Poortjie_Operator.apk" class="px-6 py-3 bg-green-600 text-white rounded-full text-sm font-bold hover:bg-green-700 transition shadow-md">
+                            Download Preview APK
                         </a>
+                        <a href="https://wa.me/27815532209" target="_blank" class="px-6 py-3 border border-green-500 text-green-600 dark:text-green-400 rounded-full text-sm font-bold hover:bg-green-50 dark:hover:bg-green-900/20 transition">
+                            Request Latest Build
+                        </a>
+                    </div>
+                </div>
 
-                        <a href="poortjie/operator/privacy.html"
-                           class="text-xs text-green-600 dark:text-green-400 hover:underline font-semibold">
-                            Privacy Policy
-                        </a>
+                <div class="space-y-4">
+                    <div class="h-64 rounded-3xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center p-8">
+                        <p class="text-5xl mb-4">📱</p>
+                        <p class="font-black uppercase text-sm tracking-widest text-green-500">Android Preview</p>
+                        <p class="text-sm opacity-70 mt-3">Manual APK upload. May not always reflect the latest internal build.</p>
+                    </div>
+                    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-2xl">
+                        <p class="text-sm font-bold text-blue-800 dark:text-blue-400">Latest Build Access</p>
+                        <p class="text-xs mt-1 text-blue-800 dark:text-blue-400">Contact Digilayn for the latest version or a guided walkthrough.</p>
                     </div>
                 </div>
             </div>
@@ -185,28 +133,77 @@
     </section>
 
     <section>
-        <div class="flex items-center gap-4 mb-12">
-            <span class="w-12 h-1 bg-green-500 rounded-full"></span>
-            <h2 class="text-3xl font-bold tracking-tight">Web for Fun</h2>
-        </div>
-        <div class="card p-10 rounded-3xl bg-gradient-to-br from-green-50 to-transparent dark:from-green-900/10">
-            <p class="text-xl opacity-90 leading-relaxed mb-8">
-                When I'm not in Android Studio, I build lightweight, high-performance websites (like <a href="https://www.poortjie.info" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">Poortjie Services</a>!) for fun. No-framework, just making the digital space accessible for people around me.
-            </p>
-            <div class="flex flex-wrap gap-2">
-                <span class="text-[10px] font-bold px-2 py-1 bg-green-500/10 text-green-600 rounded">PURE JS</span>
-                <span class="text-[10px] font-bold px-2 py-1 bg-green-500/10 text-green-600 rounded">CSS</span>
-                <span class="text-[10px] font-bold px-2 py-1 bg-green-500/10 text-green-600 rounded">FIREBASE</span>
+        <h2 class="text-3xl font-bold mb-12 flex items-center gap-4">
+            <span class="w-12 h-1 bg-green-500"></span> Public Web Work
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="card p-8 rounded-3xl">
+                <p class="text-sm font-black uppercase tracking-widest text-green-500 mb-3">Community / Local Web</p>
+                <h3 class="text-2xl font-bold mb-4">Poortjie Info</h3>
+                <p class="opacity-80 leading-relaxed mb-6">
+                    A lightweight public website demonstrating simple web presence, clean structure, and fast access to local information.
+                </p>
+                <a href="https://poortjie.info" target="_blank" class="text-green-500 font-bold hover:underline">Visit Poortjie Info</a>
             </div>
+
+            <div class="card p-8 rounded-3xl">
+                <p class="text-sm font-black uppercase tracking-widest text-green-500 mb-3">Business Websites</p>
+                <h3 class="text-2xl font-bold mb-4">Clean Web Delivery</h3>
+                <p class="opacity-80 leading-relaxed">
+                    Digilayn can build simple, clear, responsive websites for businesses that need an online presence without unnecessary platform complexity.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="text-3xl font-bold mb-12 flex items-center gap-4">
+            <span class="w-12 h-1 bg-green-500"></span> Capability Areas
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="card p-8 rounded-3xl">
+                <h3 class="text-xl font-bold mb-3">Mobile Applications</h3>
+                <p class="opacity-80 leading-relaxed">
+                    Native Android apps for operational users, customers, staff, and field teams.
+                </p>
+            </div>
+            <div class="card p-8 rounded-3xl">
+                <h3 class="text-xl font-bold mb-3">Dashboards & Portals</h3>
+                <p class="opacity-80 leading-relaxed">
+                    Admin views, booking portals, internal tools, and role-based business systems.
+                </p>
+            </div>
+            <div class="card p-8 rounded-3xl">
+                <h3 class="text-xl font-bold mb-3">Cloud-backed Workflows</h3>
+                <p class="opacity-80 leading-relaxed">
+                    Firebase-powered authentication, data storage, notifications, and operational records.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="text-center py-12 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700">
+        <h2 class="text-3xl font-bold mb-4">Have a workflow that needs software?</h2>
+        <p class="opacity-80 mb-8 max-w-2xl mx-auto leading-relaxed">
+            The best starting point is a discovery conversation. We look at your operation first, then decide what should be built.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="https://wa.me/27815532209" target="_blank" class="px-10 py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition transform hover:scale-105">WhatsApp Digilayn</a>
+            <a href="mailto:digilayn@gmail.com" class="px-10 py-4 border border-green-500 text-green-600 dark:text-green-400 font-black rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition">Email Digilayn</a>
         </div>
     </section>
 
 </main>
 
-<footer class="text-center py-12 border-t border-gray-100 dark:border-slate-800 opacity-50 text-xs">
-    &copy; 2026 Musa Mgijima. All rights reserved.
+
+<footer class="text-center py-12 border-t border-gray-100 dark:border-slate-800 opacity-70 text-sm">
+    <p>&copy; 2026 digilayn. All rights reserved.</p>
+    <p class="mt-2">Built by Musa Mgijima.</p>
 </footer>
 
 <script src="scripts/theme.js"></script>
+
 </body>
 </html>
