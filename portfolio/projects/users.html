@@ -25,6 +25,7 @@
                 <div class="flex items-center">
                     <div class="flex items-center text-green-600 dark:text-green-500 font-bold text-xl">
                         <span>User Management</span>
+                        <span id="userCountBadge" class="ml-3 px-2.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 text-xs font-black rounded-full border border-green-200 dark:border-green-800/50 hidden">0</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -193,6 +194,18 @@
         </div>
     </div>
 
+    <!-- Image Viewer Modal -->
+    <div id="imageViewerModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md" id="imageViewerCloseOverlay"></div>
+        <div class="relative max-w-4xl w-full flex flex-col items-center">
+            <button id="closeImageViewerBtn" class="absolute -top-12 right-0 text-white text-3xl hover:text-green-500 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="fullSizeImage" src="" alt="Full size profile" class="max-h-[85vh] max-w-full rounded-2xl shadow-2xl border border-slate-700 object-contain">
+            <div id="imageViewerCaption" class="mt-4 text-white font-bold text-lg"></div>
+        </div>
+    </div>
+
     <div id="loginSection" class="hidden min-h-screen flex flex-col items-center justify-center p-6">
         <div class="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700">
             <h2 class="text-3xl font-extrabold mb-2">Admin Access</h2>
@@ -249,6 +262,7 @@
         const dateEnd = document.getElementById('dateEnd');
         const retryBtn = document.getElementById('retryBtn');
         const logoutBtn = document.getElementById('logoutBtn');
+        const userCountBadge = document.getElementById('userCountBadge');
 
         // Modal elements
         const deleteModal = document.getElementById('deleteModal');
@@ -261,6 +275,13 @@
         const countdownText = document.getElementById('countdownText');
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
         const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+        // Image Viewer elements
+        const imageViewerModal = document.getElementById('imageViewerModal');
+        const fullSizeImage = document.getElementById('fullSizeImage');
+        const imageViewerCaption = document.getElementById('imageViewerCaption');
+        const closeImageViewerBtn = document.getElementById('closeImageViewerBtn');
+        const imageViewerCloseOverlay = document.getElementById('imageViewerCloseOverlay');
 
         const loginSection = document.getElementById('loginSection');
         const adminPanel = document.getElementById('adminPanel');
@@ -291,6 +312,10 @@
             loadingState.classList.add('hidden');
             errorState.classList.add('hidden');
             
+            // Update count badge
+            userCountBadge.textContent = users.length;
+            userCountBadge.classList.remove('hidden');
+            
             if (users.length === 0) {
                 usersList.classList.add('hidden');
                 emptyState.classList.remove('hidden');
@@ -310,7 +335,7 @@
                 }
 
                 const photoHtml = user.photo_url 
-                    ? `<img src="${user.photo_url}" class="w-12 h-12 rounded-full object-cover bg-slate-200">`
+                    ? `<img src="${user.photo_url}" class="profile-pic w-12 h-12 rounded-full object-cover bg-slate-200 cursor-zoom-in hover:ring-2 hover:ring-green-500 transition-all" data-full="${user.photo_url}" data-name="${user.display_name || 'User'}">`
                     : `<div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 flex items-center justify-center font-bold text-xl">${(user.display_name || '?')[0]}</div>`;
 
                 card.innerHTML = `
@@ -365,6 +390,13 @@
                         displayName: btn.dataset.displayname
                     });
                 });
+
+                const profilePic = card.querySelector('.profile-pic');
+                if (profilePic) {
+                    profilePic.addEventListener('click', (e) => {
+                        showImageViewer(e.target.dataset.full, e.target.dataset.name);
+                    });
+                }
 
                 usersList.appendChild(card);
             });
@@ -426,6 +458,35 @@
             userToDelete = null;
         });
 
+        // Image Viewer Functions
+        function showImageViewer(url, name) {
+            fullSizeImage.src = url;
+            imageViewerCaption.textContent = name;
+            imageViewerModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        function closeImageViewer() {
+            imageViewerModal.classList.add('hidden');
+            fullSizeImage.src = '';
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        closeImageViewerBtn.addEventListener('click', closeImageViewer);
+        imageViewerCloseOverlay.addEventListener('click', closeImageViewer);
+        
+        // Close on Escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeImageViewer();
+                if (!deleteModal.classList.contains('hidden')) {
+                    deleteModal.classList.add('hidden');
+                    clearInterval(countdownTimer);
+                    userToDelete = null;
+                }
+            }
+        });
+
         confirmDeleteBtn.addEventListener('click', async () => {
             const uid = userToDelete.uid;
             const username = userToDelete.username;
@@ -472,6 +533,11 @@
                     (filteredUsers) => {
                         console.log(`Users.html: Received ${filteredUsers.length} users after filtering.`);
                         loadingState.classList.add('hidden');
+                        
+                        // Always update count even if zero
+                        userCountBadge.textContent = filteredUsers.length;
+                        userCountBadge.classList.remove('hidden');
+
                         if (filteredUsers.length === 0) {
                             emptyState.classList.remove('hidden');
                             usersList.classList.add('hidden');
