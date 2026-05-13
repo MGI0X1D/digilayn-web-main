@@ -48,8 +48,8 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Search</label>
                     <div class="relative">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="searchInput" placeholder="Search name, username, email, phone or ID..." 
-                            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 transition-all outline-none">
+                        <label for="searchInput"></label><input type="text" id="searchInput" placeholder="Search name, username, email, phone or ID..."
+                                                                class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 transition-all outline-none">
                     </div>
                 </div>
 
@@ -466,16 +466,26 @@
                 emptyState.classList.add('hidden');
                 errorState.classList.add('hidden');
 
+                userManager.destroy();
+
                 userManager.init(
                     (filteredUsers) => {
                         console.log(`Users.html: Received ${filteredUsers.length} users after filtering.`);
-                        renderUsers(filteredUsers);
+                        loadingState.classList.add('hidden');
+                        if (filteredUsers.length === 0) {
+                            emptyState.classList.remove('hidden');
+                            usersList.classList.add('hidden');
+                        } else {
+                            emptyState.classList.add('hidden');
+                            usersList.classList.remove('hidden');
+                            renderUsers(filteredUsers);
+                        }
                     },
                     (error) => {
-                        console.error("Users.html: Firestore error:", error);
+                        console.error("Users.html: Firestore error details:", error);
                         loadingState.classList.add('hidden');
                         errorState.classList.remove('hidden');
-                        document.getElementById('errorMessage').textContent = error.message;
+                        document.getElementById('errorMessage').textContent = `Firestore Error: ${error.code || 'unknown'} - ${error.message}`;
                     }
                 );
             },

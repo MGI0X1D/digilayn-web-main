@@ -31,21 +31,29 @@ class UserManagement {
     const usersRef = collection(db, "users");
     let q = query(usersRef);
 
-    // Initial listener for live data
-    this.unsubscribe = onSnapshot(q, (snapshot) => {
-      console.log(`Firestore snapshot received: ${snapshot.size} documents.`);
-      this.users = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          user_id: doc.id,
-          ...data,
-          // Handle cases where timestamps might be null or missing
-          created_at: data.created_at || null,
-          updated_at: data.updated_at || null
-        };
+    // Initial listener for live data with error handling
+    try {
+      this.unsubscribe = onSnapshot(q, (snapshot) => {
+        console.log(`Firestore snapshot received: ${snapshot.size} documents.`);
+        this.users = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            user_id: doc.id,
+            ...data,
+            // Handle cases where timestamps might be null or missing
+            created_at: data.created_at || null,
+            updated_at: data.updated_at || null
+          };
+        });
+        onUpdate(this.applyFilters(this.users));
+      }, (error) => {
+        console.error("UserManagement: onSnapshot error:", error);
+        if (onError) onError(error);
       });
-      onUpdate(this.applyFilters(this.users));
-    }, onError);
+    } catch (error) {
+      console.error("UserManagement: Error setting up onSnapshot:", error);
+      if (onError) onError(error);
+    }
   }
 
   applyFilters(users) {

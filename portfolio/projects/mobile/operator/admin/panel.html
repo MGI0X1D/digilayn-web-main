@@ -56,7 +56,8 @@
                 adminPanel.classList.add("hidden");
                 loginSection.classList.remove("hidden");
                 if (error) setStatus(error, true);
-            }
+            },
+            "../../../../../index.html"
         );
 
         window.login = async function() {
@@ -64,7 +65,7 @@
             const password = document.getElementById("password").value;
             try {
                 setStatus("Authenticating...");
-                await loginAdmin(email, password);
+                await loginAdmin(email, password, "../../../../../index.html");
             } catch (error) {
                 setStatus(`Login failed: ${error.message}`, true);
             }

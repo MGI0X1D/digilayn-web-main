@@ -17,19 +17,22 @@ import {
 async function checkSuperUser(uid) {
   try {
     console.log("Checking superuser status for UID:", uid);
-    const userDoc = await getDoc(doc(db, "users", uid));
+    const userDocRef = doc(db, "users", uid);
+    const userDoc = await getDoc(userDocRef);
+    
     if (userDoc.exists()) {
       const userData = userDoc.data();
-      const isSuper = userData.roles?.digilayn?.isSuperUser === true;
+      const isSuper = userData.roles?.digilayn?.is_super_user === true;
       console.log("Superuser status for", uid, ":", isSuper);
       return isSuper;
     } else {
       console.warn("User document not found for UID:", uid);
+      return false;
     }
   } catch (error) {
     console.error("Error checking superuser status:", error);
+    return false;
   }
-  return false;
 }
 
 /**
@@ -37,7 +40,7 @@ async function checkSuperUser(uid) {
  * @param {Function} onAuthorized - Callback when user is authorized as superuser
  * @param {Function} onUnauthorized - Callback when user is not logged in or not superuser
  */
-export function initAdminAuth(onAuthorized, onUnauthorized) {
+export function initAdminAuth(onAuthorized, onUnauthorized, redirectPath = "../../index.html") {
   console.log("admin-auth.js: initAdminAuth called");
   onAuthStateChanged(auth, async (user) => {
     console.log("admin-auth.js: onAuthStateChanged", user ? user.email : "no user");
@@ -46,9 +49,9 @@ export function initAdminAuth(onAuthorized, onUnauthorized) {
       if (isSuper) {
         onAuthorized(user);
       } else {
-        console.warn("User is logged in but not a superuser. Redirecting...");
+        console.warn("User is logged in but not a superuser. Redirecting to:", redirectPath);
         // Logged in but not superuser - redirect to home page
-        window.location.href = "../../index.html";
+        window.location.href = redirectPath;
         onUnauthorized();
       }
     } else {
@@ -57,15 +60,15 @@ export function initAdminAuth(onAuthorized, onUnauthorized) {
   });
 }
 
-export async function loginAdmin(email, password) {
+export async function loginAdmin(email, password, redirectPath = "../../index.html") {
   try {
     console.log("admin-auth.js: Attempting login for", email);
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const isSuper = await checkSuperUser(userCredential.user.uid);
     if (!isSuper) {
-      console.warn("Login successful but not a superuser. Signing out.");
+      console.warn("Login successful but not a superuser. Signing out and redirecting to:", redirectPath);
       await signOut(auth);
-      window.location.href = "../../index.html";
+      window.location.href = redirectPath;
       return;
     }
     return userCredential.user;

@@ -16,12 +16,12 @@ exports.deleteUserFully = functions.https.onCall(async (data, context) => {
   let usernameToDelete = data.username;
 
   // 2. Verify caller is admin
-  // We check the roles.digilayn.isSuperUser field in the caller's Firestore document
+  // We check the roles.digilayn.is_super_user field in the caller's Firestore document
   const callerUid = context.auth.uid;
   const callerDoc = await admin.firestore().collection('users').doc(callerUid).get();
   const callerData = callerDoc.data();
 
-  if (!callerData || !callerData.roles || !callerData.roles.digilayn || callerData.roles.digilayn.isSuperUser !== true) {
+  if (!callerData || !callerData.roles || !callerData.roles.digilayn || callerData.roles.digilayn.is_super_user !== true) {
     throw new functions.https.HttpsError('permission-denied', 'Only SuperUsers can perform this action.');
   }
 
