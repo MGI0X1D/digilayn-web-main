@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>User Management | Poortjie Rider Admin</title>
+    
+    <meta name="theme-color" content="#22c55e">
+    <link rel="icon" href="../../favicon/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen">
+
+    <!-- Navigation -->
+    <nav id="navBar" class="hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex items-center text-green-600 dark:text-green-500 font-bold text-xl">
+                        <span>User Management</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="logoutBtn" class="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main id="adminPanel" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Status Messages -->
+        <div id="status" class="hidden"></div>
+
+        <!-- Filters & Search -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Search -->
+                <div class="lg:col-span-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Search</label>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchInput" placeholder="Search name, username, email, phone or ID..." 
+                            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 transition-all outline-none">
+                    </div>
+                </div>
+
+                <!-- Sort -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Sort By</label>
+                    <select id="sortSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="newest">Newest Created</option>
+                        <option value="oldest">Oldest Created</option>
+                        <option value="lastActive">Last Active</option>
+                        <option value="nameAZ">Name A-Z</option>
+                        <option value="usernameAZ">Username A-Z</option>
+                    </select>
+                </div>
+
+                <!-- Delete Pending -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Delete Pending</label>
+                    <select id="deletePendingSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All</option>
+                        <option value="true">Pending Only</option>
+                        <option value="false">Not Pending</option>
+                    </select>
+                </div>
+
+                <!-- Suspended -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Suspended</label>
+                    <select id="suspendedSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All</option>
+                        <option value="true">Suspended Only</option>
+                        <option value="false">Not Suspended</option>
+                    </select>
+                </div>
+
+                <!-- Has Username -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Username</label>
+                    <select id="hasUsernameSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All</option>
+                        <option value="true">Has Username</option>
+                        <option value="false">No Username</option>
+                    </select>
+                </div>
+
+                <!-- Date Range -->
+                <div class="lg:col-span-2 grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">From Date</label>
+                        <input type="date" id="dateStart" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">To Date</label>
+                        <input type="date" id="dateEnd" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users List -->
+        <div id="usersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loading State -->
+            <div id="loadingState" class="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
+                <i class="fas fa-circle-notch fa-spin text-4xl mb-4 text-green-500"></i>
+                <p>Loading users...</p>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
+            <i class="fas fa-users-slash text-4xl mb-4"></i>
+            <p id="emptyMessage">No users found.</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden col-span-full flex flex-col items-center justify-center py-20 text-red-500 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/20">
+            <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+            <p id="errorMessage" class="mb-4">Failed to load users.</p>
+            <button id="retryBtn" class="px-6 py-2 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors">
+                Retry
+            </button>
+        </div>
+    </main>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div class="p-8">
+                <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-2xl flex items-center justify-center mb-6 text-2xl">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                
+                <h3 class="text-2xl font-bold mb-2">Permanently delete user?</h3>
+                <p class="text-slate-500 dark:text-slate-400 mb-6">
+                    This will permanently delete this user from Firebase Auth, Firestore, username reservation, and Firebase Storage. This action cannot be undone.
+                </p>
+
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6 text-sm space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Display Name:</span>
+                        <span id="modalDisplayName" class="font-semibold"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Username:</span>
+                        <span id="modalUsername" class="font-semibold text-green-600"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Email:</span>
+                        <span id="modalEmail" class="font-semibold"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">UID:</span>
+                        <span id="modalUid" class="font-mono text-xs opacity-50"></span>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">
+                        Type the user's email <span id="confirmEmailHint" class="font-bold text-red-500"></span> to confirm:
+                    </label>
+                    <input type="text" id="deleteConfirmInput" placeholder="Enter email"
+                        class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-red-500 rounded-xl outline-none transition-all">
+                </div>
+
+                <div id="countdownArea" class="text-center mb-6">
+                    <p id="countdownText" class="text-sm font-medium text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 py-2 rounded-lg">
+                        Please read carefully. You can delete in 5 seconds.
+                    </p>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="cancelDeleteBtn" class="flex-1 py-3 bg-slate-100 dark:bg-slate-800 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button id="confirmDeleteBtn" disabled class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl opacity-50 cursor-not-allowed transition-all">
+                        Permanently Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginSection" class="hidden min-h-screen flex flex-col items-center justify-center p-6">
+        <div class="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700">
+            <h2 class="text-3xl font-extrabold mb-2">Admin Access</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-8">User Management Console</p>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-bold mb-2 opacity-70">Email Address</label>
+                    <input type="email" id="email" class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none transition" placeholder="admin@digilayn.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 opacity-70">Password</label>
+                    <input type="password" id="password" class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-green-500 outline-none transition">
+                </div>
+                <button id="loginBtn" class="w-full py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition transform hover:scale-[1.02] active:scale-[0.98]">
+                    Sign In
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script imports -->
+    <script>
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Users.html Global Error:', msg, 'at', url, ':', lineNo, ':', columnNo, error);
+            const status = document.getElementById('status');
+            if (status) {
+                status.textContent = 'Critical Error: ' + msg;
+                status.className = 'p-4 rounded-xl font-bold mb-6 bg-red-500/20 text-red-500 border border-red-500/50';
+                status.classList.remove('hidden');
+            }
+            return false;
+        };
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Users.html Unhandled Rejection:', event.reason);
+        });
+    </script>
+    <script type="module">
+        import { initAdminAuth, loginAdmin, logoutAdmin } from "../../scripts/admin-auth.js";
+        import { userManager } from "../../scripts/user-management.js";
+
+        const usersList = document.getElementById('usersList');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const errorState = document.getElementById('errorState');
+        const status = document.getElementById('status');
+
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const deletePendingSelect = document.getElementById('deletePendingSelect');
+        const suspendedSelect = document.getElementById('suspendedSelect');
+        const hasUsernameSelect = document.getElementById('hasUsernameSelect');
+        const dateStart = document.getElementById('dateStart');
+        const dateEnd = document.getElementById('dateEnd');
+        const retryBtn = document.getElementById('retryBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // Modal elements
+        const deleteModal = document.getElementById('deleteModal');
+        const modalDisplayName = document.getElementById('modalDisplayName');
+        const modalUsername = document.getElementById('modalUsername');
+        const modalEmail = document.getElementById('modalEmail');
+        const modalUid = document.getElementById('modalUid');
+        const confirmEmailHint = document.getElementById('confirmEmailHint');
+        const deleteConfirmInput = document.getElementById('deleteConfirmInput');
+        const countdownText = document.getElementById('countdownText');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+        const loginSection = document.getElementById('loginSection');
+        const adminPanel = document.getElementById('adminPanel');
+        const navBar = document.getElementById('navBar');
+        const loginBtn = document.getElementById('loginBtn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+
+        let userToDelete = null;
+        let countdown = 5;
+        let countdownTimer = null;
+
+        function setStatus(message, isError = false) {
+            status.textContent = message;
+            status.className = `p-4 rounded-xl font-bold mb-6 ${isError ? "bg-red-500/20 text-red-500 border border-red-500/50" : "bg-green-500/20 text-green-500 border border-green-500/50"}`;
+            status.classList.remove('hidden');
+            setTimeout(() => status.classList.add('hidden'), 5000);
+        }
+
+        function formatDate(ts) {
+            if (!ts) return 'N/A';
+            const date = ts.toDate ? ts.toDate() : new Date(ts);
+            return date.toLocaleString();
+        }
+
+        function renderUsers(users) {
+            console.log(`Users.html: Rendering ${users.length} users.`);
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            
+            if (users.length === 0) {
+                usersList.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            usersList.classList.remove('hidden');
+            usersList.innerHTML = '';
+
+            users.forEach(user => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-between";
+                
+                if (user.delete_pending) {
+                    card.classList.add('border-red-500/50', 'bg-red-50/10');
+                }
+
+                const photoHtml = user.photo_url 
+                    ? `<img src="${user.photo_url}" class="w-12 h-12 rounded-full object-cover bg-slate-200">`
+                    : `<div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 flex items-center justify-center font-bold text-xl">${(user.display_name || '?')[0]}</div>`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            ${photoHtml}
+                            <div>
+                                <h4 class="font-bold text-lg leading-none">${user.display_name || 'No Name'}</h4>
+                                <p class="text-sm text-green-600 font-medium mt-1">@${user.username || 'no-username'}</p>
+                            </div>
+                        </div>
+                        <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors p-2" data-uid="${user.user_id}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.display_name || ''}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2 text-slate-500">
+                            <i class="far fa-envelope w-4"></i>
+                            <span class="truncate">${user.email || 'No Email'}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-500">
+                            <i class="fas fa-phone w-4 text-xs"></i>
+                            <span>${user.phone || 'No Phone'}</span>
+                        </div>
+                        <div class="pt-2 flex flex-wrap gap-2">
+                            ${user.delete_pending ? '<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">Delete Pending</span>' : ''}
+                            ${user.is_suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider rounded">Suspended</span>' : ''}
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-2 text-[10px] uppercase font-bold tracking-widest text-slate-400">
+                            <div>
+                                <p>Created</p>
+                                <p class="text-slate-500">${formatDate(user.created_at)}</p>
+                            </div>
+                            <div>
+                                <p>Updated</p>
+                                <p class="text-slate-500">${formatDate(user.updated_at)}</p>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-[10px] font-mono opacity-30 truncate">
+                            ID: ${user.user_id}
+                        </div>
+                    </div>
+                `;
+
+                card.querySelector('.delete-btn').addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    showDeleteModal({
+                        uid: btn.dataset.uid,
+                        username: btn.dataset.username,
+                        email: btn.dataset.email,
+                        displayName: btn.dataset.displayname
+                    });
+                });
+
+                usersList.appendChild(card);
+            });
+        }
+
+        function showDeleteModal(user) {
+            userToDelete = user;
+            modalDisplayName.textContent = user.displayName;
+            modalUsername.textContent = `@${user.username || 'no-username'}`;
+            modalEmail.textContent = user.email;
+            modalUid.textContent = user.uid;
+            confirmEmailHint.textContent = `(${user.email})`;
+            
+            deleteConfirmInput.value = '';
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            deleteModal.classList.remove('hidden');
+            
+            countdown = 5;
+            updateCountdown();
+            
+            countdownTimer = setInterval(() => {
+                countdown--;
+                updateCountdown();
+                if (countdown <= 0) {
+                    clearInterval(countdownTimer);
+                }
+            }, 1000);
+        }
+
+        function updateCountdown() {
+            if (countdown > 0) {
+                countdownText.textContent = `Please read carefully. You can delete in ${countdown} seconds.`;
+                countdownText.className = "text-sm font-medium text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 py-2 rounded-lg";
+            } else {
+                countdownText.textContent = "This action is permanent.";
+                countdownText.className = "text-sm font-bold text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 py-2 rounded-lg";
+            }
+            checkConfirmation();
+        }
+
+        function checkConfirmation() {
+            const emailMatch = deleteConfirmInput.value.trim() === userToDelete.email;
+            if (countdown <= 0 && emailMatch) {
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                confirmDeleteBtn.disabled = true;
+                confirmDeleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        deleteConfirmInput.addEventListener('input', checkConfirmation);
+
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteModal.classList.add('hidden');
+            clearInterval(countdownTimer);
+            userToDelete = null;
+        });
+
+        confirmDeleteBtn.addEventListener('click', async () => {
+            const uid = userToDelete.uid;
+            const username = userToDelete.username;
+            
+            deleteModal.classList.add('hidden');
+            clearInterval(countdownTimer);
+            
+            // Show loading in status
+            setStatus("Initiating permanent deletion...", false);
+
+            try {
+                console.log(`Attempting to delete user: ${uid} (${username})`);
+                const result = await userManager.deleteUser(uid, username);
+                if (result.success) {
+                    console.log(`User ${uid} deleted successfully.`);
+                    setStatus(`User ${uid} deleted successfully. Storage files: ${result.deleted_storage_files}`);
+                }
+            } catch (error) {
+                console.error("Delete failed:", error);
+                setStatus(`Failed to delete user: ${error.message}`, true);
+            } finally {
+                userToDelete = null;
+            }
+        });
+
+        // Initialize App
+        console.log("Users.html: Initializing Admin Auth...");
+        initAdminAuth(
+            (user) => {
+                console.log("Users.html: Admin authorized:", user.email);
+                loginSection.classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+                navBar.classList.remove('hidden');
+                
+                console.log("Users.html: Showing loading state...");
+                loadingState.classList.remove('hidden');
+                usersList.classList.add('hidden');
+                emptyState.classList.add('hidden');
+                errorState.classList.add('hidden');
+
+                userManager.init(
+                    (filteredUsers) => {
+                        console.log(`Users.html: Received ${filteredUsers.length} users after filtering.`);
+                        renderUsers(filteredUsers);
+                    },
+                    (error) => {
+                        console.error("Users.html: Firestore error:", error);
+                        loadingState.classList.add('hidden');
+                        errorState.classList.remove('hidden');
+                        document.getElementById('errorMessage').textContent = error.message;
+                    }
+                );
+            },
+            (error) => {
+                console.log("Users.html: Admin unauthorized or logged out.");
+                loginSection.classList.remove('hidden');
+                adminPanel.classList.add('hidden');
+                navBar.classList.add('hidden');
+                if (error) {
+                    console.error("Users.html: Auth error:", error);
+                    setStatus(error, true);
+                }
+            }
+        );
+
+        loginBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            try {
+                console.log("Attempting login...");
+                setStatus("Authenticating...");
+                await loginAdmin(email, password);
+            } catch (error) {
+                console.error("Login failed:", error);
+                setStatus(`Login failed: ${error.message}`, true);
+            }
+        });
+
+        // Event Listeners for filters
+        const updateFilters = () => {
+            userManager.setFilter('search', searchInput.value);
+            userManager.setFilter('sortBy', sortSelect.value);
+            userManager.setFilter('deletePending', deletePendingSelect.value);
+            userManager.setFilter('suspended', suspendedSelect.value);
+            userManager.setFilter('hasUsername', hasUsernameSelect.value);
+            userManager.setFilter('dateStart', dateStart.value);
+            userManager.setFilter('dateEnd', dateEnd.value);
+            
+            renderUsers(userManager.applyFilters(userManager.users));
+        };
+
+        searchInput.addEventListener('input', updateFilters);
+        sortSelect.addEventListener('change', updateFilters);
+        deletePendingSelect.addEventListener('change', updateFilters);
+        suspendedSelect.addEventListener('change', updateFilters);
+        hasUsernameSelect.addEventListener('change', updateFilters);
+        dateStart.addEventListener('change', updateFilters);
+        dateEnd.addEventListener('change', updateFilters);
+
+        retryBtn.addEventListener('click', () => {
+            errorState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            userManager.init(
+                (filteredUsers) => renderUsers(filteredUsers),
+                (error) => {
+                    loadingState.classList.add('hidden');
+                    errorState.classList.remove('hidden');
+                }
+            );
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await logoutAdmin();
+        });
+    </script>
+    <script src="../../scripts/theme.js"></script>
+    <script src="../../scripts/security.js"></script>
+</body>
+</html>
