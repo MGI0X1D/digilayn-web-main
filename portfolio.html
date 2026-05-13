@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Digilayn</title>
+    <meta name="author" content="Musa Mgijima">
+    <meta name="description" content="Digilayn portfolio showing public builds, operational systems, mobile apps, and web projects.">
+    
+<meta name="theme-color" content="#22c55e">
+<link rel="icon" href="favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
+<link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+<link rel="manifest" href="favicon/site.webmanifest">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        darkMode: 'class'
+    }
+</script>
+<link rel="stylesheet" href="styles/main.css">
+
+</head>
+
+<body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+
+<nav class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-6 pointer-events-none">
+    <a href="index.html" class="pointer-events-auto text-sm font-black tracking-wide px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+        digilayn
+    </a>
+
+    <div class="flex items-center gap-3 pointer-events-auto">
+        <a href="portfolio.html" class="hidden sm:inline-flex text-sm font-bold px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+            Portfolio
+        </a>
+        <a href="mgijima.html" class="hidden sm:inline-flex text-sm font-bold px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+            Founder
+        </a>
+        <button id="theme-toggle" class="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200 dark:border-slate-700 transition-transform hover:scale-110 active:scale-95" aria-label="Toggle Theme">
+            <span id="theme-icon" class="text-xl"></span>
+        </button>
+    </div>
+</nav>
+
+
+<header class="max-w-6xl mx-auto pt-28 pb-16 px-6">
+    <div class="max-w-4xl">
+        <p class="text-sm font-black uppercase tracking-[0.3em] text-green-500 mb-4">Portfolio & Proof of Work</p>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">Systems built around real operations</h1>
+        <p class="text-xl opacity-90 leading-relaxed mb-10">
+            Digilayn’s public work focuses on practical software for businesses and communities: mobile apps, web systems, dashboards, booking flows, and operational tools.
+        </p>
+
+        <div class="flex flex-wrap gap-4">
+            <a href="https://wa.me/27815532209" target="_blank" class="px-8 py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition transform hover:scale-105">
+                Discuss a Project
+            </a>
+            <a href="mgijima.html" class="px-8 py-4 border border-green-500 text-green-600 dark:text-green-400 font-black rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition">
+                Meet the Builder
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 space-y-24 pb-24">
+
+    <section>
+        <h2 class="text-3xl font-bold mb-12 flex items-center gap-4">
+            <span class="w-12 h-1 bg-green-500"></span> Featured Active Build
+        </h2>
+
+        <div class="card overflow-hidden rounded-3xl border-l-8 border-l-green-500">
+            <div class="p-8 md:p-12 grid lg:grid-cols-[1fr_320px] gap-12 items-center">
+                <div>
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <span class="text-xs font-black uppercase bg-green-500 text-white px-3 py-1 rounded-full">Active Public Build</span>
+                        <span class="text-xs font-black uppercase bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">Transport Operations</span>
+                    </div>
+
+                    <h3 class="text-4xl font-extrabold mb-6">Poortjie Operator</h3>
+
+                    <p class="text-lg opacity-90 mb-6 leading-relaxed">
+                        Poortjie Operator is an Android operational platform being built for small local transport operations. It focuses on the real workflow between operators, drivers, bookings, trip updates, and visibility.
+                    </p>
+
+                    <p class="opacity-80 mb-8 leading-relaxed">
+                        The purpose of the build is to prove Digilayn’s ability to turn messy manual coordination into a structured system that supports daily business operations.
+                    </p>
+
+                    <div class="grid md:grid-cols-2 gap-4 mb-8">
+                        <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                            <p class="font-bold mb-1">Operations Dashboard</p>
+                            <p class="text-sm opacity-80">Manage bookings, monitor workflow, and keep operational visibility.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                            <p class="font-bold mb-1">Driver Assignment</p>
+                            <p class="text-sm opacity-80">Assign work to drivers and keep trip status updated.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                            <p class="font-bold mb-1">Firebase Backend</p>
+                            <p class="text-sm opacity-80">Authentication, Firestore records, and cloud-backed workflows.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                            <p class="font-bold mb-1">Notifications</p>
+                            <p class="text-sm opacity-80">Operational updates for key booking and trip events.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-4">
+                        <a href="Poortjie_Operator.apk" class="px-6 py-3 bg-green-600 text-white rounded-full text-sm font-bold hover:bg-green-700 transition shadow-md">
+                            Download Preview APK
+                        </a>
+                        <a href="https://wa.me/27815532209" target="_blank" class="px-6 py-3 border border-green-500 text-green-600 dark:text-green-400 rounded-full text-sm font-bold hover:bg-green-50 dark:hover:bg-green-900/20 transition">
+                            Request Latest Build
+                        </a>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="h-64 rounded-3xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center p-8">
+                        <p class="text-5xl mb-4">📱</p>
+                        <p class="font-black uppercase text-sm tracking-widest text-green-500">Android Preview</p>
+                        <p class="text-sm opacity-70 mt-3">Manual APK upload. May not always reflect the latest internal build.</p>
+                    </div>
+                    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-2xl">
+                        <p class="text-sm font-bold text-blue-800 dark:text-blue-400">Latest Build Access</p>
+                        <p class="text-xs mt-1 text-blue-800 dark:text-blue-400">Contact Digilayn for the latest version or a guided walkthrough.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="text-3xl font-bold mb-12 flex items-center gap-4">
+            <span class="w-12 h-1 bg-green-500"></span> Public Web Work
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="card p-8 rounded-3xl">
+                <p class="text-sm font-black uppercase tracking-widest text-green-500 mb-3">Community / Local Web</p>
+                <h3 class="text-2xl font-bold mb-4">Poortjie Info</h3>
+                <p class="opacity-80 leading-relaxed mb-6">
+                    A lightweight public website demonstrating simple web presence, clean structure, and fast access to local information.
+                </p>
+                <a href="https://poortjie.info" target="_blank" class="text-green-500 font-bold hover:underline">Visit Poortjie Info</a>
+            </div>
+
+            <div class="card p-8 rounded-3xl">
+                <p class="text-sm font-black uppercase tracking-widest text-green-500 mb-3">Business Websites</p>
+                <h3 class="text-2xl font-bold mb-4">Clean Web Delivery</h3>
+                <p class="opacity-80 leading-relaxed">
+                    Digilayn can build simple, clear, responsive websites for businesses that need an online presence without unnecessary platform complexity.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="text-3xl font-bold mb-12 flex items-center gap-4">
+            <span class="w-12 h-1 bg-green-500"></span> Capability Areas
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="card p-8 rounded-3xl">
+                <h3 class="text-xl font-bold mb-3">Mobile Applications</h3>
+                <p class="opacity-80 leading-relaxed">
+                    Native Android apps for operational users, customers, staff, and field teams.
+                </p>
+            </div>
+            <div class="card p-8 rounded-3xl">
+                <h3 class="text-xl font-bold mb-3">Dashboards & Portals</h3>
+                <p class="opacity-80 leading-relaxed">
+                    Admin views, booking portals, internal tools, and role-based business systems.
+                </p>
+            </div>
+            <div class="card p-8 rounded-3xl">
+                <h3 class="text-xl font-bold mb-3">Cloud-backed Workflows</h3>
+                <p class="opacity-80 leading-relaxed">
+                    Firebase-powered authentication, data storage, notifications, and operational records.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="text-center py-12 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700">
+        <h2 class="text-3xl font-bold mb-4">Have a workflow that needs software?</h2>
+        <p class="opacity-80 mb-8 max-w-2xl mx-auto leading-relaxed">
+            The best starting point is a discovery conversation. We look at your operation first, then decide what should be built.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="https://wa.me/27815532209" target="_blank" class="px-10 py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition transform hover:scale-105">WhatsApp Digilayn</a>
+            <a href="mailto:digilayn@gmail.com" class="px-10 py-4 border border-green-500 text-green-600 dark:text-green-400 font-black rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition">Email Digilayn</a>
+        </div>
+    </section>
+
+</main>
+
+
+<footer class="text-center py-12 border-t border-gray-100 dark:border-slate-800 opacity-70 text-sm">
+    <p>&copy; 2026 digilayn. All rights reserved.</p>
+    <p class="mt-2">Built by <a href="https://linkedin.com/in/mgijima" target="_blank" class="hover:text-green-500 underline transition">Musa Mgijima</a>.</p>
+</footer>
+
+<script src="scripts/theme.js"></script>
+<script src="scripts/security.js"></script>
+
+</body>
+</html>

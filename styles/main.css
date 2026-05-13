@@ -1,0 +1,35 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #1a202c;
+    --card-bg: #f8fafc;
+    --border-color: #e2e8f0;
+}
+html.dark {
+    --bg-color: #0f172a;
+    --text-color: #f1f5f9;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+}
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+#rating-modal.hidden {
+    display: none;
+}
+#star-rating .fas.fa-star {
+    color: #cbd5e1; /* slate-400 */
+}
+#star-rating .fas.fa-star.selected {
+    color: #f59e0b; /* amber-500 */
+}
