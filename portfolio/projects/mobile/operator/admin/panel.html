@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Poortjie Rider Admin | Digilayn</title>
+    <title>Poortjie Connect | Digilayn</title>
     
     <meta name="theme-color" content="#22c55e">
     <link rel="icon" href="../../../../../favicon/favicon.ico">
@@ -34,7 +34,7 @@
             serverTimestamp
         } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        const configRef = doc(db, "appConfig", "com.digilayn.poortjierider");
+        const configRef = doc(db, "appConfig", "com.digilayn.poortjieconnect");
 
         const status = document.getElementById("status");
         const adminPanel = document.getElementById("adminPanel");
@@ -204,7 +204,7 @@
     <div id="loginSection" class="hidden min-h-[60vh] flex flex-col items-center justify-center">
         <div class="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700">
             <h2 class="text-3xl font-extrabold mb-2">Admin Access</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-8">Poortjie Rider Management</p>
+            <p class="text-slate-500 dark:text-slate-400 mb-8">Poortjie Connect Management</p>
             
             <div class="space-y-6">
                 <div>
@@ -226,7 +226,7 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
             <div>
                 <p class="text-sm font-black uppercase tracking-[0.3em] text-green-500 mb-1">Production Console</p>
-                <h1 class="text-4xl font-extrabold tracking-tight">Poortjie Rider Config</h1>
+                <h1 class="text-4xl font-extrabold tracking-tight">Poortjie Connect Config</h1>
             </div>
             <div class="flex items-center gap-3">
                 <button id="logoutBtn" class="px-6 py-2 border border-red-500/50 text-red-500 font-bold rounded-full hover:bg-red-500 hover:text-white transition">

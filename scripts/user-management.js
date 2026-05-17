@@ -6,7 +6,9 @@ import {
   orderBy,
   where,
   limit,
-  Timestamp
+  Timestamp,
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
 
@@ -134,6 +136,16 @@ class UserManagement {
     console.log(`Calling deleteUserFully Cloud Function for UID: ${uid}`);
     const result = await this.deleteUserFully({ uid, username });
     return result.data;
+  }
+
+  async toggleUserSuspension(uid, isSuspended) {
+    console.log(`Toggling suspension for UID: ${uid} to ${!isSuspended}`);
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, {
+      is_suspended: !isSuspended,
+      updated_at: Timestamp.now()
+    });
+    return { success: true, is_suspended: !isSuspended };
   }
 
   destroy() {

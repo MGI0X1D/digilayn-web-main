@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>User Management | Poortjie Rider Admin</title>
+    <title>User Management</title>
     
     <meta name="theme-color" content="#22c55e">
     <link rel="icon" href="../../favicon/favicon.ico">
@@ -194,6 +194,61 @@
         </div>
     </div>
 
+    <!-- Suspend Confirmation Modal -->
+    <div id="suspendModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div class="p-8">
+                <div id="suspendModalIcon" class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-2xl flex items-center justify-center mb-6 text-2xl">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+                
+                <h3 id="suspendModalTitle" class="text-2xl font-bold mb-2">Suspend user?</h3>
+                <p id="suspendModalDescription" class="text-slate-500 dark:text-slate-400 mb-6">
+                    Suspending this user will prevent them from accessing their account. This can be undone later.
+                </p>
+
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6 text-sm space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Display Name:</span>
+                        <span id="suspendModalDisplayName" class="font-semibold"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Username:</span>
+                        <span id="suspendModalUsername" class="font-semibold text-green-600"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Email:</span>
+                        <span id="suspendModalEmail" class="font-semibold"></span>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">
+                        Type the user's email <span id="suspendConfirmEmailHint" class="font-bold text-amber-500"></span> to confirm:
+                    </label>
+                    <input type="text" id="suspendConfirmInput" placeholder="Enter email"
+                        class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 rounded-xl outline-none transition-all">
+                </div>
+
+                <div id="suspendCountdownArea" class="text-center mb-6">
+                    <p id="suspendCountdownText" class="text-sm font-medium text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 py-2 rounded-lg">
+                        Please read carefully. You can proceed in 3 seconds.
+                    </p>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="cancelSuspendBtn" class="flex-1 py-3 bg-slate-100 dark:bg-slate-800 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button id="confirmSuspendBtn" disabled class="flex-1 py-3 bg-amber-500 text-white font-bold rounded-xl opacity-50 cursor-not-allowed transition-all">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Image Viewer Modal -->
     <div id="imageViewerModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
         <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md" id="imageViewerCloseOverlay"></div>
@@ -291,8 +346,11 @@
         const passwordInput = document.getElementById('password');
 
         let userToDelete = null;
+        let userToSuspend = null;
         let countdown = 5;
+        let suspendCountdown = 3;
         let countdownTimer = null;
+        let suspendCountdownTimer = null;
 
         function setStatus(message, isError = false) {
             status.textContent = message;
@@ -347,6 +405,9 @@
                                 <p class="text-sm text-green-600 font-medium mt-1">@${user.username || 'no-username'}</p>
                             </div>
                         </div>
+                        <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-2" data-uid="${user.user_id}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.display_name || ''}" data-suspended="${!!user.is_suspended}" title="${user.is_suspended ? 'Unsuspend' : 'Suspend'}">
+                            <i class="fas ${user.is_suspended ? 'fa-user-check' : 'fa-user-slash'}"></i>
+                        </button>
                         <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors p-2" data-uid="${user.user_id}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.display_name || ''}">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -391,6 +452,17 @@
                     });
                 });
 
+                card.querySelector('.suspend-btn').addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    showSuspendModal({
+                        uid: btn.dataset.uid,
+                        username: btn.dataset.username,
+                        email: btn.dataset.email,
+                        displayName: btn.dataset.displayname,
+                        isSuspended: btn.dataset.suspended === 'true'
+                    });
+                });
+
                 const profilePic = card.querySelector('.profile-pic');
                 if (profilePic) {
                     profilePic.addEventListener('click', (e) => {
@@ -401,6 +473,95 @@
                 usersList.appendChild(card);
             });
         }
+
+        function showSuspendModal(user) {
+            userToSuspend = user;
+            const isSuspended = user.isSuspended;
+            
+            suspendModalTitle.textContent = isSuspended ? 'Unsuspend user?' : 'Suspend user?';
+            suspendModalDescription.textContent = isSuspended 
+                ? 'This will restore user access to their account.' 
+                : 'Suspending this user will prevent them from accessing their account. This can be undone later.';
+            
+            suspendModalDisplayName.textContent = user.displayName;
+            suspendModalUsername.textContent = `@${user.username || 'no-username'}`;
+            suspendModalEmail.textContent = user.email;
+            suspendConfirmEmailHint.textContent = `(${user.email})`;
+            
+            suspendModalIcon.className = `w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl ${isSuspended ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500'}`;
+            suspendModalIcon.innerHTML = `<i class="fas ${isSuspended ? 'fa-user-check' : 'fa-user-slash'}"></i>`;
+            
+            confirmSuspendBtn.className = `flex-1 py-3 text-white font-bold rounded-xl opacity-50 cursor-not-allowed transition-all ${isSuspended ? 'bg-green-600' : 'bg-amber-500'}`;
+            confirmSuspendBtn.textContent = isSuspended ? 'Unsuspend User' : 'Suspend User';
+            
+            suspendConfirmInput.value = '';
+            confirmSuspendBtn.disabled = true;
+            
+            suspendModal.classList.remove('hidden');
+            
+            suspendCountdown = 3;
+            updateSuspendCountdown();
+            
+            suspendCountdownTimer = setInterval(() => {
+                suspendCountdown--;
+                updateSuspendCountdown();
+                if (suspendCountdown <= 0) {
+                    clearInterval(suspendCountdownTimer);
+                }
+            }, 1000);
+        }
+
+        function updateSuspendCountdown() {
+            if (suspendCountdown > 0) {
+                suspendCountdownText.textContent = `Please read carefully. You can proceed in ${suspendCountdown} seconds.`;
+                suspendCountdownText.className = "text-sm font-medium text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 py-2 rounded-lg";
+            } else {
+                suspendCountdownText.textContent = "Please confirm the email below.";
+                suspendCountdownText.className = "text-sm font-bold text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-900/20 py-2 rounded-lg";
+            }
+            checkSuspendConfirmation();
+        }
+
+        function checkSuspendConfirmation() {
+            const emailMatch = suspendConfirmInput.value.trim() === userToSuspend.email;
+            if (suspendCountdown <= 0 && emailMatch) {
+                confirmSuspendBtn.disabled = false;
+                confirmSuspendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                confirmSuspendBtn.disabled = true;
+                confirmSuspendBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        suspendConfirmInput.addEventListener('input', checkSuspendConfirmation);
+
+        cancelSuspendBtn.addEventListener('click', () => {
+            suspendModal.classList.add('hidden');
+            clearInterval(suspendCountdownTimer);
+            userToSuspend = null;
+        });
+
+        confirmSuspendBtn.addEventListener('click', async () => {
+            const uid = userToSuspend.uid;
+            const isCurrentlySuspended = userToSuspend.isSuspended;
+            
+            suspendModal.classList.add('hidden');
+            clearInterval(suspendCountdownTimer);
+            
+            setStatus(`${isCurrentlySuspended ? 'Unsuspending' : 'Suspending'} user...`, false);
+
+            try {
+                const result = await userManager.toggleUserSuspension(uid, isCurrentlySuspended);
+                if (result.success) {
+                    setStatus(`User ${uid} ${result.is_suspended ? 'suspended' : 'unsuspended'} successfully.`);
+                }
+            } catch (error) {
+                console.error("Suspension toggle failed:", error);
+                setStatus(`Failed to update user: ${error.message}`, true);
+            } finally {
+                userToSuspend = null;
+            }
+        });
 
         function showDeleteModal(user) {
             userToDelete = user;
@@ -483,6 +644,11 @@
                     deleteModal.classList.add('hidden');
                     clearInterval(countdownTimer);
                     userToDelete = null;
+                }
+                if (!suspendModal.classList.contains('hidden')) {
+                    suspendModal.classList.add('hidden');
+                    clearInterval(suspendCountdownTimer);
+                    userToSuspend = null;
                 }
             }
         });
