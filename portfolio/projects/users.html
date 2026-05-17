@@ -96,6 +96,53 @@
                     </select>
                 </div>
 
+                <!-- Poortjie Roles -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Poortjie Admin</label>
+                    <select id="poortjieAdminSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All</option>
+                        <option value="true">Admin Only</option>
+                        <option value="false">Not Admin</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Taxi Rank Admin</label>
+                    <select id="poortjieTaxiAdminSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All</option>
+                        <option value="true">Taxi Admin Only</option>
+                        <option value="false">Not Taxi Admin</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Support List</label>
+                    <select id="poortjieSupportSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All</option>
+                        <option value="true">On Support List</option>
+                        <option value="false">Not on Support</option>
+                    </select>
+                </div>
+
+                <!-- Tuktuk Roles -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Tuktuk Driver</label>
+                    <select id="tuktukDriverSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All</option>
+                        <option value="true">Drivers Only</option>
+                        <option value="false">Not Drivers</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Tuktuk Owner</label>
+                    <select id="tuktukOwnerSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All</option>
+                        <option value="true">Owners Only</option>
+                        <option value="false">Not Owners</option>
+                    </select>
+                </div>
+
                 <!-- Date Range -->
                 <div class="lg:col-span-2 grid grid-cols-2 gap-2">
                     <div>
@@ -316,8 +363,14 @@
         const dateStart = document.getElementById('dateStart');
         const dateEnd = document.getElementById('dateEnd');
         const retryBtn = document.getElementById('retryBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
         const userCountBadge = document.getElementById('userCountBadge');
+
+        // Role Selects
+        const poortjieAdminSelect = document.getElementById('poortjieAdminSelect');
+        const poortjieTaxiAdminSelect = document.getElementById('poortjieTaxiAdminSelect');
+        const poortjieSupportSelect = document.getElementById('poortjieSupportSelect');
+        const tuktukDriverSelect = document.getElementById('tuktukDriverSelect');
+        const tuktukOwnerSelect = document.getElementById('tuktukOwnerSelect');
 
         // Modal elements
         const deleteModal = document.getElementById('deleteModal');
@@ -426,6 +479,40 @@
                             ${user.delete_pending ? '<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">Delete Pending</span>' : ''}
                             ${user.is_suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider rounded">Suspended</span>' : ''}
                         </div>
+                        
+                        <!-- Roles Section -->
+                        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
+                            <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">Poortjie Roles</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.is_admin ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.user_id}" data-role="poortjie.is_admin" data-status="${!!user.roles?.poortjie?.is_admin}">
+                                    ADMIN
+                                </button>
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.is_taxi_rank_admin ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.user_id}" data-role="poortjie.is_taxi_rank_admin" data-status="${!!user.roles?.poortjie?.is_taxi_rank_admin}">
+                                    TAXI ADMIN
+                                </button>
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.list_for_support ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.user_id}" data-role="poortjie.list_for_support" data-status="${!!user.roles?.poortjie?.list_for_support}">
+                                    SUPPORT
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="pt-3">
+                            <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">Tuktuk Roles</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.tuktuk?.is_driver ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.user_id}" data-role="tuktuk.is_driver" data-status="${!!user.roles?.tuktuk?.is_driver}">
+                                    DRIVER
+                                </button>
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.tuktuk?.is_owner ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.user_id}" data-role="tuktuk.is_owner" data-status="${!!user.roles?.tuktuk?.is_owner}">
+                                    OWNER
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="mt-4 grid grid-cols-2 gap-2 text-[10px] uppercase font-bold tracking-widest text-slate-400">
                             <div>
                                 <p>Created</p>
@@ -469,6 +556,28 @@
                         showImageViewer(e.target.dataset.full, e.target.dataset.name);
                     });
                 }
+
+                card.querySelectorAll('.role-toggle').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const target = e.currentTarget;
+                        const uid = target.dataset.uid;
+                        const role = target.dataset.role;
+                        const currentStatus = target.dataset.status === 'true';
+                        
+                        target.disabled = true;
+                        target.classList.add('opacity-50');
+                        
+                        try {
+                            await userManager.toggleUserRole(uid, role, currentStatus);
+                            // The listener in init will handle the update
+                        } catch (error) {
+                            console.error("Role toggle failed:", error);
+                            setStatus(`Failed to toggle role: ${error.message}`, true);
+                            target.disabled = false;
+                            target.classList.remove('opacity-50');
+                        }
+                    });
+                });
 
                 usersList.appendChild(card);
             });
@@ -756,6 +865,12 @@
             userManager.setFilter('dateStart', dateStart.value);
             userManager.setFilter('dateEnd', dateEnd.value);
             
+            userManager.setFilter('poortjieAdmin', poortjieAdminSelect.value);
+            userManager.setFilter('poortjieTaxiAdmin', poortjieTaxiAdminSelect.value);
+            userManager.setFilter('poortjieSupport', poortjieSupportSelect.value);
+            userManager.setFilter('tuktukDriver', tuktukDriverSelect.value);
+            userManager.setFilter('tuktukOwner', tuktukOwnerSelect.value);
+            
             renderUsers(userManager.applyFilters(userManager.users));
         };
 
@@ -766,6 +881,12 @@
         hasUsernameSelect.addEventListener('change', updateFilters);
         dateStart.addEventListener('change', updateFilters);
         dateEnd.addEventListener('change', updateFilters);
+        
+        poortjieAdminSelect.addEventListener('change', updateFilters);
+        poortjieTaxiAdminSelect.addEventListener('change', updateFilters);
+        poortjieSupportSelect.addEventListener('change', updateFilters);
+        tuktukDriverSelect.addEventListener('change', updateFilters);
+        tuktukOwnerSelect.addEventListener('change', updateFilters);
 
         retryBtn.addEventListener('click', () => {
             errorState.classList.add('hidden');

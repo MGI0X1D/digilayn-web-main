@@ -23,7 +23,12 @@ class UserManagement {
       hasUsername: "all",
       dateStart: null,
       dateEnd: null,
-      sortBy: "newest"
+      sortBy: "newest",
+      poortjieAdmin: "all",
+      poortjieTaxiAdmin: "all",
+      poortjieSupport: "all",
+      tuktukDriver: "all",
+      tuktukOwner: "all"
     };
     this.deleteUserFully = httpsCallable(functions, 'deleteUserFully');
   }
@@ -92,6 +97,30 @@ class UserManagement {
       filtered = filtered.filter(u => !!u.username === has);
     }
 
+    // Poortjie Roles
+    if (this.filters.poortjieAdmin !== "all") {
+      const val = this.filters.poortjieAdmin === "true";
+      filtered = filtered.filter(u => !!u.roles?.poortjie?.is_admin === val);
+    }
+    if (this.filters.poortjieTaxiAdmin !== "all") {
+      const val = this.filters.poortjieTaxiAdmin === "true";
+      filtered = filtered.filter(u => !!u.roles?.poortjie?.is_taxi_rank_admin === val);
+    }
+    if (this.filters.poortjieSupport !== "all") {
+      const val = this.filters.poortjieSupport === "true";
+      filtered = filtered.filter(u => !!u.roles?.poortjie?.list_for_support === val);
+    }
+
+    // Tuktuk Roles
+    if (this.filters.tuktukDriver !== "all") {
+      const val = this.filters.tuktukDriver === "true";
+      filtered = filtered.filter(u => !!u.roles?.tuktuk?.is_driver === val);
+    }
+    if (this.filters.tuktukOwner !== "all") {
+      const val = this.filters.tuktukOwner === "true";
+      filtered = filtered.filter(u => !!u.roles?.tuktuk?.is_owner === val);
+    }
+
     // Date Range
     if (this.filters.dateStart) {
       const start = new Date(this.filters.dateStart).getTime();
@@ -146,6 +175,17 @@ class UserManagement {
       updated_at: Timestamp.now()
     });
     return { success: true, is_suspended: !isSuspended };
+  }
+
+  async toggleUserRole(uid, rolePath, currentStatus) {
+    console.log(`Toggling role ${rolePath} for UID: ${uid} to ${!currentStatus}`);
+    const userRef = doc(db, "users", uid);
+    const updateData = {
+      [`roles.${rolePath}`]: !currentStatus,
+      updated_at: Timestamp.now()
+    };
+    await updateDoc(userRef, updateData);
+    return { success: true };
   }
 
   destroy() {
