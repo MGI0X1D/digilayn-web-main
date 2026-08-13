@@ -32,42 +32,45 @@
   color-scheme: dark;
 }
 
-/* ---------- Light theme (follows system preference) ---------- */
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f3f5f8;
-    --bg-elevated: #ffffff;
-    --panel: #ffffff;
-    --panel-2: #eef1f5;
-    --border: #dde3ea;
-    --text: #1a2029;
-    --text-dim: #566372;
-    --text-faint: #8592a0;
+/* ---------- Light theme ----------
+   Driven by the shared site theme.js, which adds/removes the `dark` class on
+   <html> from the user toggle + localStorage (with a system-preference
+   fallback). This keeps dark/light behaviour identical to the rest of the
+   Digilayn site instead of relying on the OS preference alone. Dark remains the
+   default (:root above); light applies whenever <html> is NOT `.dark`. */
+html:not(.dark) {
+  --bg: #f3f5f8;
+  --bg-elevated: #ffffff;
+  --panel: #ffffff;
+  --panel-2: #eef1f5;
+  --border: #dde3ea;
+  --text: #1a2029;
+  --text-dim: #566372;
+  --text-faint: #8592a0;
 
-    /* Brand stays; tints deepen slightly for contrast on white. */
-    --success-bg: rgba(34, 197, 94, 0.14);
-    --danger-bg: rgba(239, 68, 68, 0.12);
-    --warn-bg: rgba(245, 158, 11, 0.16);
-    --info-bg: rgba(59, 130, 246, 0.12);
+  /* Brand stays; tints deepen slightly for contrast on white. */
+  --success-bg: rgba(34, 197, 94, 0.14);
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --warn-bg: rgba(245, 158, 11, 0.16);
+  --info-bg: rgba(59, 130, 246, 0.12);
 
-    --shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
 
-    color-scheme: light;
-  }
-
-  /* Login backdrop: soft light wash instead of the dark spotlight. */
-  .login-view {
-    background: radial-gradient(1200px 600px at 50% -10%, #ffffff 0%, var(--bg) 60%);
-  }
-
-  /* Badge text needs darker ink to stay legible on the light tints. */
-  .badge-pending, .badge-rating { color: #92600a; }
-  .badge-approved, .badge-online { color: #15803d; }
-  .badge-rejected, .badge-suspended { color: #b91c1c; }
-  .badge-driver { color: #1d4ed8; }
-  .badge-offline { color: var(--text-faint); }
-  .login-error { color: #b91c1c; }
+  color-scheme: light;
 }
+
+/* Login backdrop: soft light wash instead of the dark spotlight. */
+html:not(.dark) .login-view {
+  background: radial-gradient(1200px 600px at 50% -10%, #ffffff 0%, var(--bg) 60%);
+}
+
+/* Badge text needs darker ink to stay legible on the light tints. */
+html:not(.dark) .badge-pending, html:not(.dark) .badge-rating { color: #92600a; }
+html:not(.dark) .badge-approved, html:not(.dark) .badge-online { color: #15803d; }
+html:not(.dark) .badge-rejected, html:not(.dark) .badge-suspended { color: #b91c1c; }
+html:not(.dark) .badge-driver { color: #1d4ed8; }
+html:not(.dark) .badge-offline { color: var(--text-faint); }
+html:not(.dark) .login-error { color: #b91c1c; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 

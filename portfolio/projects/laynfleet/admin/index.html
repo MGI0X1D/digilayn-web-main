@@ -10,7 +10,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="manager.css" />
+  <!-- Shared site theme handler: sets the `dark` class on <html> from the user
+       toggle + localStorage (system fallback), keeping dark/light consistent
+       with the rest of the Digilayn site. Loaded in <head> to avoid a flash. -->
+  <script src="../../../../scripts/theme.js"></script>
+
+  <link rel="stylesheet" href="../../security/manager.css" />
 </head>
 <body>
   <!-- ===================== LOGIN GATE ===================== -->
@@ -170,7 +175,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <script src="firebase-config.js"></script>
-  <script src="manager.js"></script>
+  <script src="../../security/firebase-config.js"></script>
+  <script src="../../security/manager.js"></script>
 </body>
 </html>
