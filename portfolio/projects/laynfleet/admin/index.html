@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>LaynFleet — Manager</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="manager.css" />
+</head>
+<body>
+  <!-- ===================== LOGIN GATE ===================== -->
+  <div id="login-view" class="login-view is-hidden">
+    <form id="login-form" class="login-card" autocomplete="on">
+      <div class="login-brand">
+        <span class="login-logo">LF</span>
+        <div>
+          <h1 class="login-title">LaynFleet</h1>
+          <p class="login-subtitle">Manager console</p>
+        </div>
+      </div>
+
+      <label class="field">
+        <span class="field-label">Email</span>
+        <input id="login-email" type="email" class="field-input" placeholder="manager@example.com" required autocomplete="username" />
+      </label>
+
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input id="login-password" type="password" class="field-input" placeholder="••••••••" required autocomplete="current-password" />
+      </label>
+
+      <p id="login-error" class="login-error is-hidden"></p>
+
+      <button id="login-submit" type="submit" class="btn btn-primary btn-block">Sign in</button>
+      <p class="login-note">Restricted access. Only the authorised manager account may sign in.</p>
+    </form>
+  </div>
+
+  <!-- ===================== BOOT / SPLASH ===================== -->
+  <div id="boot-view" class="boot-view">
+    <div class="spinner"></div>
+    <p>Loading…</p>
+  </div>
+
+  <!-- ===================== APP ===================== -->
+  <div id="app-view" class="app-view is-hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-logo">LF</span>
+        <div class="sidebar-brand-text">
+          <strong>LaynFleet</strong>
+          <span>Manager</span>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <button class="nav-item is-active" data-section="overview"><span class="nav-glyph">▦</span> Overview</button>
+        <button class="nav-item" data-section="drivers"><span class="nav-glyph">🚗</span> Drivers <span id="nav-badge-drivers" class="nav-badge is-hidden">0</span></button>
+        <button class="nav-item" data-section="riders"><span class="nav-glyph">🧑</span> Riders</button>
+        <button class="nav-item" data-section="bookings"><span class="nav-glyph">🧾</span> Bookings</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <span id="sidebar-avatar" class="sidebar-avatar">M</span>
+          <span id="sidebar-email" class="sidebar-user-email">—</span>
+        </div>
+        <button id="logout-btn" class="btn btn-ghost btn-block">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <h2 id="section-title" class="section-title">Overview</h2>
+          <p id="section-subtitle" class="section-subtitle">Live operations across LaynFleet</p>
+        </div>
+        <div class="topbar-actions">
+          <input id="search-input" type="search" class="search-input" placeholder="Search name, phone, plate…" />
+        </div>
+      </header>
+
+      <!-- OVERVIEW -->
+      <section id="section-overview" class="section is-active">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-label">Pending applications</span>
+            <strong id="stat-pending" class="stat-value">—</strong>
+            <span class="stat-hint">Drivers awaiting approval</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Approved drivers</span>
+            <strong id="stat-approved" class="stat-value">—</strong>
+            <span class="stat-hint" id="stat-online-hint">— online now</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Riders</span>
+            <strong id="stat-riders" class="stat-value">—</strong>
+            <span class="stat-hint">Placed a ride request</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Active bookings</span>
+            <strong id="stat-bookings" class="stat-value">—</strong>
+            <span class="stat-hint">In progress right now</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Pending driver applications</h3>
+            <button class="btn btn-link" data-goto="drivers">View all</button>
+          </div>
+          <div id="overview-pending" class="card-list"></div>
+        </div>
+      </section>
+
+      <!-- DRIVERS -->
+      <section id="section-drivers" class="section">
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" data-driver-tab="PENDING">Pending <span id="count-pending" class="tab-count">0</span></button>
+          <button class="tab" data-driver-tab="APPROVED">Approved <span id="count-approved" class="tab-count">0</span></button>
+          <button class="tab" data-driver-tab="REJECTED">Rejected <span id="count-rejected" class="tab-count">0</span></button>
+        </div>
+        <div id="drivers-list" class="card-list"></div>
+      </section>
+
+      <!-- RIDERS -->
+      <section id="section-riders" class="section">
+        <div id="riders-list" class="table-wrap"></div>
+      </section>
+
+      <!-- BOOKINGS -->
+      <section id="section-bookings" class="section">
+        <div id="bookings-list" class="table-wrap"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===================== MODAL ===================== -->
+  <div id="modal-overlay" class="modal-overlay is-hidden">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modal-title" class="modal-title">Confirm</h3>
+      <p id="modal-message" class="modal-message"></p>
+      <label id="modal-reason-wrap" class="field is-hidden">
+        <span class="field-label">Reason</span>
+        <textarea id="modal-reason" class="field-input" rows="3" placeholder="Give a clear reason…"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-ghost">Cancel</button>
+        <button id="modal-confirm" class="btn btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TOAST ===================== -->
+  <div id="toast" class="toast is-hidden"></div>
+
+  <!-- ===================== IMAGE VIEWER ===================== -->
+  <div id="image-overlay" class="image-overlay is-hidden">
+    <img id="image-full" src="" alt="Document" />
+  </div>
+
+  <!-- Firebase (compat v9.23.0 — matches the rest of web-poortjie) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script src="firebase-config.js"></script>
+  <script src="manager.js"></script>
+</body>
+</html>
