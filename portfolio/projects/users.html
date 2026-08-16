@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>User Management</title>
+    <title>User Management | Digilayn Admin</title>
     
     <meta name="theme-color" content="#22c55e">
     <link rel="icon" href="../../favicon/favicon.ico">
@@ -49,8 +49,8 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Search</label>
                     <div class="relative">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <label for="searchInput"></label><input type="text" id="searchInput" placeholder="Search name, username, email, phone or ID..."
-                                                                class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 transition-all outline-none">
+                        <input type="text" id="searchInput" placeholder="Search name, username, email, phone or UID..."
+                               class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 transition-all outline-none">
                     </div>
                 </div>
 
@@ -93,6 +93,16 @@
                         <option value="all">All</option>
                         <option value="true">Has Username</option>
                         <option value="false">No Username</option>
+                    </select>
+                </div>
+
+                <!-- LaynFleet Driver Application -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">LaynFleet Driver</label>
+                    <select id="laynFleetDriverSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All</option>
+                        <option value="true">Driver Only</option>
+                        <option value="false">Not Driver</option>
                     </select>
                 </div>
 
@@ -193,7 +203,7 @@
                 
                 <h3 class="text-2xl font-bold mb-2">Permanently delete user?</h3>
                 <p class="text-slate-500 dark:text-slate-400 mb-6">
-                    This will permanently delete this user from Firebase Auth, Firestore, username reservation, and Firebase Storage. This action cannot be undone.
+                    This will permanently delete this user from Firestore and release their username. This action cannot be undone.
                 </p>
 
                 <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6 text-sm space-y-2">
@@ -360,6 +370,7 @@
         const deletePendingSelect = document.getElementById('deletePendingSelect');
         const suspendedSelect = document.getElementById('suspendedSelect');
         const hasUsernameSelect = document.getElementById('hasUsernameSelect');
+        const laynFleetDriverSelect = document.getElementById('laynFleetDriverSelect');
         const dateStart = document.getElementById('dateStart');
         const dateEnd = document.getElementById('dateEnd');
         const retryBtn = document.getElementById('retryBtn');
@@ -383,6 +394,20 @@
         const countdownText = document.getElementById('countdownText');
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
         const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+        // Suspend Modal elements
+        const suspendModal = document.getElementById('suspendModal');
+        const suspendModalTitle = document.getElementById('suspendModalTitle');
+        const suspendModalDescription = document.getElementById('suspendModalDescription');
+        const suspendModalDisplayName = document.getElementById('suspendModalDisplayName');
+        const suspendModalUsername = document.getElementById('suspendModalUsername');
+        const suspendModalEmail = document.getElementById('suspendModalEmail');
+        const suspendConfirmEmailHint = document.getElementById('suspendConfirmEmailHint');
+        const suspendConfirmInput = document.getElementById('suspendConfirmInput');
+        const suspendCountdownText = document.getElementById('suspendCountdownText');
+        const confirmSuspendBtn = document.getElementById('confirmSuspendBtn');
+        const cancelSuspendBtn = document.getElementById('cancelSuspendBtn');
+        const suspendModalIcon = document.getElementById('suspendModalIcon');
 
         // Image Viewer elements
         const imageViewerModal = document.getElementById('imageViewerModal');
@@ -414,8 +439,12 @@
 
         function formatDate(ts) {
             if (!ts) return 'N/A';
-            const date = ts.toDate ? ts.toDate() : new Date(ts);
-            return date.toLocaleString();
+            if (typeof ts.toDate === 'function') return ts.toDate().toLocaleString();
+            if (typeof ts.toMillis === 'function') return new Date(ts.toMillis()).toLocaleString();
+            if (ts._seconds !== undefined) return new Date(ts._seconds * 1000).toLocaleString();
+            if (typeof ts === 'number') return new Date(ts).toLocaleString();
+            const parsed = new Date(ts);
+            return isNaN(parsed.getTime()) ? 'N/A' : parsed.toLocaleString();
         }
 
         function renderUsers(users) {
@@ -441,29 +470,33 @@
                 const card = document.createElement('div');
                 card.className = "bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-between";
                 
-                if (user.delete_pending) {
+                if (user.deletePending) {
                     card.classList.add('border-red-500/50', 'bg-red-50/10');
                 }
 
-                const photoHtml = user.photo_url 
-                    ? `<img src="${user.photo_url}" class="profile-pic w-12 h-12 rounded-full object-cover bg-slate-200 cursor-zoom-in hover:ring-2 hover:ring-green-500 transition-all" data-full="${user.photo_url}" data-name="${user.display_name || 'User'}">`
-                    : `<div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 flex items-center justify-center font-bold text-xl">${(user.display_name || '?')[0]}</div>`;
+                const photoHtml = user.photoUrl 
+                    ? `<img src="${user.photoUrl}" class="profile-pic w-12 h-12 rounded-full object-cover bg-slate-200 cursor-zoom-in hover:ring-2 hover:ring-green-500 transition-all" data-full="${user.photoUrl}" data-name="${user.displayName || 'User'}">`
+                    : `<div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 flex items-center justify-center font-bold text-xl">${(user.displayName || '?')[0]}</div>`;
+
+                const isLaynFleetDriver = !!user.applications?.laynFleet?.isDriver;
 
                 card.innerHTML = `
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center gap-3">
                             ${photoHtml}
                             <div>
-                                <h4 class="font-bold text-lg leading-none">${user.display_name || 'No Name'}</h4>
+                                <h4 class="font-bold text-lg leading-none">${user.displayName || 'No Name'}</h4>
                                 <p class="text-sm text-green-600 font-medium mt-1">@${user.username || 'no-username'}</p>
                             </div>
                         </div>
-                        <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-2" data-uid="${user.user_id}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.display_name || ''}" data-suspended="${!!user.is_suspended}" title="${user.is_suspended ? 'Unsuspend' : 'Suspend'}">
-                            <i class="fas ${user.is_suspended ? 'fa-user-check' : 'fa-user-slash'}"></i>
-                        </button>
-                        <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors p-2" data-uid="${user.user_id}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.display_name || ''}">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        <div class="flex items-center gap-1">
+                            <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-2" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" data-suspended="${user.suspended}" title="${user.suspended ? 'Unsuspend' : 'Suspend'}">
+                                <i class="fas ${user.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
+                            </button>
+                            <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors p-2" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" title="Permanently Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="space-y-2 text-sm">
@@ -476,38 +509,51 @@
                             <span>${user.phone || 'No Phone'}</span>
                         </div>
                         <div class="pt-2 flex flex-wrap gap-2">
-                            ${user.delete_pending ? '<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">Delete Pending</span>' : ''}
-                            ${user.is_suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider rounded">Suspended</span>' : ''}
+                            ${user.deletePending ? '<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">Delete Pending</span>' : ''}
+                            ${user.suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider rounded">Suspended</span>' : ''}
+                            ${isLaynFleetDriver ? '<span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded">LaynFleet Driver</span>' : ''}
                         </div>
                         
-                        <!-- Roles Section -->
+                        <!-- LaynFleet Application Section -->
                         <div class="pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
+                            <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">LaynFleet Application</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="driver-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${isLaynFleetDriver ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.userId}" data-status="${isLaynFleetDriver}">
+                                    ${isLaynFleetDriver ? '✓ DRIVER ACTIVE' : 'MAKE DRIVER'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Poortjie Roles Section -->
+                        <div class="pt-3">
                             <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">Poortjie Roles</p>
                             <div class="flex flex-wrap gap-2">
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.is_admin ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.user_id}" data-role="poortjie.is_admin" data-status="${!!user.roles?.poortjie?.is_admin}">
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.isAdmin ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.userId}" data-role="poortjie.isAdmin" data-status="${!!user.roles?.poortjie?.isAdmin}">
                                     ADMIN
                                 </button>
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.is_taxi_rank_admin ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.user_id}" data-role="poortjie.is_taxi_rank_admin" data-status="${!!user.roles?.poortjie?.is_taxi_rank_admin}">
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.isTaxiRankAdmin ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.userId}" data-role="poortjie.isTaxiRankAdmin" data-status="${!!user.roles?.poortjie?.isTaxiRankAdmin}">
                                     TAXI ADMIN
                                 </button>
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.list_for_support ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.user_id}" data-role="poortjie.list_for_support" data-status="${!!user.roles?.poortjie?.list_for_support}">
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.listForSupport ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.userId}" data-role="poortjie.listForSupport" data-status="${!!user.roles?.poortjie?.listForSupport}">
                                     SUPPORT
                                 </button>
                             </div>
                         </div>
 
+                        <!-- Tuktuk Roles Section -->
                         <div class="pt-3">
                             <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">Tuktuk Roles</p>
                             <div class="flex flex-wrap gap-2">
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.tuktuk?.is_driver ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.user_id}" data-role="tuktuk.is_driver" data-status="${!!user.roles?.tuktuk?.is_driver}">
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.tuktuk?.isDriver ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.userId}" data-role="tuktuk.isDriver" data-status="${!!user.roles?.tuktuk?.isDriver}">
                                     DRIVER
                                 </button>
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.tuktuk?.is_owner ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.user_id}" data-role="tuktuk.is_owner" data-status="${!!user.roles?.tuktuk?.is_owner}">
+                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.tuktuk?.isOwner ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
+                                    data-uid="${user.userId}" data-role="tuktuk.isOwner" data-status="${!!user.roles?.tuktuk?.isOwner}">
                                     OWNER
                                 </button>
                             </div>
@@ -516,15 +562,15 @@
                         <div class="mt-4 grid grid-cols-2 gap-2 text-[10px] uppercase font-bold tracking-widest text-slate-400">
                             <div>
                                 <p>Created</p>
-                                <p class="text-slate-500">${formatDate(user.created_at)}</p>
+                                <p class="text-slate-500">${formatDate(user.createdAt)}</p>
                             </div>
                             <div>
                                 <p>Updated</p>
-                                <p class="text-slate-500">${formatDate(user.updated_at)}</p>
+                                <p class="text-slate-500">${formatDate(user.updatedAt)}</p>
                             </div>
                         </div>
                         <div class="mt-2 text-[10px] font-mono opacity-30 truncate">
-                            ID: ${user.user_id}
+                            UID: ${user.userId}
                         </div>
                     </div>
                 `;
@@ -557,6 +603,28 @@
                     });
                 }
 
+                const driverToggleBtn = card.querySelector('.driver-toggle');
+                if (driverToggleBtn) {
+                    driverToggleBtn.addEventListener('click', async (e) => {
+                        const target = e.currentTarget;
+                        const uid = target.dataset.uid;
+                        const currentStatus = target.dataset.status === 'true';
+                        
+                        target.disabled = true;
+                        target.classList.add('opacity-50');
+                        
+                        try {
+                            await userManager.toggleLaynFleetDriver(uid, currentStatus);
+                            setStatus(`Driver status ${currentStatus ? 'removed' : 'granted'} for ${uid}.`);
+                        } catch (error) {
+                            console.error("Driver toggle failed:", error);
+                            setStatus(`Failed to toggle driver status: ${error.message}`, true);
+                            target.disabled = false;
+                            target.classList.remove('opacity-50');
+                        }
+                    });
+                }
+
                 card.querySelectorAll('.role-toggle').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const target = e.currentTarget;
@@ -569,7 +637,6 @@
                         
                         try {
                             await userManager.toggleUserRole(uid, role, currentStatus);
-                            // The listener in init will handle the update
                         } catch (error) {
                             console.error("Role toggle failed:", error);
                             setStatus(`Failed to toggle role: ${error.message}`, true);
@@ -592,9 +659,9 @@
                 ? 'This will restore user access to their account.' 
                 : 'Suspending this user will prevent them from accessing their account. This can be undone later.';
             
-            suspendModalDisplayName.textContent = user.displayName;
+            suspendModalDisplayName.textContent = user.displayName || 'No Name';
             suspendModalUsername.textContent = `@${user.username || 'no-username'}`;
-            suspendModalEmail.textContent = user.email;
+            suspendModalEmail.textContent = user.email || 'No Email';
             suspendConfirmEmailHint.textContent = `(${user.email})`;
             
             suspendModalIcon.className = `w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl ${isSuspended ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500'}`;
@@ -632,7 +699,7 @@
         }
 
         function checkSuspendConfirmation() {
-            const emailMatch = suspendConfirmInput.value.trim() === userToSuspend.email;
+            const emailMatch = suspendConfirmInput.value.trim().toLowerCase() === (userToSuspend?.email || '').toLowerCase();
             if (suspendCountdown <= 0 && emailMatch) {
                 confirmSuspendBtn.disabled = false;
                 confirmSuspendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -662,7 +729,7 @@
             try {
                 const result = await userManager.toggleUserSuspension(uid, isCurrentlySuspended);
                 if (result.success) {
-                    setStatus(`User ${uid} ${result.is_suspended ? 'suspended' : 'unsuspended'} successfully.`);
+                    setStatus(`User ${uid} ${result.suspended ? 'suspended' : 'unsuspended'} successfully.`);
                 }
             } catch (error) {
                 console.error("Suspension toggle failed:", error);
@@ -674,9 +741,9 @@
 
         function showDeleteModal(user) {
             userToDelete = user;
-            modalDisplayName.textContent = user.displayName;
+            modalDisplayName.textContent = user.displayName || 'No Name';
             modalUsername.textContent = `@${user.username || 'no-username'}`;
-            modalEmail.textContent = user.email;
+            modalEmail.textContent = user.email || 'No Email';
             modalUid.textContent = user.uid;
             confirmEmailHint.textContent = `(${user.email})`;
             
@@ -710,7 +777,7 @@
         }
 
         function checkConfirmation() {
-            const emailMatch = deleteConfirmInput.value.trim() === userToDelete.email;
+            const emailMatch = deleteConfirmInput.value.trim().toLowerCase() === (userToDelete?.email || '').toLowerCase();
             if (countdown <= 0 && emailMatch) {
                 confirmDeleteBtn.disabled = false;
                 confirmDeleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -733,19 +800,18 @@
             fullSizeImage.src = url;
             imageViewerCaption.textContent = name;
             imageViewerModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
+            document.body.style.overflow = 'hidden';
         }
 
         function closeImageViewer() {
             imageViewerModal.classList.add('hidden');
             fullSizeImage.src = '';
-            document.body.style.overflow = ''; // Restore scrolling
+            document.body.style.overflow = '';
         }
 
         closeImageViewerBtn.addEventListener('click', closeImageViewer);
         imageViewerCloseOverlay.addEventListener('click', closeImageViewer);
         
-        // Close on Escape key
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeImageViewer();
@@ -769,7 +835,6 @@
             deleteModal.classList.add('hidden');
             clearInterval(countdownTimer);
             
-            // Show loading in status
             setStatus("Initiating permanent deletion...", false);
 
             try {
@@ -777,7 +842,7 @@
                 const result = await userManager.deleteUser(uid, username);
                 if (result.success) {
                     console.log(`User ${uid} deleted successfully.`);
-                    setStatus(`User ${uid} deleted successfully. Storage files: ${result.deleted_storage_files}`);
+                    setStatus(`User ${uid} deleted successfully.`);
                 }
             } catch (error) {
                 console.error("Delete failed:", error);
@@ -796,7 +861,6 @@
                 adminPanel.classList.remove('hidden');
                 navBar.classList.remove('hidden');
                 
-                console.log("Users.html: Showing loading state...");
                 loadingState.classList.remove('hidden');
                 usersList.classList.add('hidden');
                 emptyState.classList.add('hidden');
@@ -809,7 +873,6 @@
                         console.log(`Users.html: Received ${filteredUsers.length} users after filtering.`);
                         loadingState.classList.add('hidden');
                         
-                        // Always update count even if zero
                         userCountBadge.textContent = filteredUsers.length;
                         userCountBadge.classList.remove('hidden');
 
@@ -862,6 +925,7 @@
             userManager.setFilter('deletePending', deletePendingSelect.value);
             userManager.setFilter('suspended', suspendedSelect.value);
             userManager.setFilter('hasUsername', hasUsernameSelect.value);
+            userManager.setFilter('laynFleetDriver', laynFleetDriverSelect.value);
             userManager.setFilter('dateStart', dateStart.value);
             userManager.setFilter('dateEnd', dateEnd.value);
             
@@ -879,6 +943,7 @@
         deletePendingSelect.addEventListener('change', updateFilters);
         suspendedSelect.addEventListener('change', updateFilters);
         hasUsernameSelect.addEventListener('change', updateFilters);
+        laynFleetDriverSelect.addEventListener('change', updateFilters);
         dateStart.addEventListener('change', updateFilters);
         dateEnd.addEventListener('change', updateFilters);
         
