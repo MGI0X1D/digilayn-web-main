@@ -34,7 +34,8 @@
     drivers: 'drivers',
     riders: 'riders',
     bookings: 'bookings',
-    adminActions: 'adminActions'
+    adminActions: 'adminActions',
+    reviews: 'reviews'
   };
 
   // Provenance strings written by the apps at registration.

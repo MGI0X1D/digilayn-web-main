@@ -68,6 +68,7 @@
         <button class="nav-item" data-section="drivers"><span class="nav-glyph">🚗</span> Drivers <span id="nav-badge-drivers" class="nav-badge is-hidden">0</span></button>
         <button class="nav-item" data-section="riders"><span class="nav-glyph">🧑</span> Riders</button>
         <button class="nav-item" data-section="bookings"><span class="nav-glyph">🧾</span> Bookings</button>
+        <button class="nav-item" data-section="reviews"><span class="nav-glyph">⭐</span> Reviews <span id="nav-badge-reviews" class="nav-badge is-hidden">0</span></button>
       </nav>
 
       <div class="sidebar-footer">
@@ -113,14 +114,27 @@
             <strong id="stat-bookings" class="stat-value">—</strong>
             <span class="stat-hint">In progress right now</span>
           </div>
+          <div class="stat-card">
+            <span class="stat-label">Fleet rating & reviews</span>
+            <strong id="stat-fleet-rating" class="stat-value">—</strong>
+            <span class="stat-hint" id="stat-fleet-reviews-hint">— reviews recorded</span>
+          </div>
         </div>
 
-        <div class="panel">
+        <div class="panel" style="margin-bottom: 16px;">
           <div class="panel-head">
             <h3>Pending driver applications</h3>
             <button class="btn btn-link" data-goto="drivers">View all</button>
           </div>
           <div id="overview-pending" class="card-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Reviews requiring scrutiny</h3>
+            <button class="btn btn-link" data-goto="reviews">View all reviews</button>
+          </div>
+          <div id="overview-scrutiny-reviews" class="card-list"></div>
         </div>
       </section>
 
@@ -257,6 +271,138 @@
 
         <div id="bookings-list" class="table-wrap"></div>
       </section>
+
+      <!-- REVIEWS & MODERATION -->
+      <section id="section-reviews" class="section">
+        <!-- Review KPI Stat Grid -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-label">Average Fleet Rating</span>
+            <strong id="stat-rev-avg" class="stat-value">—</strong>
+            <span class="stat-hint" id="stat-rev-breakdown">— total reviews</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Needs Scrutiny</span>
+            <strong id="stat-rev-scrutiny" class="stat-value">—</strong>
+            <span class="stat-hint">≤ 2 stars or reported</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">5-Star Satisfaction</span>
+            <strong id="stat-rev-5star-rate" class="stat-value">—</strong>
+            <span class="stat-hint" id="stat-rev-5star-count">— top ratings</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Hidden / Suppressed</span>
+            <strong id="stat-rev-hidden" class="stat-value">—</strong>
+            <span class="stat-hint">Hidden from public app</span>
+          </div>
+        </div>
+
+        <!-- Quick Tabs for Reviews -->
+        <div class="tabs" role="tablist" id="review-quick-tabs">
+          <button class="tab is-active" data-review-tab="all">All Reviews <span id="count-rev-all" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="scrutiny">Needs Scrutiny <span id="count-rev-scrutiny" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="5star">5 Stars <span id="count-rev-5star" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="4star">4 Stars <span id="count-rev-4star" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="3star">3 Stars <span id="count-rev-3star" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="low">Low (1-2 Stars) <span id="count-rev-low" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="hidden">Hidden <span id="count-rev-hidden" class="tab-count">0</span></button>
+        </div>
+
+        <!-- Filter Controls Panel for Reviews -->
+        <div class="filter-panel">
+          <div class="filter-grid">
+            <!-- Search -->
+            <div class="filter-search-group filter-group">
+              <label class="filter-label" for="review-filter-search">Search Reviews</label>
+              <input id="review-filter-search" type="search" class="field-input filter-input" placeholder="Search reviewer, driver, phone, booking ID, comment…" />
+            </div>
+
+            <!-- Star Rating Filter -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-stars">Rating</label>
+              <select id="review-filter-stars" class="field-input filter-select">
+                <option value="all">All Ratings</option>
+                <option value="5">5 Stars (★★★★★)</option>
+                <option value="4">4 Stars (★★★★☆)</option>
+                <option value="3">3 Stars (★★★☆☆)</option>
+                <option value="2">2 Stars (★★☆☆☆)</option>
+                <option value="1">1 Star (★☆☆☆☆)</option>
+                <option value="low">Low (1-2 Stars)</option>
+              </select>
+            </div>
+
+            <!-- Review Target / Type -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-type">Review Type</label>
+              <select id="review-filter-type" class="field-input filter-select">
+                <option value="all">All Reviews</option>
+                <option value="driver">Rider → Driver</option>
+                <option value="rider">Driver → Rider</option>
+              </select>
+            </div>
+
+            <!-- Moderation / Visibility Status -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-status">Moderation Status</label>
+              <select id="review-filter-status" class="field-input filter-select">
+                <option value="all">All Statuses</option>
+                <option value="visible">Visible (Public)</option>
+                <option value="hidden">Hidden (Suppressed)</option>
+                <option value="flagged">Flagged for Scrutiny</option>
+                <option value="responded">Manager Responded</option>
+              </select>
+            </div>
+
+            <!-- Date Range Preset -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-date-preset">Date Range</label>
+              <select id="review-filter-date-preset" class="field-input filter-select">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="7days">Past 7 Days</option>
+                <option value="30days">Past 30 Days</option>
+                <option value="custom">Custom Range…</option>
+              </select>
+            </div>
+
+            <!-- Custom Dates -->
+            <div id="review-custom-dates" class="filter-group is-hidden">
+              <label class="filter-label">From / To Date</label>
+              <div class="filter-date-inputs">
+                <input id="review-filter-date-start" type="date" class="field-input filter-input" title="From Date" />
+                <span class="filter-date-sep">–</span>
+                <input id="review-filter-date-end" type="date" class="field-input filter-input" title="To Date" />
+              </div>
+            </div>
+
+            <!-- Sort By -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-sort">Sort By</label>
+              <select id="review-filter-sort" class="field-input filter-select">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="rating-asc">Lowest Rating (1★ First)</option>
+                <option value="rating-desc">Highest Rating (5★ First)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Summary & Reset -->
+          <div class="filter-footer">
+            <div id="review-filter-summary" class="filter-summary">
+              Showing 0 reviews
+            </div>
+            <div class="filter-footer-actions">
+              <button id="review-filter-reset" class="btn btn-ghost btn-sm" type="button">Reset Filters</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Card List -->
+        <div id="reviews-list" class="card-list"></div>
+      </section>
     </main>
   </div>
 
@@ -289,6 +435,40 @@
       <div id="booking-modal-body" class="booking-detail-body"></div>
       <div class="modal-actions">
         <button id="booking-modal-done" class="btn btn-ghost" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== REVIEW SCRUTINY MODAL ===================== -->
+  <div id="review-detail-overlay" class="modal-overlay is-hidden">
+    <div class="modal modal-lg" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div>
+          <h3 id="review-modal-title" class="modal-title">Review Scrutiny &amp; Moderation</h3>
+          <p id="review-modal-id" class="modal-subtitle">—</p>
+        </div>
+        <button id="review-modal-close" class="btn-icon" type="button" aria-label="Close">✕</button>
+      </div>
+      <div id="review-modal-body" class="review-detail-body"></div>
+      <div class="modal-actions" id="review-modal-actions">
+        <button id="review-modal-done" class="btn btn-ghost" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CONTACT REVIEWER MODAL ===================== -->
+  <div id="contact-reviewer-overlay" class="modal-overlay is-hidden">
+    <div class="modal modal-lg" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div>
+          <h3 id="contact-modal-title" class="modal-title">Contact Reviewer</h3>
+          <p id="contact-modal-subtitle" class="modal-subtitle">—</p>
+        </div>
+        <button id="contact-modal-close" class="btn-icon" type="button" aria-label="Close">✕</button>
+      </div>
+      <div id="contact-modal-body" class="contact-modal-body"></div>
+      <div class="modal-actions">
+        <button id="contact-modal-done" class="btn btn-ghost" type="button">Done</button>
       </div>
     </div>
   </div>
