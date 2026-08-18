@@ -16,6 +16,7 @@
   global.LAYNFLEET_FIREBASE_CONFIG = {
     apiKey: 'AIzaSyANCpYHeLyWkgVtWL06xpI7XsP08xu9GPA',
     authDomain: 'digilayn-projects.firebaseapp.com',
+    databaseURL: 'https://digilayn-projects-default-rtdb.europe-west1.firebasedatabase.app',
     projectId: 'digilayn-projects',
     storageBucket: 'digilayn-projects.firebasestorage.app',
     messagingSenderId: '95485356681',
