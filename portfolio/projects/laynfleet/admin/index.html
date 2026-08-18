@@ -70,6 +70,7 @@
         <button class="nav-item" data-section="bookings"><span class="nav-glyph">🧾</span> Bookings</button>
         <button class="nav-item" data-section="reviews"><span class="nav-glyph">⭐</span> Reviews <span id="nav-badge-reviews" class="nav-badge is-hidden">0</span></button>
         <button class="nav-item" data-section="pricing"><span class="nav-glyph">🏷️</span> Pricing &amp; Governance <span id="nav-badge-pricing" class="nav-badge is-hidden">0</span></button>
+        <button class="nav-item" data-section="appcontrol"><span class="nav-glyph">⚙️</span> App Control <span id="nav-badge-appcontrol" class="nav-badge is-hidden">!</span></button>
       </nav>
 
       <div class="sidebar-footer">
@@ -450,6 +451,145 @@
             <h3>Pricing Audit Log &amp; Proposal History</h3>
           </div>
           <div id="pricing-history-table" class="table-wrap"></div>
+        </div>
+      </section>
+
+      <!-- APP CONTROL & SYSTEM STATE -->
+      <section id="section-appcontrol" class="section">
+        <!-- App State Status Overview Grid -->
+        <div class="stat-grid" style="margin-bottom: 20px;">
+          <div class="stat-card" id="card-status-rider">
+            <span class="stat-label">LaynRider (Rider App)</span>
+            <strong id="stat-app-rider-status" class="stat-value" style="font-size: 20px;">Operational</strong>
+            <span class="stat-hint" id="stat-app-rider-details">Min v1 · Live on Store</span>
+          </div>
+          <div class="stat-card" id="card-status-driver">
+            <span class="stat-label">LaynDriver (Driver App)</span>
+            <strong id="stat-app-driver-status" class="stat-value" style="font-size: 20px;">Operational</strong>
+            <span class="stat-hint" id="stat-app-driver-details">Min v1 · Live on Store</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Global Fleet State</span>
+            <strong id="stat-app-global-status" class="stat-value" style="font-size: 20px;">Active</strong>
+            <span class="stat-hint" id="stat-app-last-updated">Ready for rides</span>
+          </div>
+        </div>
+
+        <!-- Quick Tabs for App Config Selection -->
+        <div class="tabs" role="tablist" id="appcontrol-tabs">
+          <button class="tab is-active" data-app-tab="com.digilayn.laynrider">LaynRider (Rider) <span class="tab-badge-pill" id="badge-tab-rider">v1</span></button>
+          <button class="tab" data-app-tab="com.digilayn.layndriver">LaynDriver (Driver) <span class="tab-badge-pill" id="badge-tab-driver">v1</span></button>
+          <button class="tab" data-app-tab="emergency">Emergency / Kill Switch</button>
+        </div>
+
+        <!-- Main App Config Form Panel -->
+        <div id="appcontrol-form-panel" class="panel" style="margin-bottom: 24px;">
+          <div class="panel-head">
+            <div>
+              <h3 id="app-config-title">LaynRider Configuration</h3>
+              <p id="app-config-pkg" class="section-subtitle" style="font-family: monospace; font-size: 12px; margin-top: 2px;">com.digilayn.laynrider</p>
+            </div>
+            <span id="app-config-state-badge" class="badge badge-success">Operational</span>
+          </div>
+
+          <form id="app-config-form" class="app-control-form" onsubmit="return false;">
+            <!-- Maintenance Mode Card -->
+            <div class="config-block">
+              <div class="config-block-head">
+                <div>
+                  <h4 class="config-block-title">🚧 Maintenance Mode</h4>
+                  <p class="config-block-desc">When enabled, the app presents a blocking maintenance screen on launch.</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="input-app-maintenance" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div id="maintenance-details-wrap" class="config-field-wrap">
+                <label class="field">
+                  <span class="field-label">Maintenance Message</span>
+                  <input id="input-app-maintenance-msg" type="text" class="field-input" placeholder="e.g. LaynFleet is undergoing scheduled system maintenance. Please check back shortly." />
+                </label>
+                <div class="quick-preset-chips">
+                  <span class="preset-chip-label">Quick presets:</span>
+                  <button type="button" class="btn-preset-chip" data-preset="LaynFleet is undergoing scheduled system maintenance. Please check back shortly.">Standard</button>
+                  <button type="button" class="btn-preset-chip" data-preset="Routine maintenance in progress. We'll be back online in ~30 minutes.">30 Mins</button>
+                  <button type="button" class="btn-preset-chip" data-preset="Emergency server maintenance. Our team is actively resolving this.">Emergency</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Force Upgrade Card -->
+            <div class="config-block">
+              <div class="config-block-head">
+                <div>
+                  <h4 class="config-block-title">🚀 Version Policy &amp; Force Upgrade</h4>
+                  <p class="config-block-desc">Control the minimum version required to access the application.</p>
+                </div>
+              </div>
+
+              <div class="config-grid-2">
+                <label class="field">
+                  <span class="field-label">Minimum Required Version Code (Integer)</span>
+                  <input id="input-app-min-version" type="number" min="1" step="1" class="field-input" placeholder="1" required />
+                  <span class="field-help" style="color: var(--text-faint); font-size: 11px; margin-top: 4px;">Apps running a version code below this will be blocked with an upgrade prompt.</span>
+                </label>
+
+                <label class="field">
+                  <span class="field-label">Store Download / Upgrade URL</span>
+                  <input id="input-app-store-url" type="url" class="field-input" placeholder="https://play.google.com/store/apps/details?id=..." />
+                  <span class="field-help" style="color: var(--text-faint); font-size: 11px; margin-top: 4px;">Destination link opened when users tap 'Update Now'.</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- User Experience Simulator / Preview Box -->
+            <div class="config-preview-box">
+              <div class="preview-box-header">
+                <span class="preview-badge">📱 Launch Gate Simulator</span>
+                <span id="preview-sim-result" class="preview-result-pill pill-success">Passes gate (Home screen)</span>
+              </div>
+              <p id="preview-sim-text" class="preview-sim-text">Users will smoothly enter the app without interruption.</p>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="config-form-actions">
+              <button id="btn-revert-app-config" type="button" class="btn btn-ghost">Discard Changes</button>
+              <button id="btn-save-app-config" type="button" class="btn btn-primary">Save &amp; Broadcast App State</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Emergency Kill Switch Panel (Shown on Emergency tab) -->
+        <div id="appcontrol-emergency-panel" class="panel is-hidden" style="margin-bottom: 24px;">
+          <div class="panel-head">
+            <h3>⚠️ Fleet Emergency Kill Switches</h3>
+            <span class="panel-badge panel-badge-danger">High Impact</span>
+          </div>
+          <p style="color: var(--text-dim); margin-bottom: 16px; font-size: 13px;">
+            Emergency controls apply immediate system-wide locks across both LaynRider and LaynDriver. Use with caution.
+          </p>
+          <div class="emergency-actions-grid">
+            <div class="emergency-action-card">
+              <h4>🛑 Enable Full Fleet Maintenance</h4>
+              <p>Immediately blocks all riders and drivers with a maintenance screen.</p>
+              <button id="btn-emergency-all-maintenance" class="btn btn-danger btn-sm" type="button">Lock Entire Fleet</button>
+            </div>
+            <div class="emergency-action-card">
+              <h4>✅ Restore Full Fleet Operations</h4>
+              <p>Clears maintenance mode for all applications and resumes normal dispatch.</p>
+              <button id="btn-emergency-all-restore" class="btn btn-primary btn-sm" type="button">Restore All Apps</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- App State History / Audit Log -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>App State Change Audit Log</h3>
+          </div>
+          <div id="appcontrol-audit-table" class="table-wrap"></div>
         </div>
       </section>
     </main>

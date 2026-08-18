@@ -33,6 +33,8 @@
   const pricingCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection('pricing');
   const pricingProposalsCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection('pricingProposals');
   const pricingHistoryCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection('pricingHistory');
+  const appConfigCol = db.collection('appConfig');
+  const adminActionsCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection(FS.adminActions);
   const usersCol = db.collection(FS.users);
 
   // ---------------------------------------------------------------------------
@@ -237,7 +239,10 @@
     },
     pricingRates: [],
     pricingProposals: [],
-    pricingHistory: []
+    pricingHistory: [],
+    appConfig: {},
+    appConfigTab: 'com.digilayn.laynrider',
+    appConfigAudit: []
   };
   let rawReviewsDocs = []; // Standalone review docs from reviewsCol
   const unsub = []; // active snapshot listeners
@@ -414,6 +419,32 @@
         renderPricing();
       }, (err) => {
         console.warn('pricing history listener', err);
+      })
+    );
+
+    // App Config & System Gates
+    unsub.push(
+      appConfigCol.onSnapshot((snap) => {
+        const configs = {};
+        snap.docs.forEach((doc) => {
+          configs[doc.id] = { id: doc.id, ...doc.data() };
+        });
+        state.appConfig = configs;
+        renderAppControl();
+      }, (err) => {
+        console.warn('appConfig listener', err);
+      })
+    );
+
+    // Audit log for app control actions
+    unsub.push(
+      adminActionsCol.orderBy('createdAt', 'desc').limit(50).onSnapshot((snap) => {
+        state.appConfigAudit = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((a) => a.action && a.action.startsWith('appConfig'));
+        renderAppControlAudit();
+      }, (err) => {
+        console.warn('adminActions appConfig listener', err);
       })
     );
   }
@@ -2504,6 +2535,309 @@
   }
 
   // ---------------------------------------------------------------------------
+  // APP CONTROL & SYSTEM GATES
+  // ---------------------------------------------------------------------------
+  const APP_NAMES = {
+    'com.digilayn.laynrider': 'LaynRider (Rider App)',
+    'com.digilayn.layndriver': 'LaynDriver (Driver App)'
+  };
+
+  function renderAppControl() {
+    const riderConfig = state.appConfig['com.digilayn.laynrider'] || {};
+    const driverConfig = state.appConfig['com.digilayn.layndriver'] || {};
+
+    // 1. Update KPI overview cards
+    const riderMaint = riderConfig.maintenanceMode === true;
+    const riderMinVer = Number(riderConfig.minVersionCode || 1);
+    const statRiderEl = $('stat-app-rider-status');
+    const statRiderDetailsEl = $('stat-app-rider-details');
+    if (statRiderEl && statRiderDetailsEl) {
+      if (riderMaint) {
+        statRiderEl.innerHTML = '<span class="status-pill status-demoted" style="font-size: 14px;">🚧 Maintenance Active</span>';
+        statRiderDetailsEl.textContent = riderConfig.maintenanceMessage || 'App entrance blocked';
+      } else if (riderMinVer > 1) {
+        statRiderEl.innerHTML = `<span class="status-pill status-approved" style="font-size: 14px;">Operational (Min v${riderMinVer})</span>`;
+        statRiderDetailsEl.textContent = 'Force upgrade policy active';
+      } else {
+        statRiderEl.innerHTML = '<span class="status-pill status-approved" style="font-size: 14px;">🟢 Operational</span>';
+        statRiderDetailsEl.textContent = 'Min v1 · Open for riders';
+      }
+    }
+
+    const driverMaint = driverConfig.maintenanceMode === true;
+    const driverMinVer = Number(driverConfig.minVersionCode || 1);
+    const statDriverEl = $('stat-app-driver-status');
+    const statDriverDetailsEl = $('stat-app-driver-details');
+    if (statDriverEl && statDriverDetailsEl) {
+      if (driverMaint) {
+        statDriverEl.innerHTML = '<span class="status-pill status-demoted" style="font-size: 14px;">🚧 Maintenance Active</span>';
+        statDriverDetailsEl.textContent = driverConfig.maintenanceMessage || 'App entrance blocked';
+      } else if (driverMinVer > 1) {
+        statDriverEl.innerHTML = `<span class="status-pill status-approved" style="font-size: 14px;">Operational (Min v${driverMinVer})</span>`;
+        statDriverDetailsEl.textContent = 'Force upgrade policy active';
+      } else {
+        statDriverEl.innerHTML = '<span class="status-pill status-approved" style="font-size: 14px;">🟢 Operational</span>';
+        statDriverDetailsEl.textContent = 'Min v1 · Open for drivers';
+      }
+    }
+
+    const statGlobalEl = $('stat-app-global-status');
+    const statLastUpdatedEl = $('stat-app-last-updated');
+    if (statGlobalEl && statLastUpdatedEl) {
+      if (riderMaint && driverMaint) {
+        statGlobalEl.innerHTML = '<span style="color: var(--danger, #ef4444);">Full Fleet Locked</span>';
+        statLastUpdatedEl.textContent = 'All apps in maintenance';
+      } else if (riderMaint || driverMaint) {
+        statGlobalEl.innerHTML = '<span style="color: var(--warn, #f59e0b);">Partial Maintenance</span>';
+        statLastUpdatedEl.textContent = riderMaint ? 'Rider app locked' : 'Driver app locked';
+      } else {
+        statGlobalEl.innerHTML = '<span style="color: var(--success, #22c55e);">All Systems Live</span>';
+        statLastUpdatedEl.textContent = 'Ready for bookings';
+      }
+    }
+
+    // Update tab badges
+    const riderBadge = $('badge-tab-rider');
+    if (riderBadge) {
+      riderBadge.textContent = riderMaint ? 'MAINTENANCE' : `v${riderMinVer}`;
+      riderBadge.className = 'tab-badge-pill ' + (riderMaint ? 'pill-danger' : 'pill-success');
+    }
+    const driverBadge = $('badge-tab-driver');
+    if (driverBadge) {
+      driverBadge.textContent = driverMaint ? 'MAINTENANCE' : `v${driverMinVer}`;
+      driverBadge.className = 'tab-badge-pill ' + (driverMaint ? 'pill-danger' : 'pill-success');
+    }
+
+    // Sidebar badge
+    const navBadge = $('nav-badge-appcontrol');
+    if (navBadge) {
+      const hasActiveAlert = riderMaint || driverMaint;
+      navBadge.classList.toggle('is-hidden', !hasActiveAlert);
+      if (hasActiveAlert) {
+        navBadge.textContent = '!';
+        navBadge.style.background = 'var(--danger, #ef4444)';
+        navBadge.style.color = '#fff';
+      }
+    }
+
+    // Render active tab config form
+    updateAppConfigFormFromState();
+  }
+
+  function updateAppConfigFormFromState() {
+    const pkg = state.appConfigTab;
+    const formPanel = $('appcontrol-form-panel');
+    const emergencyPanel = $('appcontrol-emergency-panel');
+
+    if (pkg === 'emergency') {
+      hide(formPanel);
+      show(emergencyPanel);
+      return;
+    }
+
+    show(formPanel);
+    hide(emergencyPanel);
+
+    const config = state.appConfig[pkg] || {};
+    const isRider = pkg === 'com.digilayn.laynrider';
+    if ($('app-config-title')) $('app-config-title').textContent = isRider ? 'LaynRider Configuration' : 'LaynDriver Configuration';
+    if ($('app-config-pkg')) $('app-config-pkg').textContent = pkg;
+
+    const maintChecked = config.maintenanceMode === true;
+    if ($('input-app-maintenance')) $('input-app-maintenance').checked = maintChecked;
+    if ($('input-app-maintenance-msg')) $('input-app-maintenance-msg').value = config.maintenanceMessage || '';
+    if ($('input-app-min-version')) $('input-app-min-version').value = Number(config.minVersionCode || 1);
+    if ($('input-app-store-url')) $('input-app-store-url').value = config.storeUrl || '';
+
+    const badgeEl = $('app-config-state-badge');
+    if (badgeEl) {
+      if (maintChecked) {
+        badgeEl.textContent = 'Maintenance Mode Active';
+        badgeEl.className = 'badge badge-demoted';
+      } else {
+        badgeEl.textContent = 'Operational';
+        badgeEl.className = 'badge badge-approved';
+      }
+    }
+
+    updateSimulatorPreview();
+  }
+
+  function updateSimulatorPreview() {
+    const maintInput = $('input-app-maintenance');
+    const msgInput = $('input-app-maintenance-msg');
+    const minVerInput = $('input-app-min-version');
+    const storeUrlInput = $('input-app-store-url');
+
+    if (!maintInput || !msgInput || !minVerInput) return;
+
+    const maint = maintInput.checked;
+    const msg = (msgInput.value || '').trim();
+    const minVer = parseInt(minVerInput.value, 10) || 1;
+    const storeUrl = storeUrlInput ? (storeUrlInput.value || '').trim() : '';
+
+    const resultEl = $('preview-sim-result');
+    const textEl = $('preview-sim-text');
+    if (!resultEl || !textEl) return;
+
+    if (maint) {
+      resultEl.textContent = 'Blocked by Maintenance Gate';
+      resultEl.className = 'preview-result-pill pill-danger';
+      textEl.innerHTML = `<strong>Blocking Screen:</strong> "${escapeHtml(msg || 'LaynFleet is undergoing maintenance. Please check back shortly.')}" — users cannot proceed.`;
+    } else if (minVer > 1) {
+      resultEl.textContent = `Force Upgrade Gate (v < ${minVer})`;
+      resultEl.className = 'preview-result-pill pill-warn';
+      textEl.innerHTML = `<strong>Version Policy:</strong> Devices on version code &lt; <strong>${minVer}</strong> will be halted with an 'Update Required' button linking to <code>${escapeHtml(storeUrl || 'Store URL')}</code>.`;
+    } else {
+      resultEl.textContent = 'Passes Launch Gate (Operational)';
+      resultEl.className = 'preview-result-pill pill-success';
+      textEl.textContent = 'Users running any build will smoothly enter the app and reach the dashboard.';
+    }
+  }
+
+  function renderAppControlAudit() {
+    const container = $('appcontrol-audit-table');
+    if (!container) return;
+
+    const list = state.appConfigAudit || [];
+    if (!list.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <p class="empty-title">No config changes recorded yet</p>
+          <p class="empty-subtitle">State updates will appear in this audit log.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const rowsHtml = list.map((item) => {
+      let detail = escapeHtml(item.reason || '');
+      try {
+        const parsed = JSON.parse(item.reason);
+        if (parsed && typeof parsed === 'object') {
+          detail = `Maint: <strong>${parsed.maintenanceMode ? 'ON' : 'OFF'}</strong> · MinVer: <strong>v${parsed.minVersionCode || 1}</strong>`;
+        }
+      } catch (e) { /* use raw string */ }
+
+      return `
+        <tr>
+          <td>${escapeHtml(formatDate(item.createdAt))}</td>
+          <td><code>${escapeHtml(item.targetUid || 'Fleet')}</code></td>
+          <td><span class="badge badge-pending">${escapeHtml(item.action || 'update')}</span></td>
+          <td>${detail}</td>
+          <td>${escapeHtml(item.adminEmail || MANAGER_EMAIL)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Package</th>
+            <th>Action</th>
+            <th>Applied State</th>
+            <th>Admin</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+  }
+
+  async function saveCurrentAppConfig() {
+    const pkg = state.appConfigTab;
+    if (pkg === 'emergency') return;
+
+    const maintenanceMode = $('input-app-maintenance').checked;
+    const maintenanceMessage = ($('input-app-maintenance-msg').value || '').trim();
+    const minVersionCode = Math.max(1, parseInt($('input-app-min-version').value, 10) || 1);
+    const storeUrl = ($('input-app-store-url').value || '').trim();
+
+    const appTitle = APP_NAMES[pkg] || pkg;
+    const confirm = await openModal({
+      title: `Update ${appTitle} State?`,
+      message: `You are about to update live launch gate rules for ${appTitle}:
+• Maintenance Mode: ${maintenanceMode ? 'ENABLED (BLOCKING)' : 'Disabled (Operational)'}
+• Min Version Code: ${minVersionCode}
+• Store URL: ${storeUrl || 'None'}
+
+This applies immediately to all connected devices.`,
+      confirmText: 'Broadcast State',
+      confirmClass: maintenanceMode ? 'btn-danger' : 'btn-primary'
+    });
+
+    if (!confirm) return;
+
+    try {
+      const payload = {
+        maintenanceMode,
+        maintenanceMessage: maintenanceMessage || 'LaynFleet is undergoing scheduled system maintenance. Please check back shortly.',
+        minVersionCode,
+        minSupportedAndroidVersion: minVersionCode,
+        minSupportedWebVersion: minVersionCode,
+        storeUrl,
+        storeUrlPlay: storeUrl,
+        storeUrlAppGallery: storeUrl,
+        storeUrlWeb: storeUrl,
+        updatedAt: serverTimestamp(),
+        updatedBy: MANAGER_EMAIL
+      };
+
+      await appConfigCol.doc(pkg).set(payload, { merge: true });
+      await logAdminAction('appConfigUpdate', pkg, appTitle, JSON.stringify({
+        maintenanceMode,
+        minVersionCode,
+        storeUrl
+      }));
+
+      toast(`${appTitle} state updated successfully.`, 'success');
+    } catch (err) {
+      console.error('saveAppConfig failed', err);
+      toast('Failed to update app state: ' + (err.message || ''), 'error');
+    }
+  }
+
+  async function setEmergencyMaintenance(enable) {
+    const confirm = await openModal({
+      title: enable ? 'EMERGENCY: Lock Entire Fleet?' : 'Restore Entire Fleet to Operational?',
+      message: enable
+        ? 'WARNING: This will immediately enable Maintenance Mode on BOTH LaynRider and LaynDriver, blocking all user logins and ride requests.'
+        : 'This will clear Maintenance Mode across all LaynFleet applications and resume normal operations.',
+      confirmText: enable ? 'LOCK ALL APPS' : 'RESTORE ALL APPS',
+      confirmClass: enable ? 'btn-danger' : 'btn-primary'
+    });
+
+    if (!confirm) return;
+
+    try {
+      const batch = db.batch();
+      const packages = ['com.digilayn.laynrider', 'com.digilayn.layndriver'];
+
+      packages.forEach((pkg) => {
+        const ref = appConfigCol.doc(pkg);
+        batch.set(ref, {
+          maintenanceMode: enable,
+          maintenanceMessage: enable
+            ? 'Emergency maintenance in progress. Please check back shortly.'
+            : 'LaynFleet is operational.',
+          updatedAt: serverTimestamp(),
+          updatedBy: MANAGER_EMAIL
+        }, { merge: true });
+      });
+
+      await batch.commit();
+      await logAdminAction('appConfigEmergency', 'all_apps', 'Full Fleet', `Emergency maintenance ${enable ? 'ENABLED' : 'DISABLED'}`);
+
+      toast(enable ? 'Emergency maintenance enabled across all apps.' : 'All apps restored to operational.', 'success');
+    } catch (err) {
+      console.error('setEmergencyMaintenance failed', err);
+      toast('Emergency action failed: ' + (err.message || ''), 'error');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // NAVIGATION + FILTERS EVENT HANDLERS
   // ---------------------------------------------------------------------------
   const sectionMeta = {
@@ -2512,7 +2846,8 @@
     riders: ['Riders', 'Registered members and account status'],
     bookings: ['Bookings', 'Live and historical rides with detailed filters'],
     reviews: ['Reviews & Moderation', 'Scrutinize feedback, moderate ratings, and contact reviewers'],
-    pricing: ['Pricing & Governance', 'Democratic driver-determined fleet rates, live voting progress, and audit history']
+    pricing: ['Pricing & Governance', 'Democratic driver-determined fleet rates, live voting progress, and audit history'],
+    appcontrol: ['App Control & System State', 'Manage maintenance kill switches, version requirements, and live launch gates']
   };
 
   function goToSection(name) {
@@ -2859,6 +3194,50 @@
       navigator.clipboard.writeText(value).then(() => toast('Copied to clipboard.', 'success')).catch(() => {});
     }
   });
+
+  // App Control Tab Switcher
+  document.querySelectorAll('#appcontrol-tabs [data-app-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.appConfigTab = btn.getAttribute('data-app-tab');
+      document.querySelectorAll('#appcontrol-tabs [data-app-tab]').forEach((t) =>
+        t.classList.toggle('is-active', t === btn));
+      updateAppConfigFormFromState();
+    });
+  });
+
+  // App Control Preset Chips
+  document.querySelectorAll('.btn-preset-chip').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const preset = btn.getAttribute('data-preset');
+      const input = $('input-app-maintenance-msg');
+      if (input) {
+        input.value = preset;
+        updateSimulatorPreview();
+      }
+    });
+  });
+
+  // App Control Dynamic Preview updates on input
+  const maintSwitch = $('input-app-maintenance');
+  if (maintSwitch) maintSwitch.addEventListener('change', updateSimulatorPreview);
+  const maintMsgInput = $('input-app-maintenance-msg');
+  if (maintMsgInput) maintMsgInput.addEventListener('input', updateSimulatorPreview);
+  const minVerInput = $('input-app-min-version');
+  if (minVerInput) minVerInput.addEventListener('input', updateSimulatorPreview);
+  const storeUrlInput = $('input-app-store-url');
+  if (storeUrlInput) storeUrlInput.addEventListener('input', updateSimulatorPreview);
+
+  // App Control Form Actions
+  const btnSaveConfig = $('btn-save-app-config');
+  if (btnSaveConfig) btnSaveConfig.addEventListener('click', saveCurrentAppConfig);
+  const btnRevertConfig = $('btn-revert-app-config');
+  if (btnRevertConfig) btnRevertConfig.addEventListener('click', updateAppConfigFormFromState);
+
+  // Emergency Actions
+  const btnEmergMaint = $('btn-emergency-all-maintenance');
+  if (btnEmergMaint) btnEmergMaint.addEventListener('click', () => setEmergencyMaintenance(true));
+  const btnEmergRestore = $('btn-emergency-all-restore');
+  if (btnEmergRestore) btnEmergRestore.addEventListener('click', () => setEmergencyMaintenance(false));
 
   // ESC closes overlays.
   document.addEventListener('keydown', (e) => {
