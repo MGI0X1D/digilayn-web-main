@@ -24,6 +24,7 @@
   firebase.initializeApp(window.LAYNFLEET_FIREBASE_CONFIG);
   const auth = firebase.auth();
   const db = firebase.firestore();
+  const rtdb = typeof firebase.database === 'function' ? firebase.database() : null;
   const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
 
   const driversCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection(FS.drivers);
@@ -242,7 +243,8 @@
     pricingHistory: [],
     appConfig: {},
     appConfigTab: 'com.digilayn.laynrider',
-    appConfigAudit: []
+    appConfigAudit: [],
+    driverLocations: {}
   };
   let rawReviewsDocs = []; // Standalone review docs from reviewsCol
   const unsub = []; // active snapshot listeners
@@ -447,6 +449,22 @@
         console.warn('adminActions appConfig listener', err);
       })
     );
+
+    // RTDB Presence & Location listener
+    if (rtdb) {
+      try {
+        const locRef = rtdb.ref('driverLocations');
+        const onLocValue = (snap) => {
+          state.driverLocations = snap.val() || {};
+          renderDrivers();
+          renderOverview();
+        };
+        locRef.on('value', onLocValue);
+        unsub.push(() => locRef.off('value', onLocValue));
+      } catch (err) {
+        console.warn('RTDB driverLocations listener failed', err);
+      }
+    }
   }
 
   function detachListeners() {
@@ -553,13 +571,22 @@
     renderOverview();
   }
 
+  function isDriverOnlineAndActive(d) {
+    if (!d || d.online !== true || d.approvalStatus !== 'APPROVED') return false;
+    const rtdbEntry = state.driverLocations && state.driverLocations[d.uid];
+    if (!rtdbEntry) return false;
+    if (rtdbEntry.online !== true) return false;
+    const age = rtdbEntry.updatedAt ? (Date.now() - rtdbEntry.updatedAt) : Infinity;
+    return age < 65000;
+  }
+
   // ---------------------------------------------------------------------------
   // RENDER: overview
   // ---------------------------------------------------------------------------
   function renderOverview() {
     const pending = state.drivers.filter((d) => d.approvalStatus === 'PENDING');
     const approved = state.drivers.filter((d) => d.approvalStatus === 'APPROVED');
-    const onlineCount = approved.filter((d) => d.online === true).length;
+    const onlineCount = approved.filter(isDriverOnlineAndActive).length;
     const activeBookings = state.bookings.filter((b) => isBookingActive(b.status)).length;
 
     $('stat-pending').textContent = pending.length;
@@ -659,9 +686,21 @@
       REJECTED: '<span class="badge badge-rejected">Rejected</span>'
     }[d.approvalStatus] || '';
 
-    const onlineBadge = d.approvalStatus === 'APPROVED'
-      ? (d.online ? '<span class="badge badge-online">Online</span>' : '<span class="badge badge-offline">Offline</span>')
-      : '';
+    let onlineBadge = '';
+    if (d.approvalStatus === 'APPROVED') {
+      const rtdbEntry = state.driverLocations && state.driverLocations[d.uid];
+      const isRtdbOnline = rtdbEntry && rtdbEntry.online === true;
+      const rtdbAge = (rtdbEntry && rtdbEntry.updatedAt) ? (Date.now() - rtdbEntry.updatedAt) : Infinity;
+      const isFresh = isRtdbOnline && rtdbAge < 65000;
+
+      if (d.online && isFresh) {
+        onlineBadge = '<span class="badge badge-online">Online</span>';
+      } else if (d.online && !isFresh) {
+        onlineBadge = '<span class="badge badge-offline" title="App closed or connection lost (Stale heartbeat)">Offline</span>';
+      } else {
+        onlineBadge = '<span class="badge badge-offline">Offline</span>';
+      }
+    }
     const suspendedBadge = u.suspended ? '<span class="badge badge-suspended">Suspended</span>' : '';
     const ratingBadge = d.ratingCount
       ? `<span class="badge badge-rating" style="cursor:pointer;" data-filter-driver-reviews="${escapeHtml(u.displayName || d.uid)}" title="Click to view all reviews for this driver">★ ${Number(d.ratingAvg || 0).toFixed(1)} · ${d.ratingCount}</span>`
