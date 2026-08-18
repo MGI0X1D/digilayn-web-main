@@ -69,6 +69,7 @@
         <button class="nav-item" data-section="riders"><span class="nav-glyph">🧑</span> Riders</button>
         <button class="nav-item" data-section="bookings"><span class="nav-glyph">🧾</span> Bookings</button>
         <button class="nav-item" data-section="reviews"><span class="nav-glyph">⭐</span> Reviews <span id="nav-badge-reviews" class="nav-badge is-hidden">0</span></button>
+        <button class="nav-item" data-section="pricing"><span class="nav-glyph">🏷️</span> Pricing &amp; Governance <span id="nav-badge-pricing" class="nav-badge is-hidden">0</span></button>
       </nav>
 
       <div class="sidebar-footer">
@@ -402,6 +403,54 @@
 
         <!-- Review Card List -->
         <div id="reviews-list" class="card-list"></div>
+      </section>
+
+      <!-- PRICING & DEMOCRATIC GOVERNANCE -->
+      <section id="section-pricing" class="section">
+        <div class="stat-grid" style="margin-bottom: 20px;">
+          <div class="stat-card">
+            <span class="stat-label">Standard Rate (Private Car)</span>
+            <strong id="stat-pricing-private-rate" class="stat-value">R10.00/km</strong>
+            <span class="stat-hint" id="stat-pricing-private-min">Min Fare: R25.00</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Active Proposals</span>
+            <strong id="stat-pricing-active-proposals" class="stat-value">0</strong>
+            <span class="stat-hint">Live driver votes in progress</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Democratic Quorum</span>
+            <strong class="stat-value">60%</strong>
+            <span class="stat-hint">Required YES of eligible drivers</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Historical Changes</span>
+            <strong id="stat-pricing-history-count" class="stat-value">0</strong>
+            <span class="stat-hint">Resolved rate changes</span>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 20px;">
+          <div class="panel-head">
+            <h3>Active Fleet Pricing (By Vehicle Type)</h3>
+            <span class="panel-badge">100% Driver Governed</span>
+          </div>
+          <div id="pricing-rates-table" class="table-wrap"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 20px;">
+          <div class="panel-head">
+            <h3>Live Proposals &amp; Voting Progress</h3>
+          </div>
+          <div id="pricing-proposals-list" class="card-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Pricing Audit Log &amp; Proposal History</h3>
+          </div>
+          <div id="pricing-history-table" class="table-wrap"></div>
+        </div>
       </section>
     </main>
   </div>

@@ -30,6 +30,9 @@
   const ridersCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection(FS.riders);
   const bookingsCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection(FS.bookings);
   const reviewsCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection(FS.reviews);
+  const pricingCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection('pricing');
+  const pricingProposalsCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection('pricingProposals');
+  const pricingHistoryCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection('pricingHistory');
   const usersCol = db.collection(FS.users);
 
   // ---------------------------------------------------------------------------
@@ -231,7 +234,10 @@
       dateEnd: '',              // YYYY-MM-DD
       sortBy: 'newest',         // 'newest', 'oldest', 'rating-asc', 'rating-desc'
       search: ''                // review search input
-    }
+    },
+    pricingRates: [],
+    pricingProposals: [],
+    pricingHistory: []
   };
   let rawReviewsDocs = []; // Standalone review docs from reviewsCol
   const unsub = []; // active snapshot listeners
@@ -373,6 +379,41 @@
         console.warn('reviews listener', err);
         rawReviewsDocs = [];
         consolidateAndHydrateReviews();
+      })
+    );
+
+    // Pricing Rates
+    unsub.push(
+      pricingCol.onSnapshot((snap) => {
+        state.pricingRates = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderPricing();
+      }, (err) => {
+        console.warn('pricing listener', err);
+      })
+    );
+
+    // Active Proposals (Live Democratic Votes)
+    unsub.push(
+      pricingProposalsCol.onSnapshot((snap) => {
+        state.pricingProposals = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const badge = $('nav-badge-pricing');
+        if (badge) {
+          badge.textContent = state.pricingProposals.length;
+          badge.classList.toggle('is-hidden', state.pricingProposals.length === 0);
+        }
+        renderPricing();
+      }, (err) => {
+        console.warn('pricing proposals listener', err);
+      })
+    );
+
+    // Pricing History & Audit Log
+    unsub.push(
+      pricingHistoryCol.orderBy('createdAt', 'desc').limit(100).onSnapshot((snap) => {
+        state.pricingHistory = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderPricing();
+      }, (err) => {
+        console.warn('pricing history listener', err);
       })
     );
   }
@@ -2298,6 +2339,171 @@
   }
 
   // ---------------------------------------------------------------------------
+  // PRICING & DEMOCRATIC GOVERNANCE
+  // ---------------------------------------------------------------------------
+  const DEFAULT_VEHICLE_PRICING = [
+    { type: 'PRIVATE_CAR', label: 'Private Car', defaultRate: 10.0, defaultMin: 25.0 },
+    { type: 'MINI_BUS', label: 'Mini Bus', defaultRate: 12.0, defaultMin: 30.0 },
+    { type: 'BAKKIE', label: 'Bakkie', defaultRate: 12.0, defaultMin: 30.0 },
+    { type: 'MOTORBIKE', label: 'Motorbike', defaultRate: 7.0, defaultMin: 18.0 },
+    { type: 'TUK_TUK', label: 'Tuk Tuk', defaultRate: 6.0, defaultMin: 15.0 }
+  ];
+
+  function renderPricing() {
+    const ratesTableEl = $('pricing-rates-table');
+    const proposalsListEl = $('pricing-proposals-list');
+    const historyTableEl = $('pricing-history-table');
+
+    // Build rate mapping
+    const ratesMap = new Map();
+    state.pricingRates.forEach((r) => {
+      const key = (r.vehicleType || r.id).toUpperCase();
+      ratesMap.set(key, r);
+    });
+
+    // 1. Stats Summary
+    const privateRate = ratesMap.get('PRIVATE_CAR') || { ratePerKm: 10.0, minimumFare: 25.0 };
+    if ($('stat-pricing-private-rate')) $('stat-pricing-private-rate').textContent = `R${privateRate.ratePerKm.toFixed(2)}/km`;
+    if ($('stat-pricing-private-min')) $('stat-pricing-private-min').textContent = `Min Fare: R${privateRate.minimumFare.toFixed(2)}`;
+    if ($('stat-pricing-active-proposals')) $('stat-pricing-active-proposals').textContent = state.pricingProposals.length;
+    if ($('stat-pricing-history-count')) $('stat-pricing-history-count').textContent = state.pricingHistory.length;
+
+    // 2. Rates Table
+    if (ratesTableEl) {
+      const rowsHtml = DEFAULT_VEHICLE_PRICING.map((vp) => {
+        const doc = ratesMap.get(vp.type);
+        const ratePerKm = (doc && typeof doc.ratePerKm === 'number') ? doc.ratePerKm : vp.defaultRate;
+        const minFare = (doc && typeof doc.minimumFare === 'number') ? doc.minimumFare : vp.defaultMin;
+        const hasActiveProposal = doc && Boolean(doc.activeProposalId);
+        const updatedAtStr = doc && doc.updatedAt ? formatDate(doc.updatedAt) : 'Seed Baseline';
+
+        return `
+          <tr>
+            <td><strong>${escapeHtml(vp.label)}</strong></td>
+            <td><strong>R${ratePerKm.toFixed(2)}</strong> / km</td>
+            <td>R${minFare.toFixed(2)}</td>
+            <td>
+              ${hasActiveProposal
+                ? '<span class="status-badge status-badge-pending">🗳️ Voting in Progress</span>'
+                : '<span class="status-badge status-badge-approved">✓ Active Rate</span>'}
+            </td>
+            <td>${escapeHtml(updatedAtStr)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      ratesTableEl.innerHTML = `
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Vehicle Type</th>
+              <th>Rate / km</th>
+              <th>Minimum Fare</th>
+              <th>Governance Status</th>
+              <th>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      `;
+    }
+
+    // 3. Active Proposals (Live Democratic Votes)
+    if (proposalsListEl) {
+      if (state.pricingProposals.length === 0) {
+        proposalsListEl.innerHTML = '<p class="empty">No active pricing proposals under vote.</p>';
+      } else {
+        proposalsListEl.innerHTML = state.pricingProposals.map((prop) => {
+          const vTypeObj = DEFAULT_VEHICLE_PRICING.find((x) => x.type === prop.vehicleType) || { label: prop.vehicleType };
+          const yesVotes = Number(prop.yesVoteCount || 0);
+          const noVotes = Number(prop.noVoteCount || 0);
+          const requiredYes = Number(prop.requiredYesVotes || 1);
+          const totalDrivers = Number(prop.totalEligibleDrivers || 1);
+          const progressPct = Math.min(100, Math.round((yesVotes / requiredYes) * 100));
+
+          return `
+            <div class="card card-proposal" style="padding: 16px; border-left: 4px solid var(--brand);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <div>
+                  <h4 style="margin: 0; font-size: 16px;">${escapeHtml(vTypeObj.label)} Pricing Proposal</h4>
+                  <span class="muted" style="font-size: 12px;">Proposed by ${escapeHtml(prop.proposerName || 'Driver')} · ${formatDate(prop.createdAt)}</span>
+                </div>
+                <span class="status-badge status-badge-pending">ACTIVE VOTING</span>
+              </div>
+
+              <div style="display: flex; gap: 24px; margin: 12px 0; background: var(--panel-2); padding: 12px; border-radius: var(--radius-sm);">
+                <div>
+                  <span class="muted" style="font-size: 11px; text-transform: uppercase;">Proposed Rate</span>
+                  <div style="font-size: 16px; font-weight: 800; color: var(--brand);">R${Number(prop.proposedRatePerKm).toFixed(2)}/km · Min R${Number(prop.proposedMinimumFare).toFixed(2)}</div>
+                </div>
+                <div>
+                  <span class="muted" style="font-size: 11px; text-transform: uppercase;">Current Rate</span>
+                  <div style="font-size: 14px; color: var(--text-dim);">R${Number(prop.currentRatePerKm).toFixed(2)}/km · Min R${Number(prop.currentMinimumFare).toFixed(2)}</div>
+                </div>
+              </div>
+
+              ${prop.reason ? `<p style="font-size: 13px; font-style: italic; margin: 8px 0; color: var(--text-dim);">"${escapeHtml(prop.reason)}"</p>` : ''}
+
+              <div style="margin-top: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                  <span><strong>${yesVotes} YES</strong> · ${noVotes} NO</span>
+                  <span class="muted">${requiredYes} YES votes needed for 60% Quorum (${totalDrivers} eligible drivers)</span>
+                </div>
+                <div style="height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+                  <div style="height: 100%; width: ${progressPct}%; background: var(--brand); border-radius: 4px;"></div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // 4. Pricing History Audit Table
+    if (historyTableEl) {
+      if (state.pricingHistory.length === 0) {
+        historyTableEl.innerHTML = '<p class="empty">No historical pricing proposal records found.</p>';
+      } else {
+        const rowsHtml = state.pricingHistory.map((h) => {
+          const vTypeObj = DEFAULT_VEHICLE_PRICING.find((x) => x.type === h.vehicleType) || { label: h.vehicleType };
+          const statusBadge = h.status === 'APPROVED'
+            ? '<span class="status-badge status-badge-approved">APPROVED</span>'
+            : '<span class="status-badge status-badge-rejected">REJECTED</span>';
+
+          return `
+            <tr>
+              <td>${formatDate(h.resolvedAt || h.createdAt)}</td>
+              <td><strong>${escapeHtml(vTypeObj.label)}</strong></td>
+              <td><strong>R${Number(h.proposedRatePerKm).toFixed(2)}/km</strong> (Min R${Number(h.proposedMinimumFare).toFixed(2)})</td>
+              <td>R${Number(h.currentRatePerKm).toFixed(2)}/km</td>
+              <td>${statusBadge}</td>
+              <td>${Number(h.yesVoteCount || 0)} YES / ${Number(h.noVoteCount || 0)} NO</td>
+              <td>${escapeHtml(h.proposerName || 'Driver')}</td>
+            </tr>
+          `;
+        }).join('');
+
+        historyTableEl.innerHTML = `
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date Resolved</th>
+                <th>Vehicle Type</th>
+                <th>Proposed Rate</th>
+                <th>Previous Rate</th>
+                <th>Outcome</th>
+                <th>Final Vote</th>
+                <th>Proposer</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        `;
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // NAVIGATION + FILTERS EVENT HANDLERS
   // ---------------------------------------------------------------------------
   const sectionMeta = {
@@ -2305,7 +2511,8 @@
     drivers: ['Drivers', 'Approve applications, demote, and manage the fleet'],
     riders: ['Riders', 'Registered members and account status'],
     bookings: ['Bookings', 'Live and historical rides with detailed filters'],
-    reviews: ['Reviews & Moderation', 'Scrutinize feedback, moderate ratings, and contact reviewers']
+    reviews: ['Reviews & Moderation', 'Scrutinize feedback, moderate ratings, and contact reviewers'],
+    pricing: ['Pricing & Governance', 'Democratic driver-determined fleet rates, live voting progress, and audit history']
   };
 
   function goToSection(name) {
