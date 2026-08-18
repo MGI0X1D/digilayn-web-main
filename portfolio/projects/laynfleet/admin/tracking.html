@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LaynFleet Live Radar — Driver Location Monitor</title>
+  <meta name="description" content="Real-time live driver tracking, GPS telemetry, route monitoring, and dispatch radar for LaynFleet." />
+  <meta name="theme-color" content="#22c55e" />
+
+  <link rel="icon" href="../../../../favicon/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Digilayn Theme Handler -->
+  <script src="../../../../scripts/theme.js"></script>
+
+  <!-- Live Tracking Custom Styles -->
+  <link rel="stylesheet" href="tracking.css" />
+</head>
+<body>
+
+  <div class="tracker-app">
+    <!-- ===================== TOP MISSION CONTROL HEADER ===================== -->
+    <header class="tracker-header">
+      <div class="flex items-center gap-4">
+        <a href="../../../../index.html" class="header-brand">
+          <div class="brand-icon-wrap">
+            <span>LF</span>
+            <span class="brand-ping-dot"></span>
+          </div>
+          <div class="brand-text">
+            <div class="brand-title">
+              <span>LaynFleet</span>
+              <span class="brand-badge">Live Radar</span>
+            </div>
+            <span class="brand-sub">Real-Time GPS Telemetry</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Quick KPI Chips Bar -->
+      <div class="header-kpi-bar">
+        <div class="kpi-chip is-active" data-filter-kpi="all">
+          <span>Fleet:</span> <strong id="kpi-total-val" class="kpi-val">0</strong>
+        </div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-chip" data-filter-kpi="online">
+          <span class="kpi-dot online"></span>
+          <span>Online:</span> <strong id="kpi-online-val" class="kpi-val" style="color:var(--online);">0</strong>
+        </div>
+        <div class="kpi-chip" data-filter-kpi="intrip">
+          <span class="kpi-dot intrip"></span>
+          <span>In Trip:</span> <strong id="kpi-intrip-val" class="kpi-val" style="color:var(--intrip);">0</strong>
+        </div>
+        <div class="kpi-chip" data-filter-kpi="idle">
+          <span class="kpi-dot idle"></span>
+          <span>Idle:</span> <strong id="kpi-idle-val" class="kpi-val" style="color:var(--idle);">0</strong>
+        </div>
+        <div class="kpi-chip" data-filter-kpi="offline">
+          <span class="kpi-dot offline"></span>
+          <span>Offline:</span> <strong id="kpi-offline-val" class="kpi-val" style="color:var(--offline);">0</strong>
+        </div>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="header-actions">
+        <a href="index.html" class="btn-header" title="Return to LaynFleet Manager Console">
+          <span>⚙️</span> <span>Manager</span>
+        </a>
+
+        <a href="../../../../portfolio.html" class="btn-header" title="Digilayn Portfolio">
+          <span>📁</span> <span>Portfolio</span>
+        </a>
+
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme" title="Toggle Dark/Light Mode">
+          <span id="theme-icon">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================== MAIN WORKSPACE (SIDEBAR + MAP) ===================== -->
+    <div class="tracker-workspace">
+
+      <!-- LEFT SIDEBAR: DRIVERS & CONTROLS -->
+      <aside id="tracker-sidebar" class="tracker-sidebar">
+        <button id="sidebar-collapse-toggle" class="sidebar-collapse-btn" aria-label="Collapse Sidebar" title="Collapse Sidebar">
+          ◀
+        </button>
+
+        <!-- Sidebar Top: Search & Filters -->
+        <div class="sidebar-top">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input id="search-drivers" type="search" class="search-input" placeholder="Search driver, phone, plate, car…" autocomplete="off" />
+          </div>
+
+          <!-- Status Quick Tabs -->
+          <div class="filter-tabs-row" role="tablist">
+            <button class="filter-tab is-active" data-filter-status="all">All <span id="badge-tab-all" class="tab-badge">0</span></button>
+            <button class="filter-tab" data-filter-status="online">Online <span id="badge-tab-online" class="tab-badge">0</span></button>
+            <button class="filter-tab" data-filter-status="intrip">In Trip <span id="badge-tab-intrip" class="tab-badge">0</span></button>
+            <button class="filter-tab" data-filter-status="idle">Idle <span id="badge-tab-idle" class="tab-badge">0</span></button>
+            <button class="filter-tab" data-filter-status="offline">Offline <span id="badge-tab-offline" class="tab-badge">0</span></button>
+          </div>
+
+          <!-- Vehicle Type Selector -->
+          <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; color:var(--text-dim);">
+            <label for="filter-vehicle-type" style="font-weight:700;">Vehicle Class:</label>
+            <select id="filter-vehicle-type" class="search-input" style="width:auto; padding:4px 8px; font-size:11px; height:28px;">
+              <option value="all">All Categories</option>
+              <option value="Standard">Standard Sedan</option>
+              <option value="XL">XL (6+ Seats)</option>
+              <option value="Premium">Premium</option>
+              <option value="Delivery">Delivery / Bakkie</option>
+              <option value="Tuktuk">Tuktuk / Bike</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Drivers Scroll List -->
+        <div id="drivers-list-container" class="drivers-scroll-area">
+          <div class="empty-drivers">
+            <span class="empty-icon">⏳</span>
+            <p style="font-weight:700;">Connecting to Fleet Radar…</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT: LEAFLET MAP & HUD -->
+      <main class="tracker-map-wrap">
+        <div id="map"></div>
+
+        <!-- Floating Map Overlay Controls -->
+        <div class="map-floating-controls">
+          <!-- Layer Style Switcher -->
+          <div class="control-pill-group">
+            <button class="map-control-btn is-active" data-tile-style="dark" data-tooltip="Dark Ops Map">
+              🕶️
+            </button>
+            <button class="map-control-btn" data-tile-style="light" data-tooltip="Clean Light Map">
+              ☀️
+            </button>
+            <button class="map-control-btn" data-tile-style="voyager" data-tooltip="Vibrant Street Map">
+              🗺️
+            </button>
+            <button class="map-control-btn" data-tile-style="satellite" data-tooltip="Satellite Hybrid">
+              🛰️
+            </button>
+          </div>
+
+          <!-- Camera & View Helpers -->
+          <div class="control-pill-group">
+            <button id="btn-fit-fleet" class="map-control-btn" data-tooltip="Fit All Drivers in View">
+              🎯
+            </button>
+            <button id="btn-follow-toggle" class="map-control-btn" data-tooltip="Lock Camera on Driver">
+              🔒
+            </button>
+          </div>
+        </div>
+
+        <!-- Floating Telemetry HUD Widget (Bottom Left) -->
+        <div class="map-hud-telemetry">
+          <div class="hud-stat-item">
+            <span class="hud-stat-label">Fleet Moving Avg</span>
+            <strong id="hud-avg-speed" class="hud-stat-val">0 km/h</strong>
+          </div>
+          <div class="hud-divider"></div>
+          <div class="hud-stat-item">
+            <span class="hud-stat-label">Telemetry Source</span>
+            <strong class="hud-stat-val">Realtime Firebase</strong>
+          </div>
+          <div class="hud-divider"></div>
+          <div id="hud-follow-badge" class="hud-follow-badge is-hidden">
+            <span class="hud-follow-pulse"></span>
+            <span>Camera Locked</span>
+          </div>
+        </div>
+
+        <!-- Selected Driver Inspector Floating Drawer -->
+        <div id="driver-inspector" class="driver-inspector-overlay is-hidden">
+          <div class="inspector-header">
+            <div class="inspector-driver-info">
+              <div id="inspector-avatar" class="inspector-avatar">
+                <span>D</span>
+              </div>
+              <div>
+                <h3 id="inspector-name" style="font-size:15px; font-weight:800;">—</h3>
+                <span id="inspector-rating" style="font-size:11px; color:#f59e0b; font-weight:700;">★ 5.0</span>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="inspector-status-badge" class="driver-status-tag online">ONLINE</span>
+              <button id="btn-close-inspector" class="inspector-close-btn" aria-label="Close Inspector">✕</button>
+            </div>
+          </div>
+
+          <div class="inspector-body">
+            <!-- Telemetry Metrics Grid -->
+            <div class="inspector-grid">
+              <div class="inspector-item">
+                <span class="inspector-item-label">Live Speed</span>
+                <span id="inspector-speed" class="inspector-item-value" style="font-family:monospace; color:var(--brand);">0 km/h</span>
+              </div>
+              <div class="inspector-item">
+                <span class="inspector-item-label">Heading</span>
+                <span id="inspector-heading" class="inspector-item-value">N (0°)</span>
+              </div>
+              <div class="inspector-item">
+                <span class="inspector-item-label">Plate / Tag</span>
+                <span id="inspector-plate" class="inspector-item-value" style="font-family:monospace;">—</span>
+              </div>
+              <div class="inspector-item">
+                <span class="inspector-item-label">Vehicle</span>
+                <span id="inspector-model" class="inspector-item-value">—</span>
+              </div>
+            </div>
+
+            <!-- GPS Coordinates Item -->
+            <div class="inspector-item" style="grid-column: span 2;">
+              <span class="inspector-item-label">GPS Coordinates</span>
+              <span id="inspector-coords" class="inspector-item-value" style="font-family:monospace; font-size:11px;">—</span>
+            </div>
+
+            <!-- Active Trip Card (Shown when driver has booking) -->
+            <div id="inspector-trip-card" class="inspector-trip-card is-hidden">
+              <div class="trip-card-head">
+                <span id="inspector-trip-id" style="font-weight:800; font-size:12px;">Trip #—</span>
+                <span class="trip-status-pill">Active Trip</span>
+              </div>
+
+              <div class="trip-address-row">
+                <div class="trip-route-line-decor">
+                  <span class="decor-dot green"></span>
+                  <span class="decor-line"></span>
+                  <span class="decor-dot red"></span>
+                </div>
+                <div class="trip-address-details">
+                  <div class="addr-block">
+                    <span class="addr-label">Pickup</span>
+                    <span id="inspector-pickup-addr" class="addr-text">—</span>
+                  </div>
+                  <div class="addr-block">
+                    <span class="addr-label">Destination</span>
+                    <span id="inspector-dest-addr" class="addr-text">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed rgba(59,130,246,0.25); padding-top:8px; font-size:11px;">
+                <span style="color:var(--text-dim);">Estimated Fare</span>
+                <strong id="inspector-trip-fare" style="font-size:13px; color:var(--text);">R0.00</strong>
+              </div>
+            </div>
+
+            <!-- Direct Contact & Dispatch Actions -->
+            <div class="inspector-actions-grid">
+              <a id="inspector-wa-btn" href="#" target="_blank" class="btn-inspector-action btn-inspector-whatsapp">
+                <span>💬</span> <span>WhatsApp</span>
+              </a>
+              <a id="inspector-call-btn" href="#" class="btn-inspector-action">
+                <span>📞</span> <span>Call Driver</span>
+              </a>
+              <a id="inspector-maps-btn" href="#" target="_blank" class="btn-inspector-action" style="grid-column: span 2;">
+                <span>🗺️</span> <span>Open in Google Maps</span>
+              </a>
+            </div>
+
+            <div style="font-size:10px; color:var(--text-faint); text-align:center; padding-top:4px;">
+              Direct LaynFleet Telemetry Link · Encrypted Ingestion
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ===================== SCRIPTS ===================== -->
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Firebase Compat v9.23.0 -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Firebase Project Configuration -->
+  <script src="../../security/firebase-config.js"></script>
+
+  <!-- Live Tracking Controller & Telemetry Engine -->
+  <script src="tracking.js"></script>
+</body>
+</html>

@@ -65,6 +65,7 @@
 
       <nav class="side-nav">
         <button class="nav-item is-active" data-section="overview"><span class="nav-glyph">▦</span> Overview</button>
+        <a href="tracking.html" class="nav-item" style="text-decoration:none;"><span class="nav-glyph">🛰️</span> Live Radar <span class="badge badge-online" style="font-size:9px; padding:1px 6px; margin-left:auto;">Live</span></a>
         <button class="nav-item" data-section="drivers"><span class="nav-glyph">🚗</span> Drivers <span id="nav-badge-drivers" class="nav-badge is-hidden">0</span></button>
         <button class="nav-item" data-section="riders"><span class="nav-glyph">🧑</span> Riders</button>
         <button class="nav-item" data-section="bookings"><span class="nav-glyph">🧾</span> Bookings</button>
@@ -101,10 +102,10 @@
             <strong id="stat-pending" class="stat-value">—</strong>
             <span class="stat-hint">Drivers awaiting approval</span>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='tracking.html'" title="View live driver locations on Radar Map">
             <span class="stat-label">Approved drivers</span>
             <strong id="stat-approved" class="stat-value">—</strong>
-            <span class="stat-hint" id="stat-online-hint">— online now</span>
+            <span class="stat-hint" id="stat-online-hint" style="color:var(--brand);">— online now ↗</span>
           </div>
           <div class="stat-card">
             <span class="stat-label">Riders</span>
