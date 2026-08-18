@@ -2786,6 +2786,27 @@ This applies immediately to all connected devices.`,
       };
 
       await appConfigCol.doc(pkg).set(payload, { merge: true });
+
+      // If LaynDriver is put in maintenance or force-upgrade, immediately force all drivers offline
+      if (pkg === 'com.digilayn.layndriver' && (maintenanceMode || minVersionCode > 1)) {
+        try {
+          const onlineDrivers = await driversCol.where('online', '==', true).get();
+          if (!onlineDrivers.empty) {
+            const driverBatch = db.batch();
+            onlineDrivers.docs.forEach((doc) => {
+              driverBatch.update(doc.ref, {
+                online: false,
+                forcedOfflineReason: maintenanceMode ? 'Maintenance Mode' : 'Force Upgrade',
+                updatedAt: serverTimestamp()
+              });
+            });
+            await driverBatch.commit();
+          }
+        } catch (err) {
+          console.warn('Driver offline batch failed (non-fatal)', err);
+        }
+      }
+
       await logAdminAction('appConfigUpdate', pkg, appTitle, JSON.stringify({
         maintenanceMode,
         minVersionCode,
@@ -2826,6 +2847,21 @@ This applies immediately to all connected devices.`,
           updatedBy: MANAGER_EMAIL
         }, { merge: true });
       });
+
+      if (enable) {
+        try {
+          const onlineDrivers = await driversCol.where('online', '==', true).get();
+          onlineDrivers.docs.forEach((doc) => {
+            batch.update(doc.ref, {
+              online: false,
+              forcedOfflineReason: 'Emergency Fleet Maintenance',
+              updatedAt: serverTimestamp()
+            });
+          });
+        } catch (err) {
+          console.warn('Emergency driver offline batch failed (non-fatal)', err);
+        }
+      }
 
       await batch.commit();
       await logAdminAction('appConfigEmergency', 'all_apps', 'Full Fleet', `Emergency maintenance ${enable ? 'ENABLED' : 'DISABLED'}`);
