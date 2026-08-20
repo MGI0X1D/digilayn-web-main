@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | LaynFleet (LaynRider & LaynDriver)</title>
+    <meta name="author" content="Digilayn">
+    <meta name="description" content="Privacy Policy and Data Practices for LaynFleet, LaynRider, and LaynDriver applications.">
+
+    <meta name="theme-color" content="#22c55e">
+    <link rel="icon" href="../../../../favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="96x96" href="../../../../favicon/favicon-96x96.png">
+    <link rel="icon" type="image/svg+xml" href="../../../../favicon/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../favicon/apple-touch-icon.png">
+    <link rel="manifest" href="../../../../favicon/site.webmanifest">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="stylesheet" href="../../../../styles/main.css">
+</head>
+
+<body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col justify-between">
+
+<!-- Top Navigation -->
+<nav class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-6 pointer-events-none">
+    <a href="../../../../index.html" class="pointer-events-auto text-sm font-black tracking-wide px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+        digilayn
+    </a>
+
+    <div class="flex items-center gap-3 pointer-events-auto">
+        <a href="terms.html" class="text-sm font-bold px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+            Terms & Conditions
+        </a>
+        <button id="theme-toggle" class="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200 dark:border-slate-700 transition-transform hover:scale-110 active:scale-95" aria-label="Toggle Theme">
+            <span id="theme-icon" class="text-xl"></span>
+        </button>
+    </div>
+</nav>
+
+<!-- Main Header -->
+<header class="max-w-4xl mx-auto pt-28 pb-8 px-6">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-black uppercase tracking-wider mb-4 border border-green-500/20">
+        LaynFleet Privacy Policy
+    </div>
+    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+        Your Privacy & Data Practices
+    </h1>
+    <p class="text-lg opacity-85 leading-relaxed">
+        This Privacy Policy explains how <strong>Digilayn</strong> collects, uses, and protects personal information across <strong>LaynRider</strong> and <strong>LaynDriver</strong>. We believe in minimal data collection, role-based separation, and total transparency.
+    </p>
+    <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">
+        Effective date: August 20, 2026 &bull; Compliant with South Africa POPIA and Mobile App Store Standards.
+    </p>
+
+    <!-- Role Filter Tabs -->
+    <div class="mt-8 flex flex-wrap gap-3">
+        <button id="tab-btn-all" onclick="filterRole('all')" class="role-tab-btn active px-5 py-2.5 rounded-xl font-bold text-sm bg-green-600 text-white shadow-md transition">
+            Full Policy
+        </button>
+        <button id="tab-btn-rider" onclick="filterRole('rider')" class="role-tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            🧑 LaynRider (Riders Only)
+        </button>
+        <button id="tab-btn-driver" onclick="filterRole('driver')" class="role-tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            🚗 LaynDriver (Drivers Only)
+        </button>
+        <button id="tab-btn-deletion" onclick="filterRole('deletion')" class="role-tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            🗑️ Account Deletion (30 Days)
+        </button>
+    </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-6 space-y-8 pb-20">
+
+    <!-- Overview Highlights Box -->
+    <div class="card p-6 sm:p-8 rounded-3xl border-l-4 border-l-green-500">
+        <h2 class="text-xl font-bold mb-3 flex items-center gap-2">
+            <span>🛡️</span> In Plain English (Summary)
+        </h2>
+        <ul class="space-y-2 text-sm sm:text-base opacity-90">
+            <li class="flex items-start gap-2">
+                <span class="text-green-500 font-bold">✓</span>
+                <span><strong>No Data Selling:</strong> We never sell, rent, or trade your personal information or trip logs to third parties or advertising brokers.</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <span class="text-green-500 font-bold">✓</span>
+                <span><strong>Rider Location Privacy:</strong> Riders are never tracked in the background. GPS is only queried once when you tap "Use Current Location" or enter a pickup address.</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <span class="text-green-500 font-bold">✓</span>
+                <span><strong>Driver Live Location:</strong> Drivers share real-time location while "Online" or executing trips so riders and dispatch radar can see vehicle availability.</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <span class="text-green-500 font-bold">✓</span>
+                <span><strong>Right to Erasure:</strong> You can soft-delete your account directly in the app. Data is permanently purged within 30 days.</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Section 1: Information Collected -->
+    <section class="card p-6 sm:p-8 rounded-3xl space-y-6" data-section-role="all rider driver">
+        <h2 class="text-2xl font-bold">1. Information We Collect</h2>
+
+        <!-- Rider Data Box -->
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60" data-role="rider">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="px-2.5 py-1 rounded-md text-xs font-black bg-blue-500/10 text-blue-600 dark:text-blue-400">🧑 LaynRider</span>
+                <h3 class="font-bold text-lg">Rider Information</h3>
+            </div>
+            <ul class="list-disc list-inside space-y-2 text-sm opacity-90">
+                <li><strong>Account Details:</strong> Mobile phone number (used for SMS/OTP verification) and optional name/profile handle.</li>
+                <li><strong>Trip & Booking Data:</strong> Requested pickup location, destination, fare quotation, ride status, and timestamps.</li>
+                <li><strong>On-Demand Location:</strong> Geographic coordinates obtained <em>strictly when you tap "Use Current Location"</em> to set your pickup point. We do not monitor your location when you are not actively setting a trip.</li>
+                <li><strong>Feedback & Ratings:</strong> Ratings (1–5 stars) and optional written feedback submitted after completed trips.</li>
+            </ul>
+        </div>
+
+        <!-- Driver Data Box -->
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60" data-role="driver">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="px-2.5 py-1 rounded-md text-xs font-black bg-amber-500/10 text-amber-600 dark:text-amber-400">🚗 LaynDriver</span>
+                <h3 class="font-bold text-lg">Driver Information</h3>
+            </div>
+            <ul class="list-disc list-inside space-y-2 text-sm opacity-90">
+                <li><strong>Driver Verification:</strong> Full name, phone number, vehicle details (make, model, color, registration/plate number), and driver documentation.</li>
+                <li><strong>Live Location Tracking (Foreground & Background):</strong> While your driver status is toggled to <strong>"Online"</strong> or during an active trip, LaynDriver collects continuous GPS location. This enables the dispatch radar to broadcast your vehicle to nearby riders and calculate accurate ETAs.</li>
+                <li><strong>Performance & Governance:</strong> Trip completion records, rider ratings, acceptance rates, and participation in fleet pricing votes.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Section 2: How We Use Information -->
+    <section class="card p-6 sm:p-8 rounded-3xl space-y-4" data-section-role="all rider driver">
+        <h2 class="text-2xl font-bold">2. How Your Information Is Used</h2>
+        <p class="text-sm sm:text-base opacity-90">We process data solely to operate and improve the LaynFleet transport ecosystem:</p>
+        <div class="grid sm:grid-cols-2 gap-4 pt-2">
+            <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                <h4 class="font-bold mb-1">📍 Trip Dispatch & Routing</h4>
+                <p class="text-xs opacity-80">Connecting riders with available drivers, rendering map routes, and displaying live vehicle arrival updates.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                <h4 class="font-bold mb-1">🛡️ Safety & Mutual Trust</h4>
+                <p class="text-xs opacity-80">Displaying driver and vehicle details to confirmed riders, and verifying rider pickup identity.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                <h4 class="font-bold mb-1">🏷️ Fair Pricing & Governance</h4>
+                <p class="text-xs opacity-80">Calculating distance-based trip estimates and recording driver pricing votes.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                <h4 class="font-bold mb-1">🔧 Support & Debugging</h4>
+                <p class="text-xs opacity-80">Investigating booking issues, resolving ride disputes, and fixing application crashes.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Data Sharing & Third Parties -->
+    <section class="card p-6 sm:p-8 rounded-3xl space-y-4" data-section-role="all rider driver">
+        <h2 class="text-2xl font-bold">3. Data Sharing and Disclosure</h2>
+        <p class="text-sm opacity-90 leading-relaxed">
+            Personal information is only shared between rider and driver for the duration of an active booking (e.g. driver sees pickup spot and rider name; rider sees driver name, photo, car plate, and live location).
+        </p>
+        <p class="text-sm opacity-90 leading-relaxed">
+            Our backend is powered by <strong>Google Cloud / Firebase</strong> infrastructure located in secure facilities. We do not sell your personal data under any circumstances. We only disclose information if strictly required by South African law or court order.
+        </p>
+    </section>
+
+    <!-- Section 4: Account Deletion & Retention Policy -->
+    <section class="card p-6 sm:p-8 rounded-3xl space-y-4 border-2 border-green-500/30" data-section-role="all rider driver deletion">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">🗑️</span>
+            <h2 class="text-2xl font-bold">4. Account Deletion &amp; Data Retention (30-Day Policy)</h2>
+        </div>
+        <p class="text-sm sm:text-base opacity-90 leading-relaxed">
+            You maintain full ownership of your data. LaynFleet provides a clear and straightforward path to delete your account:
+        </p>
+
+        <div class="space-y-3 pt-2">
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                <h4 class="font-bold text-sm mb-1">Step 1: In-App Soft Deletion</h4>
+                <p class="text-xs opacity-80">Navigate to <em>Profile / Settings &rarr; Delete Account</em> inside either LaynRider or LaynDriver. Once confirmed, your account is immediately deactivated and hidden from dispatch.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                <h4 class="font-bold text-sm mb-1">Step 2: 30-Day Grace &amp; Permanent Erasure</h4>
+                <p class="text-xs opacity-80">Your profile, phone number, vehicle documents, and personal records are retained in a secured quarantine state for <strong>30 days</strong> (to resolve any pending trip disputes or safety audits), after which all personal identifying data is <strong>permanently and irreversibly purged</strong> from our live database.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                <h4 class="font-bold text-sm mb-1">Alternative: Manual Deletion Request</h4>
+                <p class="text-xs opacity-80">You may also request account erasure by emailing <a href="mailto:digilayn@gmail.com" class="text-green-500 font-bold underline">digilayn@gmail.com</a> or messaging <a href="https://wa.me/27815532209" target="_blank" class="text-green-500 font-bold underline">WhatsApp +27 81 553 2209</a> with your registered phone number.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Security & Contact -->
+    <section class="card p-6 sm:p-8 rounded-3xl space-y-4" data-section-role="all rider driver">
+        <h2 class="text-2xl font-bold">5. Contact Information &amp; POPIA Officer</h2>
+        <p class="text-sm opacity-90 leading-relaxed">
+            If you have questions regarding this privacy policy, wish to access your personal information, or need support with your account:
+        </p>
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-sm space-y-2">
+            <p><strong>Digilayn Technologies</strong></p>
+            <p>Email: <a href="mailto:digilayn@gmail.com" class="text-green-500 hover:underline">digilayn@gmail.com</a></p>
+            <p>WhatsApp Support: <a href="https://wa.me/27815532209" target="_blank" class="text-green-500 hover:underline">+27 81 553 2209</a></p>
+            <p>Website: <a href="https://www.digilayn.com" class="text-green-500 hover:underline">www.digilayn.com</a></p>
+        </div>
+    </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="text-center py-10 border-t border-slate-100 dark:border-slate-800 text-sm opacity-80">
+    <div class="flex flex-wrap justify-center gap-4 mb-3">
+        <a href="terms.html" class="hover:text-green-500 font-bold transition">Terms &amp; Conditions</a>
+        <span>&bull;</span>
+        <a href="privacy.html" class="text-green-500 font-bold">Privacy Policy</a>
+        <span>&bull;</span>
+        <a href="../../../../portfolio.html" class="hover:text-green-500 transition">Portfolio</a>
+    </div>
+    <p>&copy; 2026 Digilayn. All rights reserved.</p>
+</footer>
+
+<script src="../../../../scripts/theme.js"></script>
+<script>
+    function filterRole(role) {
+        const buttons = document.querySelectorAll('.role-tab-btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('bg-green-600', 'text-white', 'shadow-md');
+            btn.classList.add('bg-slate-100', 'dark:bg-slate-800');
+        });
+
+        const activeBtn = document.getElementById('tab-btn-' + role);
+        if (activeBtn) {
+            activeBtn.classList.add('bg-green-600', 'text-white', 'shadow-md');
+            activeBtn.classList.remove('bg-slate-100', 'dark:bg-slate-800');
+        }
+
+        const sections = document.querySelectorAll('[data-section-role]');
+        sections.forEach(sec => {
+            const roles = sec.getAttribute('data-section-role').split(' ');
+            if (role === 'all' || roles.includes(role)) {
+                sec.style.display = 'block';
+            } else {
+                sec.style.display = 'none';
+            }
+        });
+
+        const roleElements = document.querySelectorAll('[data-role]');
+        roleElements.forEach(el => {
+            const elRole = el.getAttribute('data-role');
+            if (role === 'all' || role === 'deletion' || elRole === role) {
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
