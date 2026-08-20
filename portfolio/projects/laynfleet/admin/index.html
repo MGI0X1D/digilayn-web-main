@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>LaynFleet — Manager</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Shared site theme handler: sets the `dark` class on <html> from the user
+       toggle + localStorage (system fallback), keeping dark/light consistent
+       with the rest of the Digilayn site. Loaded in <head> to avoid a flash. -->
+  <script src="../../../../scripts/theme.js"></script>
+
+  <link rel="stylesheet" href="../../security/manager.css" />
+</head>
+<body>
+  <!-- ===================== LOGIN GATE ===================== -->
+  <div id="login-view" class="login-view is-hidden">
+    <form id="login-form" class="login-card" autocomplete="on">
+      <div class="login-brand">
+        <span class="login-logo">LF</span>
+        <div>
+          <h1 class="login-title">LaynFleet</h1>
+          <p class="login-subtitle">Manager console</p>
+        </div>
+      </div>
+
+      <label class="field">
+        <span class="field-label">Email</span>
+        <input id="login-email" type="email" class="field-input" placeholder="manager@example.com" required autocomplete="username" />
+      </label>
+
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input id="login-password" type="password" class="field-input" placeholder="••••••••" required autocomplete="current-password" />
+      </label>
+
+      <p id="login-error" class="login-error is-hidden"></p>
+
+      <button id="login-submit" type="submit" class="btn btn-primary btn-block">Sign in</button>
+      <p class="login-note">Restricted access. Only the authorised manager account may sign in.</p>
+    </form>
+  </div>
+
+  <!-- ===================== BOOT / SPLASH ===================== -->
+  <div id="boot-view" class="boot-view">
+    <div class="spinner"></div>
+    <p>Loading…</p>
+  </div>
+
+  <!-- ===================== APP ===================== -->
+  <div id="app-view" class="app-view is-hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-logo">LF</span>
+        <div class="sidebar-brand-text">
+          <strong>LaynFleet</strong>
+          <span>Manager</span>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <button class="nav-item is-active" data-section="overview"><span class="nav-glyph">▦</span> Overview</button>
+        <a href="tracking.html" class="nav-item" style="text-decoration:none;"><span class="nav-glyph">🛰️</span> Live Radar <span class="badge badge-online" style="font-size:9px; padding:1px 6px; margin-left:auto;">Live</span></a>
+        <button class="nav-item" data-section="drivers"><span class="nav-glyph">🚗</span> Drivers <span id="nav-badge-drivers" class="nav-badge is-hidden">0</span></button>
+        <button class="nav-item" data-section="riders"><span class="nav-glyph">🧑</span> Riders</button>
+        <button class="nav-item" data-section="bookings"><span class="nav-glyph">🧾</span> Bookings</button>
+        <button class="nav-item" data-section="reviews"><span class="nav-glyph">⭐</span> Reviews <span id="nav-badge-reviews" class="nav-badge is-hidden">0</span></button>
+        <button class="nav-item" data-section="pricing"><span class="nav-glyph">🏷️</span> Pricing &amp; Governance <span id="nav-badge-pricing" class="nav-badge is-hidden">0</span></button>
+        <button class="nav-item" data-section="appcontrol"><span class="nav-glyph">⚙️</span> App Control <span id="nav-badge-appcontrol" class="nav-badge is-hidden">!</span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <span id="sidebar-avatar" class="sidebar-avatar">M</span>
+          <span id="sidebar-email" class="sidebar-user-email">—</span>
+        </div>
+        <button id="logout-btn" class="btn btn-ghost btn-block">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <h2 id="section-title" class="section-title">Overview</h2>
+          <p id="section-subtitle" class="section-subtitle">Live operations across LaynFleet</p>
+        </div>
+        <div class="topbar-actions">
+          <input id="search-input" type="search" class="search-input" placeholder="Search name, phone, plate…" />
+        </div>
+      </header>
+
+      <!-- OVERVIEW -->
+      <section id="section-overview" class="section is-active">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-label">Pending applications</span>
+            <strong id="stat-pending" class="stat-value">—</strong>
+            <span class="stat-hint">Drivers awaiting approval</span>
+          </div>
+          <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='tracking.html'" title="View live driver locations on Radar Map">
+            <span class="stat-label">Approved drivers</span>
+            <strong id="stat-approved" class="stat-value">—</strong>
+            <span class="stat-hint" id="stat-online-hint" style="color:var(--brand);">— online now ↗</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Riders</span>
+            <strong id="stat-riders" class="stat-value">—</strong>
+            <span class="stat-hint">Placed a ride request</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Active bookings</span>
+            <strong id="stat-bookings" class="stat-value">—</strong>
+            <span class="stat-hint">In progress right now</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Fleet rating & reviews</span>
+            <strong id="stat-fleet-rating" class="stat-value">—</strong>
+            <span class="stat-hint" id="stat-fleet-reviews-hint">— reviews recorded</span>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 16px;">
+          <div class="panel-head">
+            <h3>Pending driver applications</h3>
+            <button class="btn btn-link" data-goto="drivers">View all</button>
+          </div>
+          <div id="overview-pending" class="card-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Reviews requiring scrutiny</h3>
+            <button class="btn btn-link" data-goto="reviews">View all reviews</button>
+          </div>
+          <div id="overview-scrutiny-reviews" class="card-list"></div>
+        </div>
+      </section>
+
+      <!-- DRIVERS -->
+      <section id="section-drivers" class="section">
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" data-driver-tab="PENDING">Pending <span id="count-pending" class="tab-count">0</span></button>
+          <button class="tab" data-driver-tab="APPROVED">Approved <span id="count-approved" class="tab-count">0</span></button>
+          <button class="tab" data-driver-tab="DEMOTED">Demoted <span id="count-demoted" class="tab-count">0</span></button>
+          <button class="tab" data-driver-tab="REJECTED">Rejected <span id="count-rejected" class="tab-count">0</span></button>
+        </div>
+        <div id="drivers-list" class="card-list"></div>
+      </section>
+
+      <!-- RIDERS -->
+      <section id="section-riders" class="section">
+        <div id="riders-list" class="table-wrap"></div>
+      </section>
+
+      <!-- BOOKINGS -->
+      <section id="section-bookings" class="section">
+        <!-- Quick Status Filter Tabs -->
+        <div class="tabs" role="tablist" id="booking-quick-tabs">
+          <button class="tab is-active" data-booking-tab="all">All Bookings <span id="count-booking-all" class="tab-count">0</span></button>
+          <button class="tab" data-booking-tab="active">Active <span id="count-booking-active" class="tab-count">0</span></button>
+          <button class="tab" data-booking-tab="COMPLETED">Completed <span id="count-booking-completed" class="tab-count">0</span></button>
+          <button class="tab" data-booking-tab="CANCELLED">Cancelled <span id="count-booking-cancelled" class="tab-count">0</span></button>
+        </div>
+
+        <!-- Filter Controls Panel -->
+        <div class="filter-panel">
+          <div class="filter-grid">
+            <!-- Search -->
+            <div class="filter-group filter-search-group">
+              <label class="filter-label" for="booking-filter-search">Search Bookings</label>
+              <input id="booking-filter-search" type="search" class="field-input filter-input" placeholder="ID, rider, driver, pickup, destination…" />
+            </div>
+
+            <!-- Detailed Status -->
+            <div class="filter-group">
+              <label class="filter-label" for="booking-filter-status">Status</label>
+              <select id="booking-filter-status" class="field-input filter-select">
+                <option value="all">All Statuses</option>
+                <option value="active">Active (All In-Trip/Live)</option>
+                <option value="PENDING">Pending</option>
+                <option value="QUOTED">Quoted</option>
+                <option value="ACCEPTED">Accepted</option>
+                <option value="EN_ROUTE">En Route</option>
+                <option value="ARRIVED">Arrived</option>
+                <option value="IN_TRIP">In Trip</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+            </div>
+
+            <!-- Vehicle / Ride Type -->
+            <div class="filter-group">
+              <label class="filter-label" for="booking-filter-type">Ride Type</label>
+              <select id="booking-filter-type" class="field-input filter-select">
+                <option value="all">All Types</option>
+                <option value="STANDARD">Standard</option>
+                <option value="XL">XL</option>
+                <option value="PREMIUM">Premium</option>
+                <option value="DELIVERY">Delivery</option>
+                <option value="TUKTUK">Tuktuk</option>
+              </select>
+            </div>
+
+            <!-- Driver Assignment -->
+            <div class="filter-group">
+              <label class="filter-label" for="booking-filter-driver">Driver Status</label>
+              <select id="booking-filter-driver" class="field-input filter-select">
+                <option value="all">All Bookings</option>
+                <option value="assigned">Driver Assigned</option>
+                <option value="unassigned">Unassigned</option>
+              </select>
+            </div>
+
+            <!-- Date Range Preset -->
+            <div class="filter-group">
+              <label class="filter-label" for="booking-filter-date-preset">Date Range</label>
+              <select id="booking-filter-date-preset" class="field-input filter-select">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="7days">Past 7 Days</option>
+                <option value="30days">Past 30 Days</option>
+                <option value="custom">Custom Range…</option>
+              </select>
+            </div>
+
+            <!-- Custom Dates (shown when preset is custom) -->
+            <div id="booking-custom-dates" class="filter-group is-hidden">
+              <label class="filter-label">From / To Date</label>
+              <div class="filter-date-inputs">
+                <input id="booking-filter-date-start" type="date" class="field-input filter-input" title="From Date" />
+                <span class="filter-date-sep">–</span>
+                <input id="booking-filter-date-end" type="date" class="field-input filter-input" title="To Date" />
+              </div>
+            </div>
+
+            <!-- Fare Range -->
+            <div class="filter-group">
+              <label class="filter-label">Fare Range (R)</label>
+              <div class="filter-price-inputs">
+                <input id="booking-filter-price-min" type="number" min="0" step="1" class="field-input filter-input" placeholder="Min" />
+                <span class="filter-date-sep">–</span>
+                <input id="booking-filter-price-max" type="number" min="0" step="1" class="field-input filter-input" placeholder="Max" />
+              </div>
+            </div>
+
+            <!-- Sort By -->
+            <div class="filter-group">
+              <label class="filter-label" for="booking-filter-sort">Sort By</label>
+              <select id="booking-filter-sort" class="field-input filter-select">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="price-desc">Fare: High to Low</option>
+                <option value="price-asc">Fare: Low to High</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Summary & Reset -->
+          <div class="filter-footer">
+            <div id="booking-filter-summary" class="filter-summary">
+              Showing 0 bookings
+            </div>
+            <div class="filter-footer-actions">
+              <button id="booking-filter-reset" class="btn btn-ghost btn-sm" type="button">Reset Filters</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="bookings-list" class="table-wrap"></div>
+      </section>
+
+      <!-- REVIEWS & MODERATION -->
+      <section id="section-reviews" class="section">
+        <!-- Review KPI Stat Grid -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-label">Average Fleet Rating</span>
+            <strong id="stat-rev-avg" class="stat-value">—</strong>
+            <span class="stat-hint" id="stat-rev-breakdown">— total reviews</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Needs Scrutiny</span>
+            <strong id="stat-rev-scrutiny" class="stat-value">—</strong>
+            <span class="stat-hint">≤ 2 stars or reported</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">5-Star Satisfaction</span>
+            <strong id="stat-rev-5star-rate" class="stat-value">—</strong>
+            <span class="stat-hint" id="stat-rev-5star-count">— top ratings</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Hidden / Suppressed</span>
+            <strong id="stat-rev-hidden" class="stat-value">—</strong>
+            <span class="stat-hint">Hidden from public app</span>
+          </div>
+        </div>
+
+        <!-- Quick Tabs for Reviews -->
+        <div class="tabs" role="tablist" id="review-quick-tabs">
+          <button class="tab is-active" data-review-tab="all">All Reviews <span id="count-rev-all" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="scrutiny">Needs Scrutiny <span id="count-rev-scrutiny" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="5star">5 Stars <span id="count-rev-5star" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="4star">4 Stars <span id="count-rev-4star" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="3star">3 Stars <span id="count-rev-3star" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="low">Low (1-2 Stars) <span id="count-rev-low" class="tab-count">0</span></button>
+          <button class="tab" data-review-tab="hidden">Hidden <span id="count-rev-hidden" class="tab-count">0</span></button>
+        </div>
+
+        <!-- Filter Controls Panel for Reviews -->
+        <div class="filter-panel">
+          <div class="filter-grid">
+            <!-- Search -->
+            <div class="filter-search-group filter-group">
+              <label class="filter-label" for="review-filter-search">Search Reviews</label>
+              <input id="review-filter-search" type="search" class="field-input filter-input" placeholder="Search reviewer, driver, phone, booking ID, comment…" />
+            </div>
+
+            <!-- Star Rating Filter -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-stars">Rating</label>
+              <select id="review-filter-stars" class="field-input filter-select">
+                <option value="all">All Ratings</option>
+                <option value="5">5 Stars (★★★★★)</option>
+                <option value="4">4 Stars (★★★★☆)</option>
+                <option value="3">3 Stars (★★★☆☆)</option>
+                <option value="2">2 Stars (★★☆☆☆)</option>
+                <option value="1">1 Star (★☆☆☆☆)</option>
+                <option value="low">Low (1-2 Stars)</option>
+              </select>
+            </div>
+
+            <!-- Review Target / Type -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-type">Review Type</label>
+              <select id="review-filter-type" class="field-input filter-select">
+                <option value="all">All Reviews</option>
+                <option value="driver">Rider → Driver</option>
+                <option value="rider">Driver → Rider</option>
+              </select>
+            </div>
+
+            <!-- Moderation / Visibility Status -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-status">Moderation Status</label>
+              <select id="review-filter-status" class="field-input filter-select">
+                <option value="all">All Statuses</option>
+                <option value="visible">Visible (Public)</option>
+                <option value="hidden">Hidden (Suppressed)</option>
+                <option value="flagged">Flagged for Scrutiny</option>
+                <option value="responded">Manager Responded</option>
+              </select>
+            </div>
+
+            <!-- Date Range Preset -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-date-preset">Date Range</label>
+              <select id="review-filter-date-preset" class="field-input filter-select">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="7days">Past 7 Days</option>
+                <option value="30days">Past 30 Days</option>
+                <option value="custom">Custom Range…</option>
+              </select>
+            </div>
+
+            <!-- Custom Dates -->
+            <div id="review-custom-dates" class="filter-group is-hidden">
+              <label class="filter-label">From / To Date</label>
+              <div class="filter-date-inputs">
+                <input id="review-filter-date-start" type="date" class="field-input filter-input" title="From Date" />
+                <span class="filter-date-sep">–</span>
+                <input id="review-filter-date-end" type="date" class="field-input filter-input" title="To Date" />
+              </div>
+            </div>
+
+            <!-- Sort By -->
+            <div class="filter-group">
+              <label class="filter-label" for="review-filter-sort">Sort By</label>
+              <select id="review-filter-sort" class="field-input filter-select">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="rating-asc">Lowest Rating (1★ First)</option>
+                <option value="rating-desc">Highest Rating (5★ First)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Summary & Reset -->
+          <div class="filter-footer">
+            <div id="review-filter-summary" class="filter-summary">
+              Showing 0 reviews
+            </div>
+            <div class="filter-footer-actions">
+              <button id="review-filter-reset" class="btn btn-ghost btn-sm" type="button">Reset Filters</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Card List -->
+        <div id="reviews-list" class="card-list"></div>
+      </section>
+
+      <!-- PRICING & DEMOCRATIC GOVERNANCE -->
+      <section id="section-pricing" class="section">
+        <div class="stat-grid" style="margin-bottom: 20px;">
+          <div class="stat-card">
+            <span class="stat-label">Standard Rate (Private Car)</span>
+            <strong id="stat-pricing-private-rate" class="stat-value">R10.00/km</strong>
+            <span class="stat-hint" id="stat-pricing-private-min">Min Fare: R25.00</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Active Proposals</span>
+            <strong id="stat-pricing-active-proposals" class="stat-value">0</strong>
+            <span class="stat-hint">Live driver votes in progress</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Democratic Quorum</span>
+            <strong class="stat-value">60%</strong>
+            <span class="stat-hint">Required YES of eligible drivers</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Historical Changes</span>
+            <strong id="stat-pricing-history-count" class="stat-value">0</strong>
+            <span class="stat-hint">Resolved rate changes</span>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 20px;">
+          <div class="panel-head">
+            <h3>Active Fleet Pricing (By Vehicle Type)</h3>
+            <span class="panel-badge">100% Driver Governed</span>
+          </div>
+          <div id="pricing-rates-table" class="table-wrap"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 20px;">
+          <div class="panel-head">
+            <h3>Live Proposals &amp; Voting Progress</h3>
+          </div>
+          <div id="pricing-proposals-list" class="card-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Pricing Audit Log &amp; Proposal History</h3>
+          </div>
+          <div id="pricing-history-table" class="table-wrap"></div>
+        </div>
+      </section>
+
+      <!-- APP CONTROL & SYSTEM STATE -->
+      <section id="section-appcontrol" class="section">
+        <!-- App State Status Overview Grid -->
+        <div class="stat-grid" style="margin-bottom: 20px;">
+          <div class="stat-card" id="card-status-rider">
+            <span class="stat-label">LaynRider (Rider App)</span>
+            <strong id="stat-app-rider-status" class="stat-value" style="font-size: 20px;">Operational</strong>
+            <span class="stat-hint" id="stat-app-rider-details">Min v1 · Live on Store</span>
+          </div>
+          <div class="stat-card" id="card-status-driver">
+            <span class="stat-label">LaynDriver (Driver App)</span>
+            <strong id="stat-app-driver-status" class="stat-value" style="font-size: 20px;">Operational</strong>
+            <span class="stat-hint" id="stat-app-driver-details">Min v1 · Live on Store</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Global Fleet State</span>
+            <strong id="stat-app-global-status" class="stat-value" style="font-size: 20px;">Active</strong>
+            <span class="stat-hint" id="stat-app-last-updated">Ready for rides</span>
+          </div>
+        </div>
+
+        <!-- Quick Tabs for App Config Selection -->
+        <div class="tabs" role="tablist" id="appcontrol-tabs">
+          <button class="tab is-active" data-app-tab="com.digilayn.laynrider">LaynRider (Rider) <span class="tab-badge-pill" id="badge-tab-rider">v1</span></button>
+          <button class="tab" data-app-tab="com.digilayn.layndriver">LaynDriver (Driver) <span class="tab-badge-pill" id="badge-tab-driver">v1</span></button>
+          <button class="tab" data-app-tab="emergency">Emergency / Kill Switch</button>
+        </div>
+
+        <!-- Main App Config Form Panel -->
+        <div id="appcontrol-form-panel" class="panel" style="margin-bottom: 24px;">
+          <div class="panel-head">
+            <div>
+              <h3 id="app-config-title">LaynRider Configuration</h3>
+              <p id="app-config-pkg" class="section-subtitle" style="font-family: monospace; font-size: 12px; margin-top: 2px;">com.digilayn.laynrider</p>
+            </div>
+            <span id="app-config-state-badge" class="badge badge-success">Operational</span>
+          </div>
+
+          <form id="app-config-form" class="app-control-form" onsubmit="return false;">
+            <!-- Maintenance Mode Card -->
+            <div class="config-block">
+              <div class="config-block-head">
+                <div>
+                  <h4 class="config-block-title">🚧 Maintenance Mode</h4>
+                  <p class="config-block-desc">When enabled, the app presents a blocking maintenance screen on launch.</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="input-app-maintenance" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div id="maintenance-details-wrap" class="config-field-wrap">
+                <label class="field">
+                  <span class="field-label">Maintenance Message</span>
+                  <input id="input-app-maintenance-msg" type="text" class="field-input" placeholder="e.g. LaynFleet is undergoing scheduled system maintenance. Please check back shortly." />
+                </label>
+                <div class="quick-preset-chips">
+                  <span class="preset-chip-label">Quick presets:</span>
+                  <button type="button" class="btn-preset-chip" data-preset="LaynFleet is undergoing scheduled system maintenance. Please check back shortly.">Standard</button>
+                  <button type="button" class="btn-preset-chip" data-preset="Routine maintenance in progress. We'll be back online in ~30 minutes.">30 Mins</button>
+                  <button type="button" class="btn-preset-chip" data-preset="Emergency server maintenance. Our team is actively resolving this.">Emergency</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Force Upgrade Card -->
+            <div class="config-block">
+              <div class="config-block-head">
+                <div>
+                  <h4 class="config-block-title">🚀 Version Policy &amp; Force Upgrade</h4>
+                  <p class="config-block-desc">Control the minimum version required to access the application.</p>
+                </div>
+              </div>
+
+              <div class="config-grid-2">
+                <label class="field">
+                  <span class="field-label">Minimum Required Version Code (Integer)</span>
+                  <input id="input-app-min-version" type="number" min="1" step="1" class="field-input" placeholder="1" required />
+                  <span class="field-help" style="color: var(--text-faint); font-size: 11px; margin-top: 4px;">Apps running a version code below this will be blocked with an upgrade prompt.</span>
+                </label>
+
+                <label class="field">
+                  <span class="field-label">Store Download / Upgrade URL</span>
+                  <input id="input-app-store-url" type="url" class="field-input" placeholder="https://play.google.com/store/apps/details?id=..." />
+                  <span class="field-help" style="color: var(--text-faint); font-size: 11px; margin-top: 4px;">Destination link opened when users tap 'Update Now'.</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- User Experience Simulator / Preview Box -->
+            <div class="config-preview-box">
+              <div class="preview-box-header">
+                <span class="preview-badge">📱 Launch Gate Simulator</span>
+                <span id="preview-sim-result" class="preview-result-pill pill-success">Passes gate (Home screen)</span>
+              </div>
+              <p id="preview-sim-text" class="preview-sim-text">Users will smoothly enter the app without interruption.</p>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="config-form-actions">
+              <button id="btn-revert-app-config" type="button" class="btn btn-ghost">Discard Changes</button>
+              <button id="btn-save-app-config" type="button" class="btn btn-primary">Save &amp; Broadcast App State</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Emergency Kill Switch Panel (Shown on Emergency tab) -->
+        <div id="appcontrol-emergency-panel" class="panel is-hidden" style="margin-bottom: 24px;">
+          <div class="panel-head">
+            <h3>⚠️ Fleet Emergency Kill Switches</h3>
+            <span class="panel-badge panel-badge-danger">High Impact</span>
+          </div>
+          <p style="color: var(--text-dim); margin-bottom: 16px; font-size: 13px;">
+            Emergency controls apply immediate system-wide locks across both LaynRider and LaynDriver. Use with caution.
+          </p>
+          <div class="emergency-actions-grid">
+            <div class="emergency-action-card">
+              <h4>🛑 Enable Full Fleet Maintenance</h4>
+              <p>Immediately blocks all riders and drivers with a maintenance screen.</p>
+              <button id="btn-emergency-all-maintenance" class="btn btn-danger btn-sm" type="button">Lock Entire Fleet</button>
+            </div>
+            <div class="emergency-action-card">
+              <h4>✅ Restore Full Fleet Operations</h4>
+              <p>Clears maintenance mode for all applications and resumes normal dispatch.</p>
+              <button id="btn-emergency-all-restore" class="btn btn-primary btn-sm" type="button">Restore All Apps</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- App State History / Audit Log -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>App State Change Audit Log</h3>
+          </div>
+          <div id="appcontrol-audit-table" class="table-wrap"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===================== MODAL ===================== -->
+  <div id="modal-overlay" class="modal-overlay is-hidden">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modal-title" class="modal-title">Confirm</h3>
+      <p id="modal-message" class="modal-message"></p>
+      <label id="modal-reason-wrap" class="field is-hidden">
+        <span class="field-label">Reason</span>
+        <textarea id="modal-reason" class="field-input" rows="3" placeholder="Give a clear reason…"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-ghost">Cancel</button>
+        <button id="modal-confirm" class="btn btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== BOOKING DETAILS MODAL ===================== -->
+  <div id="booking-detail-overlay" class="modal-overlay is-hidden">
+    <div class="modal modal-lg" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div>
+          <h3 id="booking-modal-title" class="modal-title">Booking Details</h3>
+          <p id="booking-modal-id" class="modal-subtitle">—</p>
+        </div>
+        <button id="booking-modal-close" class="btn-icon" type="button" aria-label="Close">✕</button>
+      </div>
+      <div id="booking-modal-body" class="booking-detail-body"></div>
+      <div class="modal-actions">
+        <button id="booking-modal-done" class="btn btn-ghost" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== REVIEW SCRUTINY MODAL ===================== -->
+  <div id="review-detail-overlay" class="modal-overlay is-hidden">
+    <div class="modal modal-lg" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div>
+          <h3 id="review-modal-title" class="modal-title">Review Scrutiny &amp; Moderation</h3>
+          <p id="review-modal-id" class="modal-subtitle">—</p>
+        </div>
+        <button id="review-modal-close" class="btn-icon" type="button" aria-label="Close">✕</button>
+      </div>
+      <div id="review-modal-body" class="review-detail-body"></div>
+      <div class="modal-actions" id="review-modal-actions">
+        <button id="review-modal-done" class="btn btn-ghost" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CONTACT REVIEWER MODAL ===================== -->
+  <div id="contact-reviewer-overlay" class="modal-overlay is-hidden">
+    <div class="modal modal-lg" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div>
+          <h3 id="contact-modal-title" class="modal-title">Contact Reviewer</h3>
+          <p id="contact-modal-subtitle" class="modal-subtitle">—</p>
+        </div>
+        <button id="contact-modal-close" class="btn-icon" type="button" aria-label="Close">✕</button>
+      </div>
+      <div id="contact-modal-body" class="contact-modal-body"></div>
+      <div class="modal-actions">
+        <button id="contact-modal-done" class="btn btn-ghost" type="button">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TOAST ===================== -->
+  <div id="toast" class="toast is-hidden"></div>
+
+  <!-- ===================== IMAGE VIEWER ===================== -->
+  <div id="image-overlay" class="image-overlay is-hidden">
+    <img id="image-full" src="" alt="Document" />
+  </div>
+
+  <!-- Firebase (compat v9.23.0 — matches the rest of web-poortjie) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script src="../../security/firebase-config.js"></script>
+  <script src="../../security/manager.js"></script>
+</body>
+</html>
