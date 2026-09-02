@@ -190,6 +190,17 @@
                 Retry
             </button>
         </div>
+
+        <section id="orphanSection" class="mt-10 hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-xl font-black">Unowned global data</h2>
+                    <p class="text-sm text-slate-500">Storage objects and username reservations that cannot be joined to a UID. LaynFleet and Poortjie are excluded.</p>
+                </div>
+                <span id="orphanCountBadge" class="px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 text-xs font-black">0</span>
+            </div>
+            <div id="orphanList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
     </main>
 
     <!-- Delete Confirmation Modal -->
@@ -203,7 +214,7 @@
                 
                 <h3 class="text-2xl font-bold mb-2">Permanently delete user?</h3>
                 <p class="text-slate-500 dark:text-slate-400 mb-6">
-                    This will permanently delete this user from Firestore and release their username. This action cannot be undone.
+                    This deletes the Auth account, global user document and subcollections, username reservations, and global user Storage objects. LaynFleet and Poortjie are excluded. This cannot be undone.
                 </p>
 
                 <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6 text-sm space-y-2">
@@ -223,13 +234,14 @@
                         <span class="text-slate-500">UID:</span>
                         <span id="modalUid" class="font-mono text-xs opacity-50"></span>
                     </div>
+                    <div id="modalResources" class="pt-3 mt-3 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500">Loading deletion preview…</div>
                 </div>
 
                 <div class="mb-6">
                     <label class="block text-sm font-medium mb-2">
-                        Type the user's email <span id="confirmEmailHint" class="font-bold text-red-500"></span> to confirm:
+                        Type the complete UID <span id="confirmEmailHint" class="font-bold text-red-500"></span> to confirm:
                     </label>
-                    <input type="text" id="deleteConfirmInput" placeholder="Enter email"
+                    <input type="text" id="deleteConfirmInput" placeholder="Enter UID"
                         class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-red-500 rounded-xl outline-none transition-all">
                 </div>
 
@@ -375,6 +387,9 @@
         const dateEnd = document.getElementById('dateEnd');
         const retryBtn = document.getElementById('retryBtn');
         const userCountBadge = document.getElementById('userCountBadge');
+        const orphanSection = document.getElementById('orphanSection');
+        const orphanList = document.getElementById('orphanList');
+        const orphanCountBadge = document.getElementById('orphanCountBadge');
 
         // Role Selects
         const poortjieAdminSelect = document.getElementById('poortjieAdminSelect');
@@ -389,6 +404,7 @@
         const modalUsername = document.getElementById('modalUsername');
         const modalEmail = document.getElementById('modalEmail');
         const modalUid = document.getElementById('modalUid');
+        const modalResources = document.getElementById('modalResources');
         const confirmEmailHint = document.getElementById('confirmEmailHint');
         const deleteConfirmInput = document.getElementById('deleteConfirmInput');
         const countdownText = document.getElementById('countdownText');
@@ -429,6 +445,7 @@
         let suspendCountdown = 3;
         let countdownTimer = null;
         let suspendCountdownTimer = null;
+        let deletePreviewReady = false;
 
         function setStatus(message, isError = false) {
             status.textContent = message;
@@ -445,6 +462,50 @@
             if (typeof ts === 'number') return new Date(ts).toLocaleString();
             const parsed = new Date(ts);
             return isNaN(parsed.getTime()) ? 'N/A' : parsed.toLocaleString();
+        }
+
+        function renderOrphans(inventory = {}) {
+            const storage = inventory.orphanStorage || [];
+            const usernames = inventory.orphanUsernames || [];
+            const total = storage.length + usernames.length;
+            orphanCountBadge.textContent = total;
+            orphanSection.classList.toggle('hidden', total === 0);
+            orphanList.innerHTML = '';
+
+            storage.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/40 rounded-2xl p-4';
+                const preview = String(item.contentType || '').startsWith('image/')
+                    ? `<img src="${item.downloadUrl}" class="w-16 h-16 rounded-xl object-cover mb-3 bg-slate-100">`
+                    : '<i class="fas fa-file text-2xl text-slate-400 mb-3"></i>';
+                card.innerHTML = `${preview}<p class="font-mono text-xs break-all mb-2"></p><p class="text-xs text-slate-500 mb-3">${item.contentType || 'Unknown type'} · ${Number(item.size || 0).toLocaleString()} bytes</p><button class="px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-bold">Delete exact object</button>`;
+                card.querySelector('p').textContent = item.path;
+                card.querySelector('button').addEventListener('click', async () => {
+                    const confirmation = window.prompt(`Type the exact object path to permanently delete it:\n\n${item.path}`);
+                    if (confirmation !== item.path) return;
+                    try {
+                        await userManager.deleteStorageObject(item.path, confirmation);
+                        setStatus(`Deleted orphan object ${item.path}.`);
+                    } catch (error) { setStatus(`Delete failed: ${error.message}`, true); }
+                });
+                orphanList.appendChild(card);
+            });
+
+            usernames.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/40 rounded-2xl p-4';
+                card.innerHTML = '<i class="fas fa-at text-2xl text-amber-500 mb-3"></i><p class="font-mono text-sm break-all mb-3"></p><button class="px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-bold">Delete reservation</button>';
+                card.querySelector('p').textContent = item.username;
+                card.querySelector('button').addEventListener('click', async () => {
+                    const confirmation = window.prompt(`Type the exact username to permanently delete its malformed reservation:\n\n${item.username}`);
+                    if (confirmation !== item.username) return;
+                    try {
+                        await userManager.deleteUsernameReservation(item.username, confirmation);
+                        setStatus(`Deleted orphan username @${item.username}.`);
+                    } catch (error) { setStatus(`Delete failed: ${error.message}`, true); }
+                });
+                orphanList.appendChild(card);
+            });
         }
 
         function renderUsers(users) {
@@ -511,6 +572,9 @@
                         <div class="pt-2 flex flex-wrap gap-2">
                             ${user.deletePending ? '<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">Delete Pending</span>' : ''}
                             ${user.suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider rounded">Suspended</span>' : ''}
+                            ${user.integrity !== 'complete' ? `<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">${user.integrity}</span>` : '<span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 text-[10px] font-bold uppercase tracking-wider rounded">Auth + Firestore</span>'}
+                            <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded">${user.storageObjects.length} files</span>
+                            <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded">${user.providers.join(', ') || 'No Auth provider'}</span>
                             ${isLaynFleetDriver ? '<span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded">LaynFleet Driver</span>' : ''}
                         </div>
                         
@@ -739,19 +803,32 @@
             }
         });
 
-        function showDeleteModal(user) {
+        async function showDeleteModal(user) {
             userToDelete = user;
             modalDisplayName.textContent = user.displayName || 'No Name';
             modalUsername.textContent = `@${user.username || 'no-username'}`;
             modalEmail.textContent = user.email || 'No Email';
             modalUid.textContent = user.uid;
-            confirmEmailHint.textContent = `(${user.email})`;
+            confirmEmailHint.textContent = `(${user.uid})`;
+            modalResources.textContent = 'Loading deletion preview…';
+            deletePreviewReady = false;
             
             deleteConfirmInput.value = '';
             confirmDeleteBtn.disabled = true;
             confirmDeleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
             
             deleteModal.classList.remove('hidden');
+
+            try {
+                const preview = await userManager.getDeletePreview(user.uid);
+                if (userToDelete?.uid !== user.uid) return;
+                modalResources.textContent = `Auth: ${preview.auth ? 'yes' : 'no'} · Firestore user: ${preview.firestoreUser ? 'yes' : 'no'} · Usernames: ${preview.usernames.length} · Storage objects: ${preview.storage.length}`;
+                deletePreviewReady = true;
+                checkConfirmation();
+            } catch (error) {
+                modalResources.textContent = `Preview failed: ${error.message}`;
+                confirmDeleteBtn.disabled = true;
+            }
             
             countdown = 5;
             updateCountdown();
@@ -777,8 +854,8 @@
         }
 
         function checkConfirmation() {
-            const emailMatch = deleteConfirmInput.value.trim().toLowerCase() === (userToDelete?.email || '').toLowerCase();
-            if (countdown <= 0 && emailMatch) {
+            const uidMatch = deleteConfirmInput.value.trim() === (userToDelete?.uid || '');
+            if (countdown <= 0 && uidMatch && deletePreviewReady) {
                 confirmDeleteBtn.disabled = false;
                 confirmDeleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
@@ -830,7 +907,7 @@
 
         confirmDeleteBtn.addEventListener('click', async () => {
             const uid = userToDelete.uid;
-            const username = userToDelete.username;
+            const confirmation = deleteConfirmInput.value.trim();
             
             deleteModal.classList.add('hidden');
             clearInterval(countdownTimer);
@@ -838,11 +915,14 @@
             setStatus("Initiating permanent deletion...", false);
 
             try {
-                console.log(`Attempting to delete user: ${uid} (${username})`);
-                const result = await userManager.deleteUser(uid, username);
+                console.log(`Attempting to delete global user: ${uid}`);
+                const result = await userManager.deleteUser(uid, confirmation);
                 if (result.success) {
                     console.log(`User ${uid} deleted successfully.`);
                     setStatus(`User ${uid} deleted successfully.`);
+                } else {
+                    const failures = (result.failures || []).map((failure) => `${failure.resource}: ${failure.error}`).join(' | ');
+                    throw new Error(`Some resources could not be deleted. ${failures}`);
                 }
             } catch (error) {
                 console.error("Delete failed:", error);
@@ -869,7 +949,7 @@
                 userManager.destroy();
 
                 userManager.init(
-                    (filteredUsers) => {
+                    (filteredUsers, inventory) => {
                         console.log(`Users.html: Received ${filteredUsers.length} users after filtering.`);
                         loadingState.classList.add('hidden');
                         
@@ -884,6 +964,7 @@
                             usersList.classList.remove('hidden');
                             renderUsers(filteredUsers);
                         }
+                        renderOrphans(inventory);
                     },
                     (error) => {
                         console.error("Users.html: Firestore error details:", error);

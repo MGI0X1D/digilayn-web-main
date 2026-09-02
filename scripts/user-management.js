@@ -1,250 +1,189 @@
 import { auth, functions, db } from "./firebase-config.js";
-import {
-  collection,
-  query,
-  onSnapshot,
-  Timestamp,
-  doc,
-  updateDoc,
-  deleteDoc
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { doc, Timestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
 
-/** Safely extracts millisecond epoch from various timestamp formats. */
 export function getTimestampMs(ts) {
   if (!ts) return 0;
   if (typeof ts.toMillis === "function") return ts.toMillis();
   if (typeof ts.toDate === "function") return ts.toDate().getTime();
-  if (ts._seconds !== undefined) {
-    return ts._seconds * 1000 + (ts._nanoseconds ? Math.floor(ts._nanoseconds / 1e6) : 0);
-  }
+  if (ts._seconds !== undefined) return ts._seconds * 1000 + Math.floor((ts._nanoseconds || 0) / 1e6);
   if (typeof ts === "number") return ts;
   const parsed = new Date(ts).getTime();
-  return isNaN(parsed) ? 0 : parsed;
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 class UserManagement {
   constructor() {
     this.users = [];
-    this.unsubscribe = null;
+    this.orphanStorage = [];
+    this.orphanUsernames = [];
+    this.onUpdate = null;
+    this.onError = null;
     this.filters = {
-      search: "",
-      deletePending: "all",
-      suspended: "all",
-      hasUsername: "all",
-      laynFleetDriver: "all",
-      poortjieAdmin: "all",
-      poortjieTaxiAdmin: "all",
-      poortjieSupport: "all",
-      tuktukDriver: "all",
-      tuktukOwner: "all",
-      dateStart: null,
-      dateEnd: null,
-      sortBy: "newest"
+      search: "", deletePending: "all", suspended: "all", hasUsername: "all",
+      laynFleetDriver: "all", poortjieAdmin: "all", poortjieTaxiAdmin: "all",
+      poortjieSupport: "all", tuktukDriver: "all", tuktukOwner: "all",
+      dateStart: null, dateEnd: null, sortBy: "newest"
     };
-    this.deleteUserFully = httpsCallable(functions, "deleteUserFully");
+    this.getInventory = httpsCallable(functions, "getGlobalUserInventoryCallable");
+    this.previewDelete = httpsCallable(functions, "previewGlobalUserDeleteCallable");
+    this.deleteUserFully = httpsCallable(functions, "deleteGlobalUserCallable");
+    this.deleteStorageObjectFully = httpsCallable(functions, "deleteGlobalStorageObjectCallable");
+    this.deleteUsernameReservationFully = httpsCallable(functions, "deleteGlobalUsernameReservationCallable");
   }
 
-  init(onUpdate, onError) {
-    console.log("Initializing UserManagement Firestore listener...");
-    const usersRef = collection(db, "users");
-    const q = query(usersRef);
-
+  async init(onUpdate, onError) {
+    this.onUpdate = onUpdate;
+    this.onError = onError;
     try {
-      this.unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          console.log(`Firestore snapshot received: ${snapshot.size} documents.`);
-          this.users = snapshot.docs.map((d) => {
-            const data = d.data() || {};
-            return {
-              userId: d.id,
-              uid: d.id,
-              displayName: data.displayName || "",
-              username: data.username || "",
-              email: data.email || "",
-              phone: data.phone || "",
-              photoUrl: data.photoUrl || "",
-              suspended: !!data.suspended,
-              suspendedReason: data.suspendedReason || "",
-              deletePending: !!data.deletePending,
-              applications: data.applications || {},
-              roles: data.roles || {},
-              devices: data.devices || {},
-              registeredWith: data.registeredWith || "",
-              createdAt: data.createdAt || null,
-              updatedAt: data.updatedAt || null,
-              lastActive: data.lastActive || null
-            };
-          });
-          onUpdate(this.applyFilters(this.users));
-        },
-        (error) => {
-          console.error("UserManagement: onSnapshot error:", error);
-          if (onError) onError(error);
-        }
-      );
-    } catch (error) {
-      console.error("UserManagement: Error setting up onSnapshot:", error);
-      if (onError) onError(error);
+      await this.refresh();
+    } catch (_) {
+      // refresh already reported the exact callable error through onError.
     }
+  }
+
+  async refresh() {
+    try {
+      const response = await this.getInventory({});
+      const inventory = response.data || {};
+      this.users = (inventory.accounts || []).map((account) => this.normalizeAccount(account));
+      this.orphanStorage = inventory.orphanStorage || [];
+      this.orphanUsernames = inventory.orphanUsernames || [];
+      this.onUpdate?.(this.applyFilters(this.users), {
+        orphanStorage: this.orphanStorage,
+        orphanUsernames: this.orphanUsernames,
+        excludedPrefixes: inventory.excludedPrefixes || []
+      });
+    } catch (error) {
+      console.error("UserManagement inventory failed:", error);
+      this.onError?.(error);
+      throw error;
+    }
+  }
+
+  normalizeAccount(account) {
+    const authData = account.auth || null;
+    const firestore = account.firestore || null;
+    const source = firestore || {};
+    const storageObjects = account.storage || [];
+    const usernameReservations = account.usernames || [];
+    let integrity = "complete";
+    if (authData && !firestore) integrity = "auth-only";
+    else if (!authData && firestore) integrity = "firestore-only";
+    else if (!authData && !firestore) integrity = "linked-orphans-only";
+    return {
+      userId: account.uid,
+      uid: account.uid,
+      displayName: authData?.displayName || source.displayName || "",
+      username: source.username || usernameReservations[0]?.username || "",
+      email: authData?.email || source.email || "",
+      phone: authData?.phone || source.phone || "",
+      photoUrl: authData?.photoUrl || source.photoUrl || storageObjects.find((item) => String(item.contentType).startsWith("image/"))?.downloadUrl || "",
+      suspended: !!source.suspended,
+      suspendedReason: source.suspendedReason || "",
+      deletePending: !!source.deletePending,
+      applications: source.applications || {}, roles: source.roles || {}, devices: source.devices || {},
+      registeredWith: source.registeredWith || "",
+      createdAt: authData?.createdAt || source.createdAt || null,
+      updatedAt: source.updatedAt || null,
+      lastActive: authData?.lastSignInAt || source.lastActive || null,
+      hasAuth: !!authData,
+      hasFirestore: !!firestore,
+      authDisabled: !!authData?.disabled,
+      emailVerified: !!authData?.emailVerified,
+      providers: authData?.providers || [],
+      integrity,
+      storageObjects,
+      usernameReservations
+    };
   }
 
   applyFilters(users) {
     let filtered = [...users];
-
-    // Search query
     if (this.filters.search) {
-      const s = this.filters.search.toLowerCase().trim();
-      filtered = filtered.filter(
-        (u) =>
-          u.displayName.toLowerCase().includes(s) ||
-          u.username.toLowerCase().includes(s) ||
-          u.email.toLowerCase().includes(s) ||
-          u.phone.toLowerCase().includes(s) ||
-          u.userId.toLowerCase().includes(s)
-      );
+      const search = this.filters.search.toLowerCase().trim();
+      filtered = filtered.filter((user) => [user.displayName, user.username, user.email, user.phone, user.userId, user.integrity]
+        .some((value) => String(value || "").toLowerCase().includes(search)));
     }
-
-    // Delete Pending
-    if (this.filters.deletePending !== "all") {
-      const isPending = this.filters.deletePending === "true";
-      filtered = filtered.filter((u) => !!u.deletePending === isPending);
-    }
-
-    // Suspended
-    if (this.filters.suspended !== "all") {
-      const isSuspended = this.filters.suspended === "true";
-      filtered = filtered.filter((u) => !!u.suspended === isSuspended);
-    }
-
-    // Has Username
-    if (this.filters.hasUsername !== "all") {
-      const has = this.filters.hasUsername === "true";
-      filtered = filtered.filter((u) => (!!u.username && u.username.length > 0) === has);
-    }
-
-    // LaynFleet Driver Application
-    if (this.filters.laynFleetDriver !== "all") {
-      const isDriver = this.filters.laynFleetDriver === "true";
-      filtered = filtered.filter((u) => !!u.applications?.laynFleet?.isDriver === isDriver);
-    }
-
-    // Poortjie Roles
-    if (this.filters.poortjieAdmin !== "all") {
-      const val = this.filters.poortjieAdmin === "true";
-      filtered = filtered.filter((u) => !!u.roles?.poortjie?.isAdmin === val);
-    }
-    if (this.filters.poortjieTaxiAdmin !== "all") {
-      const val = this.filters.poortjieTaxiAdmin === "true";
-      filtered = filtered.filter((u) => !!u.roles?.poortjie?.isTaxiRankAdmin === val);
-    }
-    if (this.filters.poortjieSupport !== "all") {
-      const val = this.filters.poortjieSupport === "true";
-      filtered = filtered.filter((u) => !!u.roles?.poortjie?.listForSupport === val);
-    }
-
-    // Tuktuk Roles
-    if (this.filters.tuktukDriver !== "all") {
-      const val = this.filters.tuktukDriver === "true";
-      filtered = filtered.filter((u) => !!u.roles?.tuktuk?.isDriver === val);
-    }
-    if (this.filters.tuktukOwner !== "all") {
-      const val = this.filters.tuktukOwner === "true";
-      filtered = filtered.filter((u) => !!u.roles?.tuktuk?.isOwner === val);
-    }
-
-    // Date Range
+    const booleanFilter = (key, getter) => {
+      if (this.filters[key] !== "all") {
+        const expected = this.filters[key] === "true";
+        filtered = filtered.filter((user) => !!getter(user) === expected);
+      }
+    };
+    booleanFilter("deletePending", (user) => user.deletePending);
+    booleanFilter("suspended", (user) => user.suspended);
+    booleanFilter("hasUsername", (user) => user.username);
+    booleanFilter("laynFleetDriver", (user) => user.applications?.laynFleet?.isDriver);
+    booleanFilter("poortjieAdmin", (user) => user.roles?.poortjie?.isAdmin);
+    booleanFilter("poortjieTaxiAdmin", (user) => user.roles?.poortjie?.isTaxiRankAdmin);
+    booleanFilter("poortjieSupport", (user) => user.roles?.poortjie?.listForSupport);
+    booleanFilter("tuktukDriver", (user) => user.roles?.tuktuk?.isDriver);
+    booleanFilter("tuktukOwner", (user) => user.roles?.tuktuk?.isOwner);
     if (this.filters.dateStart) {
       const start = new Date(this.filters.dateStart).getTime();
-      filtered = filtered.filter((u) => getTimestampMs(u.createdAt) >= start);
+      filtered = filtered.filter((user) => getTimestampMs(user.createdAt) >= start);
     }
     if (this.filters.dateEnd) {
-      const end = new Date(this.filters.dateEnd).getTime();
-      filtered = filtered.filter((u) => getTimestampMs(u.createdAt) <= end + 86400000);
+      const end = new Date(this.filters.dateEnd).getTime() + 86400000;
+      filtered = filtered.filter((user) => getTimestampMs(user.createdAt) <= end);
     }
-
-    // Sorting
     filtered.sort((a, b) => {
       switch (this.filters.sortBy) {
-        case "newest":
-          return getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt);
-        case "oldest":
-          return getTimestampMs(a.createdAt) - getTimestampMs(b.createdAt);
-        case "lastActive":
-          return getTimestampMs(b.lastActive || b.updatedAt) - getTimestampMs(a.lastActive || a.updatedAt);
-        case "nameAZ":
-          return (a.displayName || "").localeCompare(b.displayName || "");
-        case "usernameAZ":
-          return (a.username || "").localeCompare(b.username || "");
-        default:
-          return 0;
+        case "oldest": return getTimestampMs(a.createdAt) - getTimestampMs(b.createdAt);
+        case "lastActive": return getTimestampMs(b.lastActive || b.updatedAt) - getTimestampMs(a.lastActive || a.updatedAt);
+        case "nameAZ": return (a.displayName || "").localeCompare(b.displayName || "");
+        case "usernameAZ": return (a.username || "").localeCompare(b.username || "");
+        default: return getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt);
       }
     });
-
     return filtered;
   }
 
-  setFilter(key, value) {
-    this.filters[key] = value;
+  setFilter(key, value) { this.filters[key] = value; }
+
+  async getDeletePreview(uid) {
+    return (await this.previewDelete({ uid })).data;
   }
 
-  async deleteUser(uid, username) {
-    if (auth.currentUser && auth.currentUser.uid === uid) {
-      console.warn("User tried to delete themselves. Operation blocked.");
-      throw new Error("You cannot delete yourself.");
-    }
-    console.log(`Deleting user UID: ${uid} (${username})`);
-    try {
-      const result = await this.deleteUserFully({ uid, username });
-      return result.data || { success: true };
-    } catch (cfError) {
-      console.warn("Cloud function deleteUserFully error, falling back to direct Firestore removal:", cfError);
-      const userRef = doc(db, "users", uid);
-      await deleteDoc(userRef);
-      if (username) {
-        const usernameRef = doc(db, "usernames", username);
-        await deleteDoc(usernameRef);
-      }
-      return { success: true, method: "firestore-direct" };
-    }
+  async deleteUser(uid, confirmation) {
+    if (auth.currentUser?.uid === uid) throw new Error("You cannot delete yourself.");
+    const result = await this.deleteUserFully({ uid, confirmation });
+    await this.refresh();
+    return result.data;
+  }
+
+  async deleteStorageObject(path, confirmation) {
+    const result = await this.deleteStorageObjectFully({ path, confirmation });
+    await this.refresh();
+    return result.data;
+  }
+
+  async deleteUsernameReservation(username, confirmation) {
+    const result = await this.deleteUsernameReservationFully({ username, confirmation });
+    await this.refresh();
+    return result.data;
   }
 
   async toggleUserSuspension(uid, isSuspended) {
-    console.log(`Toggling suspension for UID: ${uid} to ${!isSuspended}`);
-    const userRef = doc(db, "users", uid);
-    await updateDoc(userRef, {
-      suspended: !isSuspended,
-      updatedAt: Timestamp.now()
-    });
+    await updateDoc(doc(db, "users", uid), { suspended: !isSuspended, updatedAt: Timestamp.now() });
+    await this.refresh();
     return { success: true, suspended: !isSuspended };
   }
 
   async toggleUserRole(uid, rolePath, currentStatus) {
-    console.log(`Toggling role ${rolePath} for UID: ${uid} to ${!currentStatus}`);
-    const userRef = doc(db, "users", uid);
-    const updateData = {
-      [`roles.${rolePath}`]: !currentStatus,
-      updatedAt: Timestamp.now()
-    };
-    await updateDoc(userRef, updateData);
+    await updateDoc(doc(db, "users", uid), { [`roles.${rolePath}`]: !currentStatus, updatedAt: Timestamp.now() });
+    await this.refresh();
     return { success: true };
   }
 
   async toggleLaynFleetDriver(uid, currentStatus) {
-    console.log(`Toggling LaynFleet driver for UID: ${uid} to ${!currentStatus}`);
-    const userRef = doc(db, "users", uid);
-    const updateData = {
-      "applications.laynFleet.isDriver": !currentStatus,
-      updatedAt: Timestamp.now()
-    };
-    await updateDoc(userRef, updateData);
+    await updateDoc(doc(db, "users", uid), { "applications.laynFleet.isDriver": !currentStatus, updatedAt: Timestamp.now() });
+    await this.refresh();
     return { success: true };
   }
 
-  destroy() {
-    if (this.unsubscribe) this.unsubscribe();
-  }
+  destroy() { this.onUpdate = null; this.onError = null; }
 }
 
 export const userManager = new UserManagement();
