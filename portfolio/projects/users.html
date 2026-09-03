@@ -29,6 +29,15 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <button id="copyEmailsBtn" class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center gap-2 border border-slate-200 dark:border-slate-700 shadow-sm" title="Copy auth emails formatted as email1, email2, email3">
+                            <i class="far fa-copy text-green-600 dark:text-green-400"></i>
+                            <span>Copy Emails (<span id="copyEmailsCount">0</span>)</span>
+                        </button>
+                        <button id="copyAllEmailsBtn" class="hidden px-2.5 py-1 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 font-semibold" title="Copy all registered auth emails regardless of filter">
+                            Copy All (<span id="copyAllEmailsCount">0</span>)
+                        </button>
+                    </div>
                     <button id="logoutBtn" class="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors">
                         Logout
                     </button>
@@ -587,6 +596,12 @@
         const dateEnd = document.getElementById('dateEnd');
         const retryBtn = document.getElementById('retryBtn');
         const userCountBadge = document.getElementById('userCountBadge');
+        const copyEmailsBtn = document.getElementById('copyEmailsBtn');
+        const copyEmailsCount = document.getElementById('copyEmailsCount');
+        const copyAllEmailsBtn = document.getElementById('copyAllEmailsBtn');
+        const copyAllEmailsCount = document.getElementById('copyAllEmailsCount');
+        let currentDisplayedUsers = [];
+
         const orphanSection = document.getElementById('orphanSection');
         const orphanList = document.getElementById('orphanList');
         const orphanCountBadge = document.getElementById('orphanCountBadge');
@@ -1232,6 +1247,10 @@
             loadingState.classList.add('hidden');
             errorState.classList.add('hidden');
             
+            // Track currently rendered users for email copy
+            currentDisplayedUsers = users || [];
+            updateEmailCopyButtons();
+            
             // Update count badge
             userCountBadge.textContent = users.length;
             userCountBadge.classList.remove('hidden');
@@ -1718,6 +1737,111 @@
                 setStatus(`Failed to delete user: ${error.message}`, true);
             } finally {
                 isDeletingUser = false;
+            }
+        });
+
+        // Copy Emails Feature
+        async function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (err) {
+                    console.warn("navigator.clipboard failed, using fallback:", err);
+                }
+            }
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                const successful = document.execCommand('copy');
+                textArea.remove();
+                return successful;
+            } catch (err) {
+                console.error("Fallback copy failed:", err);
+                textArea.remove();
+                return false;
+            }
+        }
+
+        function updateEmailCopyButtons() {
+            if (!copyEmailsBtn) return;
+            const displayedEmails = Array.from(new Set(
+                (currentDisplayedUsers || [])
+                    .map(u => (u.email || '').trim())
+                    .filter(Boolean)
+            ));
+            const totalEmails = Array.from(new Set(
+                (userManager.users || [])
+                    .map(u => (u.email || '').trim())
+                    .filter(Boolean)
+            ));
+
+            if (copyEmailsCount) copyEmailsCount.textContent = displayedEmails.length;
+            copyEmailsBtn.disabled = displayedEmails.length === 0;
+
+            if (copyAllEmailsBtn && copyAllEmailsCount) {
+                if (totalEmails.length > displayedEmails.length && displayedEmails.length > 0) {
+                    copyAllEmailsBtn.classList.remove('hidden');
+                    copyAllEmailsCount.textContent = totalEmails.length;
+                } else {
+                    copyAllEmailsBtn.classList.add('hidden');
+                }
+            }
+        }
+
+        copyEmailsBtn?.addEventListener('click', async () => {
+            const emails = Array.from(new Set(
+                (currentDisplayedUsers || [])
+                    .map(u => (u.email || '').trim())
+                    .filter(Boolean)
+            ));
+            if (emails.length === 0) return;
+
+            const formatted = emails.join(', ');
+            const success = await copyToClipboard(formatted);
+            if (success) {
+                const originalHtml = copyEmailsBtn.innerHTML;
+                copyEmailsBtn.innerHTML = `<i class="fas fa-check text-green-500"></i><span>Copied ${emails.length} Emails!</span>`;
+                copyEmailsBtn.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-950/30');
+                setStatus(`Copied ${emails.length} email(s) to clipboard: ${formatted.slice(0, 80)}${formatted.length > 80 ? '...' : ''}`, false);
+                setTimeout(() => {
+                    copyEmailsBtn.innerHTML = originalHtml;
+                    copyEmailsBtn.classList.remove('border-green-500', 'bg-green-50', 'dark:bg-green-950/30');
+                    updateEmailCopyButtons();
+                }, 2500);
+            } else {
+                setStatus('Failed to copy emails to clipboard.', true);
+            }
+        });
+
+        copyAllEmailsBtn?.addEventListener('click', async () => {
+            const emails = Array.from(new Set(
+                (userManager.users || [])
+                    .map(u => (u.email || '').trim())
+                    .filter(Boolean)
+            ));
+            if (emails.length === 0) return;
+
+            const formatted = emails.join(', ');
+            const success = await copyToClipboard(formatted);
+            if (success) {
+                const originalText = copyAllEmailsBtn.textContent;
+                copyAllEmailsBtn.textContent = `Copied all ${emails.length}!`;
+                copyAllEmailsBtn.classList.add('text-green-600', 'font-bold');
+                setStatus(`Copied all ${emails.length} registered auth email(s) to clipboard: ${formatted.slice(0, 80)}${formatted.length > 80 ? '...' : ''}`, false);
+                setTimeout(() => {
+                    copyAllEmailsBtn.textContent = originalText;
+                    copyAllEmailsBtn.classList.remove('text-green-600', 'font-bold');
+                    updateEmailCopyButtons();
+                }, 2500);
+            } else {
+                setStatus('Failed to copy emails to clipboard.', true);
             }
         });
 
