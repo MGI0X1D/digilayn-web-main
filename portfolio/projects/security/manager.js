@@ -26,7 +26,6 @@
   const db = firebase.firestore();
   const rtdb = typeof firebase.database === 'function' ? firebase.database() : null;
   const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
-  const PLAY_STORE_TEST_UID = 'RH23FxE4gaUT913gJ6gMIui6z1h1';
 
   const driversCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection(FS.drivers);
   const ridersCol = db.collection(FS.laynfleet).doc(FS.laynfleetDoc).collection(FS.riders);
@@ -703,7 +702,7 @@
       }
     }
     const suspendedBadge = u.suspended ? '<span class="badge badge-suspended">Suspended</span>' : '';
-    const playStoreTestBadge = d.uid === PLAY_STORE_TEST_UID
+    const playStoreTestBadge = d.testAccount === true
       ? '<span class="badge badge-driver" title="Reserved exclusively for Google Play review">PLAY STORE TEST</span>'
       : '';
     const ratingBadge = d.ratingCount
