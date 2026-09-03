@@ -210,7 +210,7 @@
                             <h2 class="text-xl font-black">Unowned global data (Junk)</h2>
                             <span id="orphanCountBadge" class="px-3 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 text-xs font-black">0</span>
                         </div>
-                        <p class="text-sm text-slate-500 mt-1">Storage objects and username reservations that cannot be joined to a UID. LaynFleet and Poortjie are excluded.</p>
+                        <p class="text-sm text-slate-500 mt-1">Storage files, username reservations, and database records with no active owner UID across Digilayn, LaynFleet, and Poortjie.</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <button id="orphanDeleteSelectedBtn" disabled class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-red-600/20">
@@ -235,6 +235,10 @@
                         <button id="orphanSelectUsernamesBtn" class="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
                             Select Usernames (<span id="orphanUsernamesCount">0</span>)
                         </button>
+                        <span class="text-slate-300 dark:text-slate-700">|</span>
+                        <button id="orphanSelectDocsBtn" class="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
+                            Select Documents (<span id="orphanDocsCount">0</span>)
+                        </button>
                         <button id="orphanClearSelectionBtn" class="hidden text-xs font-semibold text-red-500 hover:underline">
                             Clear Selection
                         </button>
@@ -246,6 +250,7 @@
                             <option value="all">All Items</option>
                             <option value="storage">Storage Files Only</option>
                             <option value="username">Usernames Only</option>
+                            <option value="document">Database Documents Only</option>
                         </select>
                     </div>
                 </div>
@@ -379,9 +384,13 @@
                         <span class="text-slate-500">Storage Files:</span>
                         <span id="orphanBatchStorageCount" class="font-semibold">0</span>
                     </div>
-                    <div class="flex justify-between mb-3">
+                    <div class="flex justify-between mb-2">
                         <span class="text-slate-500">Username Reservations:</span>
                         <span id="orphanBatchUsernameCount" class="font-semibold">0</span>
+                    </div>
+                    <div class="flex justify-between mb-3">
+                        <span class="text-slate-500">Database Documents:</span>
+                        <span id="orphanBatchDocCount" class="font-semibold">0</span>
                     </div>
                     <div class="border-t border-slate-200 dark:border-slate-700 pt-2">
                         <p class="text-xs text-slate-400 mb-2 uppercase font-bold tracking-wider">Preview of items to delete:</p>
@@ -590,6 +599,8 @@
         const orphanStorageCount = document.getElementById('orphanStorageCount');
         const orphanSelectUsernamesBtn = document.getElementById('orphanSelectUsernamesBtn');
         const orphanUsernamesCount = document.getElementById('orphanUsernamesCount');
+        const orphanSelectDocsBtn = document.getElementById('orphanSelectDocsBtn');
+        const orphanDocsCount = document.getElementById('orphanDocsCount');
         const orphanClearSelectionBtn = document.getElementById('orphanClearSelectionBtn');
         const orphanTypeFilter = document.getElementById('orphanTypeFilter');
         const orphanEmptyState = document.getElementById('orphanEmptyState');
@@ -636,6 +647,7 @@
         const orphanBatchConfirmCount = document.getElementById('orphanBatchConfirmCount');
         const orphanBatchStorageCount = document.getElementById('orphanBatchStorageCount');
         const orphanBatchUsernameCount = document.getElementById('orphanBatchUsernameCount');
+        const orphanBatchDocCount = document.getElementById('orphanBatchDocCount');
         const orphanBatchItemsPreview = document.getElementById('orphanBatchItemsPreview');
         const cancelOrphanBatchBtn = document.getElementById('cancelOrphanBatchBtn');
         const confirmOrphanBatchBtn = document.getElementById('confirmOrphanBatchBtn');
@@ -723,33 +735,39 @@
         }
 
         function renderOrphans(inventory = {}) {
-            currentInventory = inventory || { orphanStorage: [], orphanUsernames: [] };
+            currentInventory = inventory || { orphanStorage: [], orphanUsernames: [], orphanDocuments: [] };
             const storage = currentInventory.orphanStorage || [];
             const usernames = currentInventory.orphanUsernames || [];
-            const total = storage.length + usernames.length;
+            const documents = currentInventory.orphanDocuments || [];
+            const total = storage.length + usernames.length + documents.length;
 
             orphanCountBadge.textContent = total;
             orphanStorageCount.textContent = storage.length;
             orphanUsernamesCount.textContent = usernames.length;
+            if (orphanDocsCount) orphanDocsCount.textContent = documents.length;
 
             orphanSection.classList.toggle('hidden', total === 0);
 
             // Prune selected keys that no longer exist
             const validStorageKeys = new Set(storage.map(s => `storage:${s.path}`));
             const validUsernameKeys = new Set(usernames.map(u => `username:${u.username}`));
+            const validDocumentKeys = new Set(documents.map(d => `document:${d.path}`));
             for (const key of Array.from(selectedOrphanKeys)) {
-                if (!validStorageKeys.has(key) && !validUsernameKeys.has(key)) {
+                if (!validStorageKeys.has(key) && !validUsernameKeys.has(key) && !validDocumentKeys.has(key)) {
                     selectedOrphanKeys.delete(key);
                 }
             }
 
-            // Filter items according to orphanFilter ('all', 'storage', 'username')
+            // Filter items according to orphanFilter ('all', 'storage', 'username', 'document')
             let itemsToRender = [];
             if (orphanFilter === 'all' || orphanFilter === 'storage') {
                 storage.forEach(s => itemsToRender.push({ type: 'storage', key: `storage:${s.path}`, data: s }));
             }
             if (orphanFilter === 'all' || orphanFilter === 'username') {
                 usernames.forEach(u => itemsToRender.push({ type: 'username', key: `username:${u.username}`, data: u }));
+            }
+            if (orphanFilter === 'all' || orphanFilter === 'document') {
+                documents.forEach(d => itemsToRender.push({ type: 'document', key: `document:${d.path}`, data: d }));
             }
 
             // Update action bar counts and buttons
@@ -776,7 +794,9 @@
                 card.className = `orphan-card bg-white dark:bg-slate-900 border rounded-2xl p-4 transition-all relative flex flex-col justify-between ${
                     isSelected 
                         ? 'border-red-500 ring-2 ring-red-500/50 bg-red-50/20 dark:bg-red-950/20' 
-                        : (type === 'storage' ? 'border-red-200 dark:border-red-900/40 hover:border-red-400' : 'border-amber-200 dark:border-amber-900/40 hover:border-amber-400')
+                        : (type === 'storage' 
+                            ? 'border-red-200 dark:border-red-900/40 hover:border-red-400' 
+                            : (type === 'username' ? 'border-amber-200 dark:border-amber-900/40 hover:border-amber-400' : 'border-indigo-200 dark:border-indigo-900/40 hover:border-indigo-400'))
                 }`;
 
                 if (type === 'storage') {
@@ -784,13 +804,20 @@
                         ? `<img src="${data.downloadUrl}" class="w-12 h-12 rounded-xl object-cover bg-slate-100 dark:bg-slate-800 shrink-0">`
                         : '<div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-file"></i></div>';
                     
+                    const ownerBadge = data.claimedOwnerUid
+                        ? `<span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500 truncate max-w-[150px]">Unlinked UID: ${data.claimedOwnerUid}</span>`
+                        : `<span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500">No Owner UID</span>`;
+
                     card.innerHTML = `
                         <div>
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="flex items-center gap-3 min-w-0">
                                     ${preview}
                                     <div class="min-w-0">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">Unowned Storage File</span>
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">Unowned Storage File</span>
+                                            ${ownerBadge}
+                                        </div>
                                         <p class="text-xs text-slate-500 truncate mt-1">${data.contentType || 'Unknown type'} · ${formatBytes(data.size)}</p>
                                     </div>
                                 </div>
@@ -818,7 +845,7 @@
                             contentType: data.contentType
                         }]);
                     });
-                } else {
+                } else if (type === 'username') {
                     card.innerHTML = `
                         <div>
                             <div class="flex items-start justify-between gap-3 mb-3">
@@ -828,7 +855,7 @@
                                     </div>
                                     <div class="min-w-0">
                                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">Unowned Reservation</span>
-                                        <p class="text-xs text-slate-500 truncate mt-1">Malformed reservation</p>
+                                        <p class="text-xs text-slate-500 truncate mt-1">Username without active account</p>
                                     </div>
                                 </div>
                                 <input type="checkbox" class="orphan-item-cb w-5 h-5 rounded text-red-600 focus:ring-red-500 cursor-pointer shrink-0 mt-1" ${isSelected ? 'checked' : ''} data-key="${key}">
@@ -853,6 +880,67 @@
                             label: `@${data.username}`,
                             size: 0,
                             contentType: 'reservation'
+                        }]);
+                    });
+                } else if (type === 'document') {
+                    let catIcon = '<i class="fas fa-file-alt text-indigo-500"></i>';
+                    let catColor = 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400';
+                    if (data.category === 'laynfleet') {
+                        catIcon = '<i class="fas fa-car-side text-blue-500"></i>';
+                        catColor = 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
+                    } else if (data.category === 'poortjie-market') {
+                        catIcon = '<i class="fas fa-store text-amber-500"></i>';
+                        catColor = 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400';
+                    } else if (data.category === 'poortjie-business' || data.category === 'poortjie-services') {
+                        catIcon = '<i class="fas fa-briefcase text-emerald-500"></i>';
+                        catColor = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400';
+                    } else if (data.category === 'suggestions') {
+                        catIcon = '<i class="fas fa-lightbulb text-purple-500"></i>';
+                        catColor = 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400';
+                    }
+
+                    const uidBadge = data.claimedUid 
+                        ? `<span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500 truncate max-w-[150px]">Unlinked UID: ${data.claimedUid}</span>`
+                        : `<span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500">No Owner UID</span>`;
+
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shrink-0">
+                                        ${catIcon}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${catColor}">Unowned Document</span>
+                                            ${uidBadge}
+                                        </div>
+                                        <p class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate mt-1">${data.title || 'Untitled Document'}</p>
+                                    </div>
+                                </div>
+                                <input type="checkbox" class="orphan-item-cb w-5 h-5 rounded text-red-600 focus:ring-red-500 cursor-pointer shrink-0 mt-1" ${isSelected ? 'checked' : ''} data-key="${key}">
+                            </div>
+                            <p class="text-xs text-slate-500 mb-2">${data.details || ''}</p>
+                            <p class="font-mono text-xs break-all text-slate-600 dark:text-slate-400 mb-3 bg-slate-50 dark:bg-slate-800/60 p-2 rounded-lg"></p>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <button class="single-delete-btn px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-600 dark:text-red-400 dark:hover:text-white transition-colors text-xs font-bold flex items-center gap-1.5">
+                                <i class="fas fa-trash-alt text-[10px]"></i>
+                                <span>Delete</span>
+                            </button>
+                            <span class="text-[10px] text-slate-400 font-mono">${data.collectionName}</span>
+                        </div>
+                    `;
+                    card.querySelector('p.font-mono').textContent = data.path;
+
+                    card.querySelector('.single-delete-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openOrphanBatchModal([{
+                            type: 'document',
+                            id: data.path,
+                            label: `${data.title} (${data.path})`,
+                            size: 0,
+                            contentType: 'document'
                         }]);
                     });
                 }
@@ -891,21 +979,29 @@
             orphanBatchConfirmCount.textContent = items.length;
             const storageItems = items.filter(i => i.type === 'storage');
             const usernameItems = items.filter(i => i.type === 'username');
+            const docItems = items.filter(i => i.type === 'document');
             const totalStorageBytes = storageItems.reduce((acc, curr) => acc + (Number(curr.size) || 0), 0);
             
             orphanBatchStorageCount.textContent = `${storageItems.length} (${formatBytes(totalStorageBytes)})`;
             orphanBatchUsernameCount.textContent = `${usernameItems.length} reservations`;
+            if (orphanBatchDocCount) orphanBatchDocCount.textContent = `${docItems.length} records`;
 
             orphanBatchItemsPreview.innerHTML = '';
             items.forEach(item => {
                 const row = document.createElement('div');
                 row.className = 'flex items-center gap-2 text-slate-600 dark:text-slate-300 py-0.5 truncate';
-                const icon = item.type === 'storage' 
-                    ? '<i class="fas fa-file text-red-500 w-4 text-center shrink-0"></i>' 
-                    : '<i class="fas fa-at text-amber-500 w-4 text-center shrink-0"></i>';
+                let icon = '<i class="fas fa-file text-red-500 w-4 text-center shrink-0"></i>';
+                if (item.type === 'username') icon = '<i class="fas fa-at text-amber-500 w-4 text-center shrink-0"></i>';
+                else if (item.type === 'document') icon = '<i class="fas fa-file-alt text-indigo-500 w-4 text-center shrink-0"></i>';
                 row.innerHTML = `${icon}<span class="truncate">${item.label}</span>`;
                 orphanBatchItemsPreview.appendChild(row);
             });
+
+            // Reset views
+            orphanBatchConfirmView.classList.remove('hidden');
+            orphanBatchProgressView.classList.add('hidden');
+            orphanBatchModal.classList.remove('hidden');
+        }
 
             // Reset views
             orphanBatchConfirmView.classList.remove('hidden');
@@ -1035,6 +1131,7 @@
         orphanSelectAllCheckbox.addEventListener('change', (e) => {
             const storage = currentInventory.orphanStorage || [];
             const usernames = currentInventory.orphanUsernames || [];
+            const documents = currentInventory.orphanDocuments || [];
             if (e.target.checked) {
                 if (orphanFilter === 'all' || orphanFilter === 'storage') {
                     storage.forEach(s => selectedOrphanKeys.add(`storage:${s.path}`));
@@ -1042,12 +1139,18 @@
                 if (orphanFilter === 'all' || orphanFilter === 'username') {
                     usernames.forEach(u => selectedOrphanKeys.add(`username:${u.username}`));
                 }
+                if (orphanFilter === 'all' || orphanFilter === 'document') {
+                    documents.forEach(d => selectedOrphanKeys.add(`document:${d.path}`));
+                }
             } else {
                 if (orphanFilter === 'all' || orphanFilter === 'storage') {
                     storage.forEach(s => selectedOrphanKeys.delete(`storage:${s.path}`));
                 }
                 if (orphanFilter === 'all' || orphanFilter === 'username') {
                     usernames.forEach(u => selectedOrphanKeys.delete(`username:${u.username}`));
+                }
+                if (orphanFilter === 'all' || orphanFilter === 'document') {
+                    documents.forEach(d => selectedOrphanKeys.delete(`document:${d.path}`));
                 }
             }
             renderOrphans(currentInventory);
@@ -1065,6 +1168,14 @@
             renderOrphans(currentInventory);
         });
 
+        if (orphanSelectDocsBtn) {
+            orphanSelectDocsBtn.addEventListener('click', () => {
+                const documents = currentInventory.orphanDocuments || [];
+                documents.forEach(d => selectedOrphanKeys.add(`document:${d.path}`));
+                renderOrphans(currentInventory);
+            });
+        }
+
         orphanClearSelectionBtn.addEventListener('click', () => {
             selectedOrphanKeys.clear();
             renderOrphans(currentInventory);
@@ -1079,6 +1190,7 @@
             const items = [];
             const storage = currentInventory.orphanStorage || [];
             const usernames = currentInventory.orphanUsernames || [];
+            const documents = currentInventory.orphanDocuments || [];
 
             storage.forEach(s => {
                 if (selectedOrphanKeys.has(`storage:${s.path}`)) {
@@ -1100,6 +1212,18 @@
                         label: `@${u.username}`,
                         size: 0,
                         contentType: 'reservation'
+                    });
+                }
+            });
+
+            documents.forEach(d => {
+                if (selectedOrphanKeys.has(`document:${d.path}`)) {
+                    items.push({
+                        type: 'document',
+                        id: d.path,
+                        label: `${d.title} (${d.path})`,
+                        size: 0,
+                        contentType: 'document'
                     });
                 }
             });

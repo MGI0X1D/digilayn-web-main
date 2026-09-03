@@ -31,6 +31,7 @@ class UserManagement {
     this.deleteUserFully = httpsCallable(functions, "deleteGlobalUserCallable");
     this.deleteStorageObjectFully = httpsCallable(functions, "deleteGlobalStorageObjectCallable");
     this.deleteUsernameReservationFully = httpsCallable(functions, "deleteGlobalUsernameReservationCallable");
+    this.deleteOrphanDocumentFully = httpsCallable(functions, "deleteGlobalOrphanDocumentCallable");
   }
 
   async init(onUpdate, onError) {
@@ -50,9 +51,11 @@ class UserManagement {
       this.users = (inventory.accounts || []).map((account) => this.normalizeAccount(account));
       this.orphanStorage = inventory.orphanStorage || [];
       this.orphanUsernames = inventory.orphanUsernames || [];
+      this.orphanDocuments = inventory.orphanDocuments || [];
       this.onUpdate?.(this.applyFilters(this.users), {
         orphanStorage: this.orphanStorage,
         orphanUsernames: this.orphanUsernames,
+        orphanDocuments: this.orphanDocuments,
         excludedPrefixes: inventory.excludedPrefixes || []
       });
     } catch (error) {
@@ -181,6 +184,12 @@ class UserManagement {
     return result.data;
   }
 
+  async deleteOrphanDocument(path, confirmation, skipRefresh = false) {
+    const result = await this.deleteOrphanDocumentFully({ path, confirmation });
+    if (!skipRefresh) await this.refresh();
+    return result.data;
+  }
+
   async deleteOrphansBatch(items, onProgress, isAborted) {
     const results = { succeeded: [], failed: [] };
     const total = items.length;
@@ -202,6 +211,8 @@ class UserManagement {
           await this.deleteStorageObject(item.id, item.id, true);
         } else if (item.type === "username") {
           await this.deleteUsernameReservation(item.id, item.id, true);
+        } else if (item.type === "document") {
+          await this.deleteOrphanDocument(item.id, item.id, true);
         }
         results.succeeded.push(item);
         onProgress?.({
