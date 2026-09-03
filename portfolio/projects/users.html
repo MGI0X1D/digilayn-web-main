@@ -192,22 +192,68 @@
         </div>
 
         <section id="orphanSection" class="mt-10 hidden">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-xl font-black">Unowned global data</h2>
-                    <p class="text-sm text-slate-500">Storage objects and username reservations that cannot be joined to a UID. LaynFleet and Poortjie are excluded.</p>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 mb-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-xl font-black">Unowned global data (Junk)</h2>
+                            <span id="orphanCountBadge" class="px-3 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 text-xs font-black">0</span>
+                        </div>
+                        <p class="text-sm text-slate-500 mt-1">Storage objects and username reservations that cannot be joined to a UID. LaynFleet and Poortjie are excluded.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="orphanDeleteSelectedBtn" disabled class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-red-600/20">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Delete Selected (<span id="orphanSelectedCount">0</span>)</span>
+                        </button>
+                    </div>
                 </div>
-                <span id="orphanCountBadge" class="px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 text-xs font-black">0</span>
+
+                <!-- Action Toolbar: Select All, Quick Filters, Selection Counters -->
+                <div class="flex flex-wrap items-center justify-between gap-4 pt-4 text-sm">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <label class="flex items-center gap-2 font-semibold cursor-pointer select-none">
+                            <input type="checkbox" id="orphanSelectAllCheckbox" class="w-4 h-4 rounded text-red-600 focus:ring-red-500 cursor-pointer">
+                            <span>Select All</span>
+                        </label>
+                        <span class="text-slate-300 dark:text-slate-700">|</span>
+                        <button id="orphanSelectStorageBtn" class="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
+                            Select Storage (<span id="orphanStorageCount">0</span>)
+                        </button>
+                        <span class="text-slate-300 dark:text-slate-700">|</span>
+                        <button id="orphanSelectUsernamesBtn" class="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
+                            Select Usernames (<span id="orphanUsernamesCount">0</span>)
+                        </button>
+                        <button id="orphanClearSelectionBtn" class="hidden text-xs font-semibold text-red-500 hover:underline">
+                            Clear Selection
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold uppercase tracking-wider text-slate-400">Filter:</label>
+                        <select id="orphanTypeFilter" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs font-semibold focus:ring-2 focus:ring-red-500 outline-none">
+                            <option value="all">All Items</option>
+                            <option value="storage">Storage Files Only</option>
+                            <option value="username">Usernames Only</option>
+                        </select>
+                    </div>
+                </div>
             </div>
+
             <div id="orphanList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div id="orphanEmptyState" class="hidden flex flex-col items-center justify-center py-12 text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <i class="fas fa-check-circle text-3xl mb-3 text-green-500"></i>
+                <p class="text-sm">No unowned junk data found matching the selected filter.</p>
+            </div>
         </section>
     </main>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- Delete Confirmation & Progress Modal -->
     <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
         <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
         <div class="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
-            <div class="p-8">
+            <!-- Confirm View -->
+            <div id="deleteModalConfirmView" class="p-8">
                 <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-2xl flex items-center justify-center mb-6 text-2xl">
                     <i class="fas fa-trash-alt"></i>
                 </div>
@@ -260,6 +306,139 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Progress View -->
+            <div id="deleteModalProgressView" class="p-8 hidden">
+                <div id="userDeleteIconContainer" class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-2xl flex items-center justify-center mb-6 text-2xl">
+                    <i id="userDeleteStatusIcon" class="fas fa-circle-notch fa-spin"></i>
+                </div>
+                
+                <h3 id="userDeleteProgressTitle" class="text-2xl font-bold mb-2">Deleting user account...</h3>
+                <p id="userDeleteProgressTarget" class="text-slate-500 dark:text-slate-400 mb-6 font-mono text-xs break-all"></p>
+
+                <!-- Animated Progress Bar -->
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 mb-6 overflow-hidden">
+                    <div id="userDeleteProgressBar" class="bg-red-600 h-full rounded-full transition-all duration-500 w-1/4"></div>
+                </div>
+
+                <!-- Steps Status -->
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6 space-y-3 text-sm">
+                    <div id="userDeleteStep1" class="flex items-center gap-3 text-slate-500">
+                        <i class="fas fa-spinner fa-spin w-5 text-center text-red-500"></i>
+                        <span>Sending deletion request to server...</span>
+                    </div>
+                    <div id="userDeleteStep2" class="flex items-center gap-3 text-slate-400">
+                        <i class="far fa-circle w-5 text-center"></i>
+                        <span>Deleting Auth, Firestore documents, usernames & storage...</span>
+                    </div>
+                    <div id="userDeleteStep3" class="flex items-center gap-3 text-slate-400">
+                        <i class="far fa-circle w-5 text-center"></i>
+                        <span>Refreshing system directory...</span>
+                    </div>
+                </div>
+
+                <div id="userDeleteActionContainer" class="hidden">
+                    <button id="userDeleteDoneBtn" class="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl transition-all">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orphan / Junk Batch Delete Modal (Selection & Progress) -->
+    <div id="orphanBatchModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" id="orphanBatchModalBackdrop"></div>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+            
+            <!-- 1. Confirmation View -->
+            <div id="orphanBatchConfirmView" class="p-8">
+                <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-2xl flex items-center justify-center mb-6 text-2xl">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                
+                <h3 class="text-2xl font-bold mb-2">Delete <span id="orphanBatchConfirmCount">0</span> unowned items?</h3>
+                <p class="text-slate-500 dark:text-slate-400 mb-4 text-sm">
+                    This permanently deletes the selected unowned Storage objects and username reservations from Firebase. This data has no owner user and cannot be restored.
+                </p>
+
+                <!-- Selected items summary box -->
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6 text-sm">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-slate-500">Storage Files:</span>
+                        <span id="orphanBatchStorageCount" class="font-semibold">0</span>
+                    </div>
+                    <div class="flex justify-between mb-3">
+                        <span class="text-slate-500">Username Reservations:</span>
+                        <span id="orphanBatchUsernameCount" class="font-semibold">0</span>
+                    </div>
+                    <div class="border-t border-slate-200 dark:border-slate-700 pt-2">
+                        <p class="text-xs text-slate-400 mb-2 uppercase font-bold tracking-wider">Preview of items to delete:</p>
+                        <div id="orphanBatchItemsPreview" class="max-h-36 overflow-y-auto space-y-1 font-mono text-xs pr-1">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="cancelOrphanBatchBtn" class="flex-1 py-3 bg-slate-100 dark:bg-slate-800 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button id="confirmOrphanBatchBtn" class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Confirm Delete</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Progress View -->
+            <div id="orphanBatchProgressView" class="p-8 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div id="orphanProgressIcon" class="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                        </div>
+                        <div>
+                            <h3 id="orphanProgressTitle" class="text-xl font-bold">Deleting items...</h3>
+                            <p id="orphanProgressSubtitle" class="text-xs text-slate-500">Please do not close this window</p>
+                        </div>
+                    </div>
+                    <span id="orphanProgressPercent" class="text-2xl font-black text-red-600 dark:text-red-500">0%</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 mb-4 overflow-hidden">
+                    <div id="orphanProgressBar" class="bg-red-600 h-full rounded-full transition-all duration-300 w-0"></div>
+                </div>
+
+                <div class="flex justify-between text-xs text-slate-500 font-semibold mb-4">
+                    <span id="orphanProgressStep">Item 0 of 0</span>
+                    <span id="orphanProgressStats">0 succeeded · 0 failed</span>
+                </div>
+
+                <!-- Current Item Being Deleted -->
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-4 text-xs font-mono break-all flex items-center gap-2">
+                    <i id="orphanCurrentItemIcon" class="fas fa-arrow-right text-red-500 shrink-0"></i>
+                    <span id="orphanCurrentItemName" class="truncate text-slate-600 dark:text-slate-300">Initializing...</span>
+                </div>
+
+                <!-- Activity Log -->
+                <div class="mb-6">
+                    <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">Deletion Log</p>
+                    <div id="orphanProgressLog" class="max-h-36 overflow-y-auto space-y-1 font-mono text-[11px] bg-slate-100/70 dark:bg-slate-800/40 rounded-xl p-3">
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="stopOrphanBatchBtn" class="w-full py-3 bg-slate-100 dark:bg-slate-800 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm">
+                        Stop Remaining Deletions
+                    </button>
+                    <button id="doneOrphanBatchBtn" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-all text-sm hidden">
+                        Done
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -391,6 +570,18 @@
         const orphanList = document.getElementById('orphanList');
         const orphanCountBadge = document.getElementById('orphanCountBadge');
 
+        // Orphan Section & Toolbar Elements
+        const orphanDeleteSelectedBtn = document.getElementById('orphanDeleteSelectedBtn');
+        const orphanSelectedCount = document.getElementById('orphanSelectedCount');
+        const orphanSelectAllCheckbox = document.getElementById('orphanSelectAllCheckbox');
+        const orphanSelectStorageBtn = document.getElementById('orphanSelectStorageBtn');
+        const orphanStorageCount = document.getElementById('orphanStorageCount');
+        const orphanSelectUsernamesBtn = document.getElementById('orphanSelectUsernamesBtn');
+        const orphanUsernamesCount = document.getElementById('orphanUsernamesCount');
+        const orphanClearSelectionBtn = document.getElementById('orphanClearSelectionBtn');
+        const orphanTypeFilter = document.getElementById('orphanTypeFilter');
+        const orphanEmptyState = document.getElementById('orphanEmptyState');
+
         // Role Selects
         const poortjieAdminSelect = document.getElementById('poortjieAdminSelect');
         const poortjieTaxiAdminSelect = document.getElementById('poortjieTaxiAdminSelect');
@@ -398,8 +589,10 @@
         const tuktukDriverSelect = document.getElementById('tuktukDriverSelect');
         const tuktukOwnerSelect = document.getElementById('tuktukOwnerSelect');
 
-        // Modal elements
+        // Delete Modal Elements
         const deleteModal = document.getElementById('deleteModal');
+        const deleteModalConfirmView = document.getElementById('deleteModalConfirmView');
+        const deleteModalProgressView = document.getElementById('deleteModalProgressView');
         const modalDisplayName = document.getElementById('modalDisplayName');
         const modalUsername = document.getElementById('modalUsername');
         const modalEmail = document.getElementById('modalEmail');
@@ -410,6 +603,42 @@
         const countdownText = document.getElementById('countdownText');
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
         const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+        // User Delete Progress Elements
+        const userDeleteIconContainer = document.getElementById('userDeleteIconContainer');
+        const userDeleteStatusIcon = document.getElementById('userDeleteStatusIcon');
+        const userDeleteProgressTitle = document.getElementById('userDeleteProgressTitle');
+        const userDeleteProgressTarget = document.getElementById('userDeleteProgressTarget');
+        const userDeleteProgressBar = document.getElementById('userDeleteProgressBar');
+        const userDeleteStep1 = document.getElementById('userDeleteStep1');
+        const userDeleteStep2 = document.getElementById('userDeleteStep2');
+        const userDeleteStep3 = document.getElementById('userDeleteStep3');
+        const userDeleteActionContainer = document.getElementById('userDeleteActionContainer');
+        const userDeleteDoneBtn = document.getElementById('userDeleteDoneBtn');
+
+        // Orphan Batch Modal Elements
+        const orphanBatchModal = document.getElementById('orphanBatchModal');
+        const orphanBatchModalBackdrop = document.getElementById('orphanBatchModalBackdrop');
+        const orphanBatchConfirmView = document.getElementById('orphanBatchConfirmView');
+        const orphanBatchProgressView = document.getElementById('orphanBatchProgressView');
+        const orphanBatchConfirmCount = document.getElementById('orphanBatchConfirmCount');
+        const orphanBatchStorageCount = document.getElementById('orphanBatchStorageCount');
+        const orphanBatchUsernameCount = document.getElementById('orphanBatchUsernameCount');
+        const orphanBatchItemsPreview = document.getElementById('orphanBatchItemsPreview');
+        const cancelOrphanBatchBtn = document.getElementById('cancelOrphanBatchBtn');
+        const confirmOrphanBatchBtn = document.getElementById('confirmOrphanBatchBtn');
+        const orphanProgressIcon = document.getElementById('orphanProgressIcon');
+        const orphanProgressTitle = document.getElementById('orphanProgressTitle');
+        const orphanProgressSubtitle = document.getElementById('orphanProgressSubtitle');
+        const orphanProgressPercent = document.getElementById('orphanProgressPercent');
+        const orphanProgressBar = document.getElementById('orphanProgressBar');
+        const orphanProgressStep = document.getElementById('orphanProgressStep');
+        const orphanProgressStats = document.getElementById('orphanProgressStats');
+        const orphanCurrentItemIcon = document.getElementById('orphanCurrentItemIcon');
+        const orphanCurrentItemName = document.getElementById('orphanCurrentItemName');
+        const orphanProgressLog = document.getElementById('orphanProgressLog');
+        const stopOrphanBatchBtn = document.getElementById('stopOrphanBatchBtn');
+        const doneOrphanBatchBtn = document.getElementById('doneOrphanBatchBtn');
 
         // Suspend Modal elements
         const suspendModal = document.getElementById('suspendModal');
@@ -447,6 +676,23 @@
         let suspendCountdownTimer = null;
         let deletePreviewReady = false;
 
+        let isDeletingUser = false;
+        let isDeletingOrphans = false;
+        let orphanBatchAborted = false;
+        let activeOrphanBatchItems = [];
+        let currentInventory = { orphanStorage: [], orphanUsernames: [] };
+        const selectedOrphanKeys = new Set();
+        let orphanFilter = 'all';
+
+        function formatBytes(bytes, decimals = 1) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
         function setStatus(message, isError = false) {
             status.textContent = message;
             status.className = `p-4 rounded-xl font-bold mb-6 ${isError ? "bg-red-500/20 text-red-500 border border-red-500/50" : "bg-green-500/20 text-green-500 border border-green-500/50"}`;
@@ -465,48 +711,391 @@
         }
 
         function renderOrphans(inventory = {}) {
-            const storage = inventory.orphanStorage || [];
-            const usernames = inventory.orphanUsernames || [];
+            currentInventory = inventory || { orphanStorage: [], orphanUsernames: [] };
+            const storage = currentInventory.orphanStorage || [];
+            const usernames = currentInventory.orphanUsernames || [];
             const total = storage.length + usernames.length;
+
             orphanCountBadge.textContent = total;
+            orphanStorageCount.textContent = storage.length;
+            orphanUsernamesCount.textContent = usernames.length;
+
             orphanSection.classList.toggle('hidden', total === 0);
+
+            // Prune selected keys that no longer exist
+            const validStorageKeys = new Set(storage.map(s => `storage:${s.path}`));
+            const validUsernameKeys = new Set(usernames.map(u => `username:${u.username}`));
+            for (const key of Array.from(selectedOrphanKeys)) {
+                if (!validStorageKeys.has(key) && !validUsernameKeys.has(key)) {
+                    selectedOrphanKeys.delete(key);
+                }
+            }
+
+            // Filter items according to orphanFilter ('all', 'storage', 'username')
+            let itemsToRender = [];
+            if (orphanFilter === 'all' || orphanFilter === 'storage') {
+                storage.forEach(s => itemsToRender.push({ type: 'storage', key: `storage:${s.path}`, data: s }));
+            }
+            if (orphanFilter === 'all' || orphanFilter === 'username') {
+                usernames.forEach(u => itemsToRender.push({ type: 'username', key: `username:${u.username}`, data: u }));
+            }
+
+            // Update action bar counts and buttons
+            orphanSelectedCount.textContent = selectedOrphanKeys.size;
+            orphanDeleteSelectedBtn.disabled = selectedOrphanKeys.size === 0;
+            orphanClearSelectionBtn.classList.toggle('hidden', selectedOrphanKeys.size === 0);
+
+            // Update Select All Checkbox state
+            if (itemsToRender.length === 0) {
+                orphanSelectAllCheckbox.checked = false;
+                orphanSelectAllCheckbox.indeterminate = false;
+            } else {
+                const selectedVisibleCount = itemsToRender.filter(item => selectedOrphanKeys.has(item.key)).length;
+                orphanSelectAllCheckbox.checked = selectedVisibleCount === itemsToRender.length;
+                orphanSelectAllCheckbox.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < itemsToRender.length;
+            }
+
             orphanList.innerHTML = '';
+            orphanEmptyState.classList.toggle('hidden', itemsToRender.length > 0);
 
-            storage.forEach((item) => {
+            itemsToRender.forEach(({ type, key, data }) => {
+                const isSelected = selectedOrphanKeys.has(key);
                 const card = document.createElement('div');
-                card.className = 'bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/40 rounded-2xl p-4';
-                const preview = String(item.contentType || '').startsWith('image/')
-                    ? `<img src="${item.downloadUrl}" class="w-16 h-16 rounded-xl object-cover mb-3 bg-slate-100">`
-                    : '<i class="fas fa-file text-2xl text-slate-400 mb-3"></i>';
-                card.innerHTML = `${preview}<p class="font-mono text-xs break-all mb-2"></p><p class="text-xs text-slate-500 mb-3">${item.contentType || 'Unknown type'} · ${Number(item.size || 0).toLocaleString()} bytes</p><button class="px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-bold">Delete exact object</button>`;
-                card.querySelector('p').textContent = item.path;
-                card.querySelector('button').addEventListener('click', async () => {
-                    const confirmation = window.prompt(`Type the exact object path to permanently delete it:\n\n${item.path}`);
-                    if (confirmation !== item.path) return;
-                    try {
-                        await userManager.deleteStorageObject(item.path, confirmation);
-                        setStatus(`Deleted orphan object ${item.path}.`);
-                    } catch (error) { setStatus(`Delete failed: ${error.message}`, true); }
-                });
-                orphanList.appendChild(card);
-            });
+                card.className = `orphan-card bg-white dark:bg-slate-900 border rounded-2xl p-4 transition-all relative flex flex-col justify-between ${
+                    isSelected 
+                        ? 'border-red-500 ring-2 ring-red-500/50 bg-red-50/20 dark:bg-red-950/20' 
+                        : (type === 'storage' ? 'border-red-200 dark:border-red-900/40 hover:border-red-400' : 'border-amber-200 dark:border-amber-900/40 hover:border-amber-400')
+                }`;
 
-            usernames.forEach((item) => {
-                const card = document.createElement('div');
-                card.className = 'bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/40 rounded-2xl p-4';
-                card.innerHTML = '<i class="fas fa-at text-2xl text-amber-500 mb-3"></i><p class="font-mono text-sm break-all mb-3"></p><button class="px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-bold">Delete reservation</button>';
-                card.querySelector('p').textContent = item.username;
-                card.querySelector('button').addEventListener('click', async () => {
-                    const confirmation = window.prompt(`Type the exact username to permanently delete its malformed reservation:\n\n${item.username}`);
-                    if (confirmation !== item.username) return;
-                    try {
-                        await userManager.deleteUsernameReservation(item.username, confirmation);
-                        setStatus(`Deleted orphan username @${item.username}.`);
-                    } catch (error) { setStatus(`Delete failed: ${error.message}`, true); }
+                if (type === 'storage') {
+                    const preview = String(data.contentType || '').startsWith('image/')
+                        ? `<img src="${data.downloadUrl}" class="w-12 h-12 rounded-xl object-cover bg-slate-100 dark:bg-slate-800 shrink-0">`
+                        : '<div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-file"></i></div>';
+                    
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    ${preview}
+                                    <div class="min-w-0">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">Unowned Storage File</span>
+                                        <p class="text-xs text-slate-500 truncate mt-1">${data.contentType || 'Unknown type'} · ${formatBytes(data.size)}</p>
+                                    </div>
+                                </div>
+                                <input type="checkbox" class="orphan-item-cb w-5 h-5 rounded text-red-600 focus:ring-red-500 cursor-pointer shrink-0 mt-1" ${isSelected ? 'checked' : ''} data-key="${key}">
+                            </div>
+                            <p class="font-mono text-xs break-all text-slate-700 dark:text-slate-300 mb-3 bg-slate-50 dark:bg-slate-800/60 p-2 rounded-lg"></p>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <button class="single-delete-btn px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-600 dark:text-red-400 dark:hover:text-white transition-colors text-xs font-bold flex items-center gap-1.5">
+                                <i class="fas fa-trash-alt text-[10px]"></i>
+                                <span>Delete</span>
+                            </button>
+                            <span class="text-[10px] text-slate-400 font-mono">${Number(data.size || 0).toLocaleString()} B</span>
+                        </div>
+                    `;
+                    card.querySelector('p.font-mono').textContent = data.path;
+
+                    card.querySelector('.single-delete-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openOrphanBatchModal([{
+                            type: 'storage',
+                            id: data.path,
+                            label: data.path,
+                            size: data.size,
+                            contentType: data.contentType
+                        }]);
+                    });
+                } else {
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-500 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fas fa-at"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">Unowned Reservation</span>
+                                        <p class="text-xs text-slate-500 truncate mt-1">Malformed reservation</p>
+                                    </div>
+                                </div>
+                                <input type="checkbox" class="orphan-item-cb w-5 h-5 rounded text-red-600 focus:ring-red-500 cursor-pointer shrink-0 mt-1" ${isSelected ? 'checked' : ''} data-key="${key}">
+                            </div>
+                            <p class="font-mono text-sm font-bold break-all text-amber-600 dark:text-amber-400 mb-3 bg-amber-50/50 dark:bg-amber-900/10 p-2 rounded-lg"></p>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <button class="single-delete-btn px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-600 dark:text-red-400 dark:hover:text-white transition-colors text-xs font-bold flex items-center gap-1.5">
+                                <i class="fas fa-trash-alt text-[10px]"></i>
+                                <span>Delete</span>
+                            </button>
+                            <span class="text-[10px] text-slate-400 font-mono">Firestore reservation</span>
+                        </div>
+                    `;
+                    card.querySelector('p.font-mono').textContent = `@${data.username}`;
+
+                    card.querySelector('.single-delete-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openOrphanBatchModal([{
+                            type: 'username',
+                            id: data.username,
+                            label: `@${data.username}`,
+                            size: 0,
+                            contentType: 'reservation'
+                        }]);
+                    });
+                }
+
+                // Checkbox toggle
+                const cb = card.querySelector('.orphan-item-cb');
+                cb.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        selectedOrphanKeys.add(key);
+                    } else {
+                        selectedOrphanKeys.delete(key);
+                    }
+                    renderOrphans(currentInventory);
                 });
+
+                // Click anywhere on card (except buttons and inputs) to toggle selection
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('a')) return;
+                    if (selectedOrphanKeys.has(key)) {
+                        selectedOrphanKeys.delete(key);
+                    } else {
+                        selectedOrphanKeys.add(key);
+                    }
+                    renderOrphans(currentInventory);
+                });
+
                 orphanList.appendChild(card);
             });
         }
+
+        function openOrphanBatchModal(items) {
+            if (!items || items.length === 0) return;
+            activeOrphanBatchItems = items;
+            
+            // Populate confirmation view
+            orphanBatchConfirmCount.textContent = items.length;
+            const storageItems = items.filter(i => i.type === 'storage');
+            const usernameItems = items.filter(i => i.type === 'username');
+            const totalStorageBytes = storageItems.reduce((acc, curr) => acc + (Number(curr.size) || 0), 0);
+            
+            orphanBatchStorageCount.textContent = `${storageItems.length} (${formatBytes(totalStorageBytes)})`;
+            orphanBatchUsernameCount.textContent = `${usernameItems.length} reservations`;
+
+            orphanBatchItemsPreview.innerHTML = '';
+            items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 text-slate-600 dark:text-slate-300 py-0.5 truncate';
+                const icon = item.type === 'storage' 
+                    ? '<i class="fas fa-file text-red-500 w-4 text-center shrink-0"></i>' 
+                    : '<i class="fas fa-at text-amber-500 w-4 text-center shrink-0"></i>';
+                row.innerHTML = `${icon}<span class="truncate">${item.label}</span>`;
+                orphanBatchItemsPreview.appendChild(row);
+            });
+
+            // Reset views
+            orphanBatchConfirmView.classList.remove('hidden');
+            orphanBatchProgressView.classList.add('hidden');
+            orphanBatchModal.classList.remove('hidden');
+        }
+
+        function closeOrphanBatchModal() {
+            if (isDeletingOrphans) return;
+            orphanBatchModal.classList.add('hidden');
+            activeOrphanBatchItems = [];
+        }
+
+        cancelOrphanBatchBtn.addEventListener('click', closeOrphanBatchModal);
+        orphanBatchModalBackdrop.addEventListener('click', closeOrphanBatchModal);
+        doneOrphanBatchBtn.addEventListener('click', closeOrphanBatchModal);
+
+        confirmOrphanBatchBtn.addEventListener('click', async () => {
+            if (activeOrphanBatchItems.length === 0) return;
+            await startOrphanBatchDelete(activeOrphanBatchItems);
+        });
+
+        async function startOrphanBatchDelete(items) {
+            isDeletingOrphans = true;
+            orphanBatchAborted = false;
+
+            orphanBatchConfirmView.classList.add('hidden');
+            orphanBatchProgressView.classList.remove('hidden');
+
+            // Reset progress state
+            orphanProgressBar.style.width = '0%';
+            orphanProgressBar.className = 'bg-red-600 h-full rounded-full transition-all duration-300';
+            orphanProgressPercent.textContent = '0%';
+            orphanProgressTitle.textContent = `Deleting ${items.length} unowned items...`;
+            orphanProgressSubtitle.textContent = 'Please do not close this window';
+            orphanProgressIcon.className = 'w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-xl flex items-center justify-center text-xl';
+            orphanProgressIcon.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            orphanProgressStep.textContent = `Starting deletion of ${items.length} items...`;
+            orphanProgressStats.textContent = '0 succeeded · 0 failed';
+            orphanProgressLog.innerHTML = '';
+            stopOrphanBatchBtn.classList.remove('hidden');
+            stopOrphanBatchBtn.disabled = false;
+            stopOrphanBatchBtn.textContent = 'Stop Remaining Deletions';
+            doneOrphanBatchBtn.classList.add('hidden');
+
+            try {
+                await userManager.deleteOrphansBatch(
+                    items,
+                    (update) => {
+                        if (update.type === 'item_start') {
+                            orphanProgressBar.style.width = `${update.percent}%`;
+                            orphanProgressPercent.textContent = `${update.percent}%`;
+                            orphanProgressStep.textContent = `Deleting item ${update.index + 1} of ${update.total}`;
+                            orphanCurrentItemName.textContent = update.item.label;
+                            orphanCurrentItemIcon.className = 'fas fa-spinner fa-spin text-red-500 shrink-0';
+                        } else if (update.type === 'item_success') {
+                            orphanProgressStats.textContent = `${update.results.succeeded.length} succeeded · ${update.results.failed.length} failed`;
+                            const logEntry = document.createElement('div');
+                            logEntry.className = 'text-green-600 dark:text-green-400 flex items-center gap-1.5';
+                            logEntry.innerHTML = `<i class="fas fa-check-circle text-xs shrink-0"></i><span class="truncate">Deleted ${update.item.label}</span>`;
+                            orphanProgressLog.appendChild(logEntry);
+                            orphanProgressLog.scrollTop = orphanProgressLog.scrollHeight;
+                            selectedOrphanKeys.delete(update.item.type === 'storage' ? `storage:${update.item.id}` : `username:${update.item.id}`);
+                        } else if (update.type === 'item_error') {
+                            orphanProgressStats.textContent = `${update.results.succeeded.length} succeeded · ${update.results.failed.length} failed`;
+                            const logEntry = document.createElement('div');
+                            logEntry.className = 'text-red-500 flex items-center gap-1.5';
+                            logEntry.innerHTML = `<i class="fas fa-times-circle text-xs shrink-0"></i><span class="truncate">Failed ${update.item.label}: ${update.error}</span>`;
+                            orphanProgressLog.appendChild(logEntry);
+                            orphanProgressLog.scrollTop = orphanProgressLog.scrollHeight;
+                        } else if (update.type === 'refreshing') {
+                            orphanProgressBar.style.width = '95%';
+                            orphanProgressPercent.textContent = '95%';
+                            orphanCurrentItemIcon.className = 'fas fa-sync fa-spin text-green-500 shrink-0';
+                            orphanCurrentItemName.textContent = 'Refreshing directory and inventory...';
+                        } else if (update.type === 'complete') {
+                            orphanProgressBar.style.width = '100%';
+                            orphanProgressPercent.textContent = '100%';
+                            const failedCount = update.results.failed.length;
+                            const succeededCount = update.results.succeeded.length;
+
+                            if (failedCount > 0) {
+                                orphanProgressBar.className = 'bg-amber-500 h-full rounded-full transition-all duration-300';
+                                orphanProgressIcon.className = 'w-12 h-12 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-xl flex items-center justify-center text-xl';
+                                orphanProgressIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                                orphanProgressTitle.textContent = 'Deletion finished with warnings';
+                                orphanProgressSubtitle.textContent = `${succeededCount} items deleted, ${failedCount} failed`;
+                            } else {
+                                orphanProgressBar.className = 'bg-green-600 h-full rounded-full transition-all duration-300';
+                                orphanProgressIcon.className = 'w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 rounded-xl flex items-center justify-center text-xl';
+                                orphanProgressIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                                orphanProgressTitle.textContent = 'Deletion completed';
+                                orphanProgressSubtitle.textContent = `All ${succeededCount} items deleted successfully`;
+                            }
+
+                            orphanCurrentItemIcon.className = 'fas fa-check text-green-500 shrink-0';
+                            orphanCurrentItemName.textContent = 'Batch process finished.';
+                            orphanProgressStep.textContent = `Complete: ${succeededCount} of ${items.length} items processed`;
+                            stopOrphanBatchBtn.classList.add('hidden');
+                            doneOrphanBatchBtn.classList.remove('hidden');
+                            setStatus(`Batch delete: ${succeededCount} items removed.`, failedCount > 0);
+                        }
+                    },
+                    () => orphanBatchAborted
+                );
+            } catch (err) {
+                console.error("Batch delete execution error:", err);
+                orphanProgressTitle.textContent = "Batch deletion interrupted";
+                orphanProgressSubtitle.textContent = err.message || String(err);
+                orphanProgressIcon.className = 'w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-xl flex items-center justify-center text-xl';
+                orphanProgressIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+                stopOrphanBatchBtn.classList.add('hidden');
+                doneOrphanBatchBtn.classList.remove('hidden');
+                setStatus(`Batch delete failed: ${err.message}`, true);
+            } finally {
+                isDeletingOrphans = false;
+            }
+        }
+
+        stopOrphanBatchBtn.addEventListener('click', () => {
+            orphanBatchAborted = true;
+            stopOrphanBatchBtn.textContent = 'Stopping after current item...';
+            stopOrphanBatchBtn.disabled = true;
+        });
+
+        // Toolbar Action Listeners
+        orphanSelectAllCheckbox.addEventListener('change', (e) => {
+            const storage = currentInventory.orphanStorage || [];
+            const usernames = currentInventory.orphanUsernames || [];
+            if (e.target.checked) {
+                if (orphanFilter === 'all' || orphanFilter === 'storage') {
+                    storage.forEach(s => selectedOrphanKeys.add(`storage:${s.path}`));
+                }
+                if (orphanFilter === 'all' || orphanFilter === 'username') {
+                    usernames.forEach(u => selectedOrphanKeys.add(`username:${u.username}`));
+                }
+            } else {
+                if (orphanFilter === 'all' || orphanFilter === 'storage') {
+                    storage.forEach(s => selectedOrphanKeys.delete(`storage:${s.path}`));
+                }
+                if (orphanFilter === 'all' || orphanFilter === 'username') {
+                    usernames.forEach(u => selectedOrphanKeys.delete(`username:${u.username}`));
+                }
+            }
+            renderOrphans(currentInventory);
+        });
+
+        orphanSelectStorageBtn.addEventListener('click', () => {
+            const storage = currentInventory.orphanStorage || [];
+            storage.forEach(s => selectedOrphanKeys.add(`storage:${s.path}`));
+            renderOrphans(currentInventory);
+        });
+
+        orphanSelectUsernamesBtn.addEventListener('click', () => {
+            const usernames = currentInventory.orphanUsernames || [];
+            usernames.forEach(u => selectedOrphanKeys.add(`username:${u.username}`));
+            renderOrphans(currentInventory);
+        });
+
+        orphanClearSelectionBtn.addEventListener('click', () => {
+            selectedOrphanKeys.clear();
+            renderOrphans(currentInventory);
+        });
+
+        orphanTypeFilter.addEventListener('change', (e) => {
+            orphanFilter = e.target.value;
+            renderOrphans(currentInventory);
+        });
+
+        orphanDeleteSelectedBtn.addEventListener('click', () => {
+            const items = [];
+            const storage = currentInventory.orphanStorage || [];
+            const usernames = currentInventory.orphanUsernames || [];
+
+            storage.forEach(s => {
+                if (selectedOrphanKeys.has(`storage:${s.path}`)) {
+                    items.push({
+                        type: 'storage',
+                        id: s.path,
+                        label: s.path,
+                        size: s.size,
+                        contentType: s.contentType
+                    });
+                }
+            });
+
+            usernames.forEach(u => {
+                if (selectedOrphanKeys.has(`username:${u.username}`)) {
+                    items.push({
+                        type: 'username',
+                        id: u.username,
+                        label: `@${u.username}`,
+                        size: 0,
+                        contentType: 'reservation'
+                    });
+                }
+            });
+
+            if (items.length > 0) {
+                openOrphanBatchModal(items);
+            }
+        });
 
         function renderUsers(users) {
             console.log(`Users.html: Rendering ${users.length} users.`);
@@ -805,6 +1394,24 @@
 
         async function showDeleteModal(user) {
             userToDelete = user;
+            isDeletingUser = false;
+
+            // Reset modal views
+            deleteModalConfirmView.classList.remove('hidden');
+            deleteModalProgressView.classList.add('hidden');
+            userDeleteActionContainer.classList.add('hidden');
+            userDeleteProgressBar.style.width = '0%';
+            userDeleteProgressBar.className = 'bg-red-600 h-full rounded-full transition-all duration-500';
+            userDeleteIconContainer.className = 'w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-2xl flex items-center justify-center mb-6 text-2xl';
+            userDeleteStatusIcon.className = 'fas fa-circle-notch fa-spin';
+            userDeleteProgressTitle.textContent = 'Deleting user account...';
+            userDeleteStep1.className = 'flex items-center gap-3 text-slate-500';
+            userDeleteStep1.innerHTML = '<i class="fas fa-spinner fa-spin w-5 text-center text-red-500"></i><span>Sending deletion request to server...</span>';
+            userDeleteStep2.className = 'flex items-center gap-3 text-slate-400';
+            userDeleteStep2.innerHTML = '<i class="far fa-circle w-5 text-center"></i><span>Deleting Auth, Firestore documents, usernames & storage...</span>';
+            userDeleteStep3.className = 'flex items-center gap-3 text-slate-400';
+            userDeleteStep3.innerHTML = '<i class="far fa-circle w-5 text-center"></i><span>Refreshing system directory...</span>';
+
             modalDisplayName.textContent = user.displayName || 'No Name';
             modalUsername.textContent = `@${user.username || 'no-username'}`;
             modalEmail.textContent = user.email || 'No Email';
@@ -867,8 +1474,14 @@
         deleteConfirmInput.addEventListener('input', checkConfirmation);
 
         cancelDeleteBtn.addEventListener('click', () => {
+            if (isDeletingUser) return;
             deleteModal.classList.add('hidden');
             clearInterval(countdownTimer);
+            userToDelete = null;
+        });
+
+        userDeleteDoneBtn.addEventListener('click', () => {
+            deleteModal.classList.add('hidden');
             userToDelete = null;
         });
 
@@ -892,10 +1505,13 @@
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeImageViewer();
-                if (!deleteModal.classList.contains('hidden')) {
+                if (!deleteModal.classList.contains('hidden') && !isDeletingUser) {
                     deleteModal.classList.add('hidden');
                     clearInterval(countdownTimer);
                     userToDelete = null;
+                }
+                if (!orphanBatchModal.classList.contains('hidden') && !isDeletingOrphans) {
+                    closeOrphanBatchModal();
                 }
                 if (!suspendModal.classList.contains('hidden')) {
                     suspendModal.classList.add('hidden');
@@ -908,27 +1524,70 @@
         confirmDeleteBtn.addEventListener('click', async () => {
             const uid = userToDelete.uid;
             const confirmation = deleteConfirmInput.value.trim();
-            
-            deleteModal.classList.add('hidden');
             clearInterval(countdownTimer);
-            
+
+            isDeletingUser = true;
+            deleteModalConfirmView.classList.add('hidden');
+            deleteModalProgressView.classList.remove('hidden');
+            userDeleteProgressTarget.textContent = `${userToDelete.displayName || 'User'} (@${userToDelete.username || 'no-username'}) · UID: ${uid}`;
+            userDeleteProgressBar.style.width = '20%';
+
             setStatus("Initiating permanent deletion...", false);
 
             try {
                 console.log(`Attempting to delete global user: ${uid}`);
-                const result = await userManager.deleteUser(uid, confirmation);
+                const result = await userManager.deleteUser(uid, confirmation, (prog) => {
+                    if (prog.step === 'requesting') {
+                        userDeleteProgressBar.style.width = '25%';
+                        userDeleteStep1.innerHTML = '<i class="fas fa-spinner fa-spin w-5 text-center text-red-500"></i><span>Validating credentials and sending delete request...</span>';
+                    } else if (prog.step === 'refreshing') {
+                        userDeleteProgressBar.style.width = '75%';
+                        userDeleteStep1.className = 'flex items-center gap-3 text-green-600 dark:text-green-400 font-medium';
+                        userDeleteStep1.innerHTML = '<i class="fas fa-check-circle w-5 text-center text-green-500"></i><span>Deletion request authenticated</span>';
+                        userDeleteStep2.className = 'flex items-center gap-3 text-green-600 dark:text-green-400 font-medium';
+                        userDeleteStep2.innerHTML = '<i class="fas fa-check-circle w-5 text-center text-green-500"></i><span>Auth, Firestore records, and Storage assets deleted</span>';
+                        userDeleteStep3.className = 'flex items-center gap-3 text-slate-500';
+                        userDeleteStep3.innerHTML = '<i class="fas fa-spinner fa-spin w-5 text-center text-red-500"></i><span>Refreshing system directory and inventory...</span>';
+                    }
+                });
+
                 if (result.success) {
                     console.log(`User ${uid} deleted successfully.`);
+                    userDeleteProgressBar.style.width = '100%';
+                    userDeleteProgressBar.className = 'bg-green-600 h-full rounded-full transition-all duration-300';
+                    userDeleteStep3.className = 'flex items-center gap-3 text-green-600 dark:text-green-400 font-medium';
+                    userDeleteStep3.innerHTML = '<i class="fas fa-check-circle w-5 text-center text-green-500"></i><span>System directory and inventory updated</span>';
+                    
+                    userDeleteIconContainer.className = 'w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 rounded-2xl flex items-center justify-center mb-6 text-2xl';
+                    userDeleteStatusIcon.className = 'fas fa-check-circle';
+                    userDeleteProgressTitle.textContent = 'User permanently deleted';
+                    userDeleteActionContainer.classList.remove('hidden');
                     setStatus(`User ${uid} deleted successfully.`);
+
+                    // Auto-close after 2.5 seconds if modal is still open
+                    setTimeout(() => {
+                        if (!deleteModal.classList.contains('hidden') && !isDeletingUser) {
+                            deleteModal.classList.add('hidden');
+                            userToDelete = null;
+                        }
+                    }, 2500);
                 } else {
                     const failures = (result.failures || []).map((failure) => `${failure.resource}: ${failure.error}`).join(' | ');
                     throw new Error(`Some resources could not be deleted. ${failures}`);
                 }
             } catch (error) {
                 console.error("Delete failed:", error);
+                userDeleteProgressBar.style.width = '100%';
+                userDeleteProgressBar.className = 'bg-red-600 h-full rounded-full';
+                userDeleteIconContainer.className = 'w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-2xl flex items-center justify-center mb-6 text-2xl';
+                userDeleteStatusIcon.className = 'fas fa-exclamation-triangle';
+                userDeleteProgressTitle.textContent = 'User deletion failed';
+                userDeleteStep2.className = 'flex items-center gap-3 text-red-500 font-medium';
+                userDeleteStep2.innerHTML = `<i class="fas fa-times-circle w-5 text-center"></i><span class="break-all">${error.message}</span>`;
+                userDeleteActionContainer.classList.remove('hidden');
                 setStatus(`Failed to delete user: ${error.message}`, true);
             } finally {
-                userToDelete = null;
+                isDeletingUser = false;
             }
         });
 

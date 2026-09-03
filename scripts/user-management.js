@@ -146,23 +146,98 @@ class UserManagement {
     return (await this.previewDelete({ uid })).data;
   }
 
-  async deleteUser(uid, confirmation) {
+  async deleteUser(uid, confirmation, onProgress) {
     if (auth.currentUser?.uid === uid) throw new Error("You cannot delete yourself.");
+    onProgress?.({ step: "requesting", percent: 25, message: "Validating credentials and sending delete request..." });
     const result = await this.deleteUserFully({ uid, confirmation });
+    onProgress?.({ step: "refreshing", percent: 80, message: "Refreshing user inventory..." });
     await this.refresh();
+    onProgress?.({ step: "done", percent: 100, message: "User deleted successfully." });
     return result.data;
   }
 
-  async deleteStorageObject(path, confirmation) {
+  async deleteStorageObject(path, confirmation, skipRefresh = false) {
     const result = await this.deleteStorageObjectFully({ path, confirmation });
-    await this.refresh();
+    if (!skipRefresh) await this.refresh();
     return result.data;
   }
 
-  async deleteUsernameReservation(username, confirmation) {
+  async deleteUsernameReservation(username, confirmation, skipRefresh = false) {
     const result = await this.deleteUsernameReservationFully({ username, confirmation });
-    await this.refresh();
+    if (!skipRefresh) await this.refresh();
     return result.data;
+  }
+
+  async deleteOrphansBatch(items, onProgress, isAborted) {
+    const results = { succeeded: [], failed: [] };
+    const total = items.length;
+
+    for (let i = 0; i < total; i++) {
+      if (isAborted?.()) break;
+      const item = items[i];
+      onProgress?.({
+        type: "item_start",
+        index: i,
+        total,
+        percent: Math.round((i / total) * 90),
+        item,
+        results
+      });
+
+      try {
+        if (item.type === "storage") {
+          await this.deleteStorageObject(item.id, item.id, true);
+        } else if (item.type === "username") {
+          await this.deleteUsernameReservation(item.id, item.id, true);
+        }
+        results.succeeded.push(item);
+        onProgress?.({
+          type: "item_success",
+          index: i + 1,
+          total,
+          percent: Math.round(((i + 1) / total) * 90),
+          item,
+          results
+        });
+      } catch (err) {
+        console.error(`Failed to delete orphan ${item.type} ${item.id}:`, err);
+        results.failed.push({ item, error: err.message || String(err) });
+        onProgress?.({
+          type: "item_error",
+          index: i + 1,
+          total,
+          percent: Math.round(((i + 1) / total) * 90),
+          item,
+          error: err.message || String(err),
+          results
+        });
+      }
+    }
+
+    onProgress?.({
+      type: "refreshing",
+      index: total,
+      total,
+      percent: 95,
+      message: "Refreshing system inventory...",
+      results
+    });
+
+    try {
+      await this.refresh();
+    } catch (refreshErr) {
+      console.warn("Failed to refresh after orphan batch deletion:", refreshErr);
+    }
+
+    onProgress?.({
+      type: "complete",
+      index: total,
+      total,
+      percent: 100,
+      results
+    });
+
+    return results;
   }
 
   async toggleUserSuspension(uid, isSuspended) {
