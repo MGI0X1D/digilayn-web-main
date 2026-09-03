@@ -23,6 +23,7 @@ class UserManagement {
       search: "", deletePending: "all", suspended: "all", hasUsername: "all",
       laynFleetDriver: "all", poortjieAdmin: "all", poortjieTaxiAdmin: "all",
       poortjieSupport: "all", tuktukDriver: "all", tuktukOwner: "all",
+      emailDomain: "all",
       dateStart: null, dateEnd: null, sortBy: "newest"
     };
     this.getInventory = httpsCallable(functions, "getGlobalUserInventoryCallable");
@@ -120,6 +121,18 @@ class UserManagement {
     booleanFilter("poortjieSupport", (user) => user.roles?.poortjie?.listForSupport);
     booleanFilter("tuktukDriver", (user) => user.roles?.tuktuk?.isDriver);
     booleanFilter("tuktukOwner", (user) => user.roles?.tuktuk?.isOwner);
+    if (this.filters.emailDomain && this.filters.emailDomain !== "all") {
+      if (this.filters.emailDomain === "gmail") {
+        filtered = filtered.filter((user) => String(user.email || "").toLowerCase().trim().endsWith("@gmail.com"));
+      } else if (this.filters.emailDomain === "non-gmail") {
+        filtered = filtered.filter((user) => {
+          const email = String(user.email || "").toLowerCase().trim();
+          return email.length > 0 && !email.endsWith("@gmail.com");
+        });
+      } else if (this.filters.emailDomain === "no-email") {
+        filtered = filtered.filter((user) => !user.email || String(user.email).trim().length === 0);
+      }
+    }
     if (this.filters.dateStart) {
       const start = new Date(this.filters.dateStart).getTime();
       filtered = filtered.filter((user) => getTimestampMs(user.createdAt) >= start);

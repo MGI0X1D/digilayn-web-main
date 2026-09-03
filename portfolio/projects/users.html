@@ -66,6 +66,17 @@
                     </select>
                 </div>
 
+                <!-- Email Domain / Suffix -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Email Suffix</label>
+                    <select id="emailDomainSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All Emails</option>
+                        <option value="non-gmail">Non-Gmail (not @gmail.com)</option>
+                        <option value="gmail">Gmail Only (@gmail.com)</option>
+                        <option value="no-email">No Email</option>
+                    </select>
+                </div>
+
                 <!-- Delete Pending -->
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Delete Pending</label>
@@ -558,6 +569,7 @@
 
         const searchInput = document.getElementById('searchInput');
         const sortSelect = document.getElementById('sortSelect');
+        const emailDomainSelect = document.getElementById('emailDomainSelect');
         const deletePendingSelect = document.getElementById('deletePendingSelect');
         const suspendedSelect = document.getElementById('suspendedSelect');
         const hasUsernameSelect = document.getElementById('hasUsernameSelect');
@@ -1662,6 +1674,7 @@
         const updateFilters = () => {
             userManager.setFilter('search', searchInput.value);
             userManager.setFilter('sortBy', sortSelect.value);
+            userManager.setFilter('emailDomain', emailDomainSelect.value);
             userManager.setFilter('deletePending', deletePendingSelect.value);
             userManager.setFilter('suspended', suspendedSelect.value);
             userManager.setFilter('hasUsername', hasUsernameSelect.value);
@@ -1680,6 +1693,7 @@
 
         searchInput.addEventListener('input', updateFilters);
         sortSelect.addEventListener('change', updateFilters);
+        emailDomainSelect.addEventListener('change', updateFilters);
         deletePendingSelect.addEventListener('change', updateFilters);
         suspendedSelect.addEventListener('change', updateFilters);
         hasUsernameSelect.addEventListener('change', updateFilters);
