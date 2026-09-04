@@ -26,12 +26,12 @@
 
 <!-- Top Navigation -->
 <nav class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-6 pointer-events-none">
-    <a href="../../../../index.html" class="pointer-events-auto text-sm font-black tracking-wide px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+    <a href="/" class="pointer-events-auto text-sm font-black tracking-wide px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
         digilayn
     </a>
 
     <div class="flex items-center gap-3 pointer-events-auto">
-        <a href="terms.html" class="text-sm font-bold px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
+        <a href="/portfolio/projects/laynfleet/terms" class="text-sm font-bold px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow border border-slate-200 dark:border-slate-700 hover:text-green-500 transition">
             Terms & Conditions
         </a>
         <button id="theme-toggle" class="p-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-full shadow-lg border border-slate-200 dark:border-slate-700 transition-transform hover:scale-110 active:scale-95" aria-label="Toggle Theme">
@@ -52,7 +52,7 @@
         This Privacy Policy explains how <strong>Digilayn</strong> collects, uses, and protects personal information across <strong>LaynRider</strong> and <strong>LaynDriver</strong>. We believe in minimal data collection, role-based separation, and total transparency.
     </p>
     <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">
-        Effective date: September 1, 2026 &bull; Compliant with South Africa POPIA and Mobile App Store Standards.
+        Effective date: September 1, 2026 • Disclosures clarified: September 4, 2026 &bull; Privacy information for South African users.
     </p>
 
     <!-- Role Filter Tabs -->
@@ -67,7 +67,7 @@
             🚗 LaynDriver (Drivers Only)
         </button>
         <button id="tab-btn-deletion" onclick="filterRole('deletion')" class="role-tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
-            🗑️ Account Deletion (30 Days)
+            🗑️ Account Deletion
         </button>
     </div>
 </header>
@@ -86,7 +86,7 @@
             </li>
             <li class="flex items-start gap-2">
                 <span class="text-green-500 font-bold">✓</span>
-                <span><strong>Rider Location Privacy:</strong> Riders are never tracked in the background. GPS is only queried once when you tap "Use Current Location" or enter a pickup address.</span>
+                <span><strong>Rider Location Privacy:</strong> Riders are not tracked in the background. With permission, the app requests location when needed for a foreground service-area check or to set a pickup. A pickup selected for a booking is stored with that trip.</span>
             </li>
             <li class="flex items-start gap-2">
                 <span class="text-green-500 font-bold">✓</span>
@@ -94,7 +94,7 @@
             </li>
             <li class="flex items-start gap-2">
                 <span class="text-green-500 font-bold">✓</span>
-                <span><strong>Right to Erasure:</strong> You can request deletion in the app or use the web deletion page to inspect and immediately permanently delete your account data.</span>
+                <span><strong>Right to Erasure:</strong> You can request deletion in either app. The web page offers Rider self-service deletion and Driver manager-assisted deletion instructions, including what is retained.</span>
             </li>
         </ul>
     </div>
@@ -134,7 +134,7 @@
                 <li><strong>Account Details:</strong> Your email address (used to sign in via email/password or Google Sign-In), your name, and a mobile phone number. Your phone number is stored so the driver matched to your trip can contact you &mdash; it is <em>not</em> verified by SMS or OTP.</li>
                 <li><strong>Profile Photo:</strong> A profile picture you upload, stored securely and shown to the driver matched to your trip.</li>
                 <li><strong>Trip & Booking Data:</strong> Requested pickup location, destination, fare quotation, ride status, and timestamps.</li>
-                <li><strong>On-Demand Location:</strong> Geographic coordinates obtained <em>strictly when you tap "Use Current Location"</em> to set your pickup point. We do not monitor your location when you are not actively setting a trip.</li>
+                <li><strong>On-Demand Location:</strong> With your permission, LaynRider requests a location fix when needed to check service-area availability in the foreground (including when the dashboard opens or resumes), or when you choose "Use Current Location" for a pickup. It does not run background rider tracking. Pickup and destination addresses and coordinates are stored in the booking once submitted; these trip records are separate from the on-demand device lookup.</li>
                 <li><strong>Feedback & Ratings:</strong> Ratings (1–5 stars) and optional written feedback submitted after completed trips.</li>
             </ul>
         </div>
@@ -161,7 +161,7 @@
             <ul class="list-disc list-inside space-y-2 text-sm opacity-90">
                 <li><strong>Device Registry:</strong> To keep your account secure and route notifications correctly, we record the devices you sign in on and let you pick a preferred device. Signing in on a new device can sign you out elsewhere.</li>
                 <li><strong>Push Notification Tokens:</strong> A push token from Firebase Cloud Messaging (or Huawei Push) so we can send you trip and dispatch updates. We never send marketing spam.</li>
-                <li><strong>Diagnostic Logs:</strong> Basic technical logs of app operations and errors, used only to investigate issues and fix crashes. We do not log passwords or secrets.</li>
+                <li><strong>Diagnostic Logs:</strong> LaynFleet application logs are written to local Android logs. Separately, Google Maps and Places SDKs collect SDK crash metrics, technical request/device metadata, IP addresses, SDK identifiers and map/API interaction information to operate and improve their services. Firebase and Huawei components process the technical data needed for authentication, maps and push delivery. We do not log passwords or secrets.</li>
             </ul>
         </div>
     </section>
@@ -201,10 +201,10 @@
             <li>The <strong>rider</strong> sees the driver's name, profile photo, vehicle details and plate number, live location, and phone number, and can call the driver from the app.</li>
         </ul>
         <p class="text-sm opacity-90 leading-relaxed">
-            This information is exchanged only for an active booking, so the two parties can identify one another and coordinate the pickup.
+            Riders can also browse driver profiles and reviews before booking. Booking details are exchanged to arrange and complete the ride; submitted ratings and reviews can be visible to other users in the app.
         </p>
         <p class="text-sm opacity-90 leading-relaxed">
-            Our backend is powered by <strong>Google Cloud / Firebase</strong> infrastructure located in secure facilities. We do not sell your personal data under any circumstances. We only disclose information if strictly required by South African law or court order.
+            Our backend uses <strong>Google Cloud / Firebase</strong>. Google Maps and Places provide maps and place search; supported Huawei devices use Huawei Map Kit and Push Kit. These providers process service requests and technical data to deliver and maintain their services. We do not sell your personal data or use it for advertising. We may also disclose information when required by law or court order.
         </p>
     </section>
 
@@ -234,19 +234,19 @@
 
         <div class="space-y-3 pt-2">
             <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
-                <h4 class="font-bold text-sm mb-1">Immediate Web Deletion</h4>
-                <p class="text-xs opacity-80">Open the <a href="account-deletion.html" class="text-green-500 font-bold underline">LaynRider account-deletion page</a>, sign in with your LaynRider account, inspect the personal data linked to it, and confirm immediate permanent deletion.</p>
+                <h4 class="font-bold text-sm mb-1">Rider Self-Service Deletion</h4>
+                <p class="text-xs opacity-80">Open the <a href="/portfolio/projects/laynfleet/account-deletion" class="text-green-500 font-bold underline">account-deletion page</a>. Rider accounts can sign in, inspect their data and confirm immediate permanent deletion of the listed rider data. Drivers use the manager-assisted request instructions on that page. Accounts used across multiple Digilayn services should contact support before deleting the shared sign-in.</p>
             </div>
             <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
                 <h4 class="font-bold text-sm mb-1">In-App Deletion Request</h4>
-                <p class="text-xs opacity-80">Open <em>More &rarr; Security Hub &rarr; Deregister</em> inside LaynRider (or LaynDriver) and long-press the option to submit an in-app deletion request. The public web page remains available if you uninstall the app.</p>
+                <p class="text-xs opacity-80">Open <em>More &rarr; Security Hub &rarr; Deregister</em> inside LaynRider (or LaynDriver) and confirm the deletion request. This suspends the account pending manager processing; it does not immediately delete it. The public web page and support contact remain available if you uninstall the app.</p>
             </div>
             <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
                 <h4 class="font-bold text-sm mb-1">Cannot Sign In?</h4>
                 <p class="text-xs opacity-80">You may also request account erasure by emailing <a href="mailto:digilayn@gmail.com" class="text-green-500 font-bold underline">digilayn@gmail.com</a> or messaging <a href="https://wa.me/27815532209" target="_blank" class="text-green-500 font-bold underline">WhatsApp +27 81 553 2209</a> with your registered phone number.</p>
             </div>
         </div>
-        <p class="text-xs opacity-80 pt-1">De-identified trip records (for example, aggregate ride counts and fare statistics containing no personal identifiers) may be kept after erasure for safety auditing, dispute resolution, and service analytics, as permitted under POPIA.</p>
+        <p class="text-xs opacity-80 pt-1">Driver account deletion removes profile/account data while retaining booking records unchanged. Bookings can contain account identifiers, pickup/drop-off addresses and coordinates, timestamps and free-text notes; deleting a profile does not anonymise them. Retained bookings currently have no automatic expiry. Contact support to ask about or request handling of retained personal data. Rider self-service deletion separately removes bookings created by that rider, as shown before confirmation.</p>
     </section>
 
     <!-- Section 6: Your Rights -->
@@ -309,11 +309,11 @@
 <!-- Footer -->
 <footer class="text-center py-10 border-t border-slate-100 dark:border-slate-800 text-sm opacity-80">
     <div class="flex flex-wrap justify-center gap-4 mb-3">
-        <a href="terms.html" class="hover:text-green-500 font-bold transition">Terms &amp; Conditions</a>
+        <a href="/portfolio/projects/laynfleet/terms" class="hover:text-green-500 font-bold transition">Terms &amp; Conditions</a>
         <span>&bull;</span>
-        <a href="privacy.html" class="text-green-500 font-bold">Privacy Policy</a>
+        <a href="/portfolio/projects/laynfleet/privacy" class="text-green-500 font-bold">Privacy Policy</a>
         <span>&bull;</span>
-        <a href="../../../../portfolio.html" class="hover:text-green-500 transition">Portfolio</a>
+        <a href="/portfolio" class="hover:text-green-500 transition">Portfolio</a>
     </div>
     <p>&copy; 2026 Digilayn. All rights reserved.</p>
 </footer>

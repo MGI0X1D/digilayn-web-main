@@ -4,17 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="index,follow">
-  <title>Delete your LaynRider account | Digilayn</title>
-  <meta name="description" content="Sign in to view and permanently delete your LaynRider account and associated personal data.">
+  <title>Delete your LaynRider or LaynDriver account | Digilayn</title>
+  <meta name="description" content="Request LaynDriver account deletion or sign in for LaynRider self-service account deletion. See what is deleted and what is retained.">
   <style>
     :root{color-scheme:light dark;--green:#16a34a;--red:#dc2626;--muted:#64748b;--card:#fff;--bg:#f8fafc;--line:#e2e8f0;--text:#0f172a} @media(prefers-color-scheme:dark){:root{--card:#0f172a;--bg:#020617;--line:#334155;--text:#f8fafc;--muted:#94a3b8}} *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif;line-height:1.5} main{width:min(920px,calc(100% - 32px));margin:40px auto 80px}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;margin-top:18px;box-shadow:0 12px 30px rgb(15 23 42/.06)} h1,h2{line-height:1.15}h1{font-size:clamp(2rem,6vw,3.2rem);margin:.25rem 0}h2{margin-top:0}.eyebrow{color:var(--green);font-weight:800;letter-spacing:.08em;text-transform:uppercase}.muted{color:var(--muted)}.warning{border-left:5px solid var(--red)}label{display:block;font-weight:700;margin:14px 0 6px}input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);font:inherit}button{border:0;border-radius:12px;padding:13px 18px;font:inherit;font-weight:800;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--green);color:#fff}.secondary{background:#e2e8f0;color:#0f172a}.danger{background:var(--red);color:#fff}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.status{min-height:24px;margin-top:14px;font-weight:700}.error{color:#ef4444}.success{color:#16a34a}pre{overflow:auto;max-height:560px;padding:18px;border-radius:14px;background:#020617;color:#dbeafe;white-space:pre-wrap;overflow-wrap:anywhere}.hidden{display:none!important}.checkbox{display:flex;gap:10px;align-items:flex-start;font-weight:500}.checkbox input{width:auto;margin-top:5px}a{color:var(--green)}
   </style>
 </head>
 <body>
 <main>
-  <p class="eyebrow">LaynRider privacy</p>
+  <p class="eyebrow">LaynFleet account deletion</p>
   <h1>View or delete your account</h1>
-  <p class="muted">Sign in with the same account used in LaynRider. You can inspect the personal data linked to your account before permanently deleting it.</p>
+  <p class="muted">Choose the instructions for the app you use. You can request deletion even after uninstalling the app.</p>
+  <section id="driver-deletion" class="card">
+    <h2>LaynDriver: request profile and account deletion</h2>
+    <p>Email <a href="mailto:digilayn@gmail.com?subject=LaynDriver%20account%20deletion">digilayn@gmail.com</a> from your registered email address and request deletion of your LaynDriver account. If you cannot use that email address, contact <a href="https://wa.me/27815532209">WhatsApp +27 81 553 2209</a> for help verifying ownership. Do not send your password.</p>
+    <p>You can also open <strong>More → Security Hub → Deregister</strong> in LaynDriver to submit a deletion request. This suspends the account pending manager processing; it is not an immediate deletion.</p>
+    <p>Manager deletion removes your user and driver profiles, sign-in account, device records, reserved usernames and associated uploaded profile and licence files. <strong>Booking records are retained unchanged.</strong> They can contain account identifiers, pickup/drop-off addresses and coordinates, trip timestamps and notes. Profile deletion does not anonymise these records. They currently have no automatic expiry; ask support about retained data when requesting deletion.</p>
+    <p class="muted">The self-service sign-in below is for Rider accounts. Drivers should use the request options above.</p>
+  </section>
+  <h2>LaynRider: self-service deletion</h2>
+  <p class="muted">Sign in with the same account used in LaynRider to inspect and permanently delete the rider data listed below. If you also use LaynDriver or another Digilayn service with this account, contact support before deleting the shared sign-in.</p>
   <section id="login-card" class="card">
     <h2>Sign in</h2>
     <form id="email-form">
@@ -30,7 +39,7 @@
     <p id="data-status" class="status" role="status" aria-live="polite"></p><pre id="data-output">Loading…</pre>
   </section>
   <section id="delete-card" class="card warning hidden">
-    <h2>Permanently delete everything</h2>
+    <h2>Permanently delete your Rider account</h2>
     <p>This immediately deletes your LaynRider profile, device records, rider record, bookings you created, ratings and likes you authored, reserved usernames, uploaded profile files, realtime presence data, and Firebase Authentication account.</p>
     <p><strong>This cannot be undone.</strong></p>
     <label class="checkbox"><input id="understand-checkbox" type="checkbox"><span>I understand that deletion is immediate and permanent.</span></label>
@@ -38,7 +47,7 @@
     <div class="actions"><button id="delete-button" class="danger" type="button" disabled>Delete my account and data</button></div>
     <p id="delete-status" class="status" role="status" aria-live="assertive"></p>
   </section>
-  <p class="muted">Need help? Contact <a href="mailto:digilayn@gmail.com">digilayn@gmail.com</a>. Read the <a href="privacy.html">Privacy Policy</a>.</p>
+  <p class="muted">Need help? Contact <a href="mailto:digilayn@gmail.com">digilayn@gmail.com</a>. Read the <a href="/portfolio/projects/laynfleet/privacy">Privacy Policy</a>.</p>
 </main>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script><script src="../security/firebase-config.js"></script><script src="account-deletion.js"></script>
 </body>
