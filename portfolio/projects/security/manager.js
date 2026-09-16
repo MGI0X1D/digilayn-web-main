@@ -389,49 +389,44 @@
 
   async function deleteDriverPhoneNumber(uid, driverName, phone) {
     try {
-      const batch = db.batch();
-      batch.update(usersCol.doc(uid), {
+      await driversCol.doc(uid).update({
         phone: firebase.firestore.FieldValue.delete(),
         phoneDeletedAt: serverTimestamp(),
         phoneDeletedBy: MANAGER_EMAIL
       });
-      batch.update(driversCol.doc(uid), {
-        phone: firebase.firestore.FieldValue.delete(),
-        phoneDeletedAt: serverTimestamp(),
-        phoneDeletedBy: MANAGER_EMAIL
-      });
-      await batch.commit();
 
-      const cachedUser = userCache.get(uid);
-      if (cachedUser) {
-        delete cachedUser.phone;
-      }
       const d = state.drivers.find((x) => x.uid === uid);
       if (d) {
         delete d.phone;
-        if (d.user) delete d.user.phone;
+        d.phoneDeletedAt = new Date();
       }
 
       await logAdminAction(
         'deleteDriverPhone',
         uid,
         driverName,
-        `Permanently deleted phone number (${phone}) from user and driver records`
+        `Permanently deleted phone number (${phone}) from driver fleet record (user record untouched)`
       );
 
       cancelPermanentDelete();
       renderDrivers();
       if (currentViewingDriverUid === uid) showDriverProfile(uid);
-      toast('Phone number permanently deleted.', 'success');
+      toast('Driver phone number permanently deleted from fleet record.', 'success');
     } catch (err) {
-      console.error('Delete phone failed:', err);
-      toast('Failed to delete phone number: ' + (err.code || err.message || ''), 'error');
+      console.error('Delete driver phone failed:', err);
+      toast('Failed to delete driver phone number: ' + (err.code || err.message || ''), 'error');
     }
   }
 
   async function deleteDriverProfilePhoto(uid, driverName, photoUrl) {
     try {
-      if (typeof firebase.storage === 'function' && photoUrl) {
+      // Only delete from Storage if the file is in the driver storage directory
+      // and NOT shared with the user's personal profile photo.
+      const cachedUser = userCache.get(uid);
+      const isSharedWithUser = cachedUser && cachedUser.photoUrl === photoUrl;
+      const isDriverStorage = photoUrl && (photoUrl.includes('/laynfleet%2Fdrivers%2F') || photoUrl.includes('/laynfleet/drivers/'));
+
+      if (typeof firebase.storage === 'function' && photoUrl && !isSharedWithUser && isDriverStorage) {
         try {
           const storageRef = firebase.storage().refFromURL(photoUrl);
           await storageRef.delete();
@@ -440,42 +435,31 @@
         }
       }
 
-      const batch = db.batch();
-      batch.update(usersCol.doc(uid), {
+      await driversCol.doc(uid).update({
         photoUrl: firebase.firestore.FieldValue.delete(),
         photoDeletedAt: serverTimestamp(),
         photoDeletedBy: MANAGER_EMAIL
       });
-      batch.update(driversCol.doc(uid), {
-        photoUrl: firebase.firestore.FieldValue.delete(),
-        photoDeletedAt: serverTimestamp(),
-        photoDeletedBy: MANAGER_EMAIL
-      });
-      await batch.commit();
 
-      const cachedUser = userCache.get(uid);
-      if (cachedUser) {
-        delete cachedUser.photoUrl;
-      }
       const d = state.drivers.find((x) => x.uid === uid);
       if (d) {
         delete d.photoUrl;
-        if (d.user) delete d.user.photoUrl;
+        d.photoDeletedAt = new Date();
       }
 
       await logAdminAction(
         'deleteDriverProfilePhoto',
         uid,
         driverName,
-        'Permanently deleted profile photo from storage, user record, and driver record'
+        'Permanently deleted driver profile photo from driver record (user record untouched)'
       );
 
       cancelPermanentDelete();
       renderDrivers();
       if (currentViewingDriverUid === uid) showDriverProfile(uid);
-      toast('Profile picture permanently deleted.', 'success');
+      toast('Driver profile picture deleted from fleet record.', 'success');
     } catch (err) {
-      console.error('Delete profile photo failed:', err);
+      console.error('Delete driver profile photo failed:', err);
       toast('Failed to delete profile picture: ' + (err.code || err.message || ''), 'error');
     }
   }
@@ -569,8 +553,8 @@
     const v = d.vehicle || {};
     const name = u.displayName || 'Unnamed Driver';
     const email = u.email || '—';
-    const phone = d.phone || u.phone || '';
-    const photoUrl = d.photoUrl || u.photoUrl || '';
+    const phone = d.phone || (!d.phoneDeletedAt ? (u.phone || '') : '');
+    const photoUrl = d.photoUrl || (!d.photoDeletedAt ? (u.photoUrl || '') : '');
     const licenceUrl = d.licenceUrl || '';
     const vType = String(v.type || 'PRIVATE_CAR').toUpperCase();
 
@@ -685,7 +669,7 @@
             </div>
           </div>
           ${phone ? `
-            <button class="btn btn-danger btn-xs" id="btn-delete-phone-direct" type="button" title="Permanently delete phone number from user record">
+            <button class="btn btn-danger btn-xs" id="btn-delete-phone-direct" type="button" title="Permanently delete phone number from driver fleet record">
               🗑️ Delete Number Permanently
             </button>` : ''}
         </div>
@@ -702,13 +686,13 @@
             <img class="driver-photo-manage-thumb" src="${escapeHtml(photoUrl)}" alt="Driver photo" />
             <div>
               <div style="font-size: 13px; font-weight: 600;">Active Profile Picture</div>
-              <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Stored in Cloud Storage / user document</div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Stored in Cloud Storage / driver record</div>
             </div>
             <div class="driver-photo-manage-actions">
               <button class="btn btn-ghost btn-xs" id="btn-view-photo-direct" type="button">
                 🔍 View Full Photo
               </button>
-              <button class="btn btn-danger btn-xs" id="btn-delete-photo-direct" type="button" title="Permanently delete profile photo from storage and database">
+              <button class="btn btn-danger btn-xs" id="btn-delete-photo-direct" type="button" title="Permanently delete profile photo from driver fleet record">
                 🗑️ Delete Photo Permanently
               </button>
             </div>
@@ -829,11 +813,11 @@
     if (deletePhoneBtn && phone) {
       deletePhoneBtn.addEventListener('click', () => {
         promptPermanentDelete({
-          title: '⚠️ Permanently Delete Phone Number',
-          subtitle: 'Irreversible action — permanent removal from user record',
+          title: '⚠️ Permanently Delete Driver Phone Number',
+          subtitle: 'Irreversible action — permanent removal from driver fleet record',
           driverName: `${name} (${uid.slice(0, 8)}…)`,
-          itemLabel: `phone number "${phone}"`,
-          detailsText: `You are about to permanently delete the phone number (${phone}) for ${name}. The phone field will be removed from database records. The driver will have no contact number on file. This cannot be undone.`,
+          itemLabel: `driver phone number "${phone}"`,
+          detailsText: `You are about to permanently delete the phone number (${phone}) from the driver fleet record for ${name}. The user's main profile record will remain untouched. The driver will have no contact number on file. This cannot be undone.`,
           onConfirm: () => deleteDriverPhoneNumber(uid, name, phone)
         });
       });
@@ -848,11 +832,11 @@
     if (deletePhotoBtn && photoUrl) {
       deletePhotoBtn.addEventListener('click', () => {
         promptPermanentDelete({
-          title: '⚠️ Permanently Delete Profile Picture',
-          subtitle: 'Irreversible action — permanent removal from storage and database',
+          title: '⚠️ Permanently Delete Driver Profile Picture',
+          subtitle: 'Irreversible action — permanent removal from driver fleet record',
           driverName: `${name} (${uid.slice(0, 8)}…)`,
-          itemLabel: 'profile picture',
-          detailsText: `You are about to permanently delete the profile picture for ${name}. The image file will be deleted from Cloud Storage and removed from user records. This cannot be undone.`,
+          itemLabel: 'driver profile picture',
+          detailsText: `You are about to permanently delete the profile picture for ${name} from the driver fleet record. The user's main profile and personal photos will remain untouched. This cannot be undone.`,
           onConfirm: () => deleteDriverProfilePhoto(uid, name, photoUrl)
         });
       });
@@ -1469,7 +1453,8 @@
     if (!term) return true;
     const v = d.vehicle || {};
     const u = d.user || {};
-    return [u.displayName, d.phone, u.phone, v.make, v.model, v.plate, v.colour, d.uid]
+    const driverPhone = d.phone || (!d.phoneDeletedAt ? (u.phone || '') : '');
+    return [u.displayName, driverPhone, v.make, v.model, v.plate, v.colour, d.uid]
       .some((x) => String(x || '').toLowerCase().includes(term));
   }
 
@@ -1477,7 +1462,8 @@
     const u = d.user || {};
     const v = d.vehicle || {};
     const name = u.displayName || 'Unnamed driver';
-    const photo = d.photoUrl || u.photoUrl;
+    const photo = d.photoUrl || (!d.photoDeletedAt ? u.photoUrl : null);
+    const driverPhone = d.phone || (!d.phoneDeletedAt ? (u.phone || '—') : '—');
     const avatar = photo
       ? `<img class="avatar" src="${escapeHtml(photo)}" alt="" data-view-driver="${escapeHtml(d.uid)}" style="cursor:pointer;" title="Click to view full driver profile" />`
       : `<div class="avatar" data-view-driver="${escapeHtml(d.uid)}" style="cursor:pointer;" title="Click to view full driver profile">${escapeHtml(initials(name))}</div>`;
@@ -1555,7 +1541,7 @@
         <div class="driver-info">
           <div class="driver-name" data-view-driver="${escapeHtml(d.uid)}" style="cursor:pointer;" title="Click to view full driver profile">${escapeHtml(name)} ${playStoreTestBadge} ${statusBadge} ${onlineBadge} ${suspendedBadge} ${ratingBadge}</div>
           <div class="driver-meta">
-            <span>📞 ${escapeHtml(d.phone || u.phone || '—')}</span>
+            <span>📞 ${escapeHtml(driverPhone)}</span>
             <span>🚘 ${escapeHtml(vehicleType)} · ${escapeHtml(vehicleLine)}</span>
             <span>🎨 ${escapeHtml(v.colour || '—')}</span>
             <span>🔢 ${escapeHtml(v.plate || '—')}</span>
@@ -1774,7 +1760,7 @@
         const rider = userCache.get(b.riderId) || {};
         const driverDoc = state.drivers && state.drivers.find((x) => x.uid === b.driverId);
         const driver = userCache.get(b.driverId) || {};
-        const driverPhone = (driverDoc && driverDoc.phone) || driver.phone || '';
+        const driverPhone = (driverDoc && driverDoc.phone) || (!driverDoc?.phoneDeletedAt ? (driver.phone || '') : '');
         const pickup = b.pickupAddress || (b.pickup && b.pickup.address) || '';
         const dest = b.dropoffAddress || (b.destination && b.destination.address) || '';
         const matches = [
@@ -1846,7 +1832,7 @@
       const rider = userCache.get(b.riderId) || {};
       const driverDoc = state.drivers && state.drivers.find((x) => x.uid === b.driverId);
       const driver = userCache.get(b.driverId) || {};
-      const driverPhone = (driverDoc && driverDoc.phone) || driver.phone || '';
+      const driverPhone = (driverDoc && driverDoc.phone) || (!driverDoc?.phoneDeletedAt ? (driver.phone || '') : '');
       const riderName = rider.displayName || (b.riderId ? `UID: ${b.riderId.slice(0, 6)}…` : '—');
       const driverName = driver.displayName || (b.driverId ? `UID: ${b.driverId.slice(0, 6)}…` : null);
       const price = getBookingPrice(b);
@@ -1926,7 +1912,7 @@
     const rider = userCache.get(b.riderId) || {};
     const driver = userCache.get(b.driverId) || {};
     const driverDoc = state.drivers && state.drivers.find((x) => x.uid === b.driverId);
-    const driverPhone = (driverDoc && driverDoc.phone) || driver.phone || '—';
+    const driverPhone = (driverDoc && driverDoc.phone) || (!driverDoc?.phoneDeletedAt ? (driver.phone || '—') : '—');
 
     $('booking-modal-title').textContent = 'Booking Details';
     $('booking-modal-id').textContent = 'ID: ' + b.id;
