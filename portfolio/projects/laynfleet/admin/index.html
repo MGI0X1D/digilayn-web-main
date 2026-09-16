@@ -666,9 +666,52 @@
   <!-- ===================== TOAST ===================== -->
   <div id="toast" class="toast is-hidden"></div>
 
-  <!-- ===================== IMAGE VIEWER ===================== -->
-  <div id="image-overlay" class="image-overlay is-hidden">
-    <img id="image-full" src="" alt="Document" />
+  <!-- ===================== IMAGE VIEWER (FULL VIEW MODAL) ===================== -->
+  <div id="image-overlay" class="image-overlay is-hidden" role="dialog" aria-modal="true" aria-label="Document full view">
+    <div class="image-overlay-card">
+      <div class="image-overlay-header">
+        <div class="image-overlay-meta">
+          <h3 id="image-overlay-title" class="image-overlay-title">Driver Licence</h3>
+          <p id="image-overlay-subtitle" class="image-overlay-subtitle">Press Esc or click outside to close</p>
+        </div>
+        <div class="image-overlay-actions">
+          <a id="image-overlay-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" title="Open full-resolution image in new tab">Open original ↗</a>
+          <button id="image-overlay-delete" class="btn btn-danger btn-sm is-hidden" type="button" title="Delete licence photo permanently">🗑 Delete Photo</button>
+          <button id="image-overlay-close" class="btn-icon" type="button" aria-label="Close" title="Close">✕</button>
+        </div>
+      </div>
+      <div class="image-overlay-body">
+        <img id="image-full" class="image-full" src="" alt="Licence full view" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== DELETE LICENCE WARNING MODAL (5s COUNTDOWN) ===================== -->
+  <div id="delete-licence-overlay" class="modal-overlay is-hidden" style="z-index: 120;" role="dialog" aria-modal="true">
+    <div class="modal modal-warning-card">
+      <div class="modal-header">
+        <div class="modal-header-text">
+          <h3 class="modal-title" style="color: var(--danger);">⚠️ Permanently Delete Licence</h3>
+          <p class="modal-subtitle">Irreversible action — permanent removal</p>
+        </div>
+        <button id="delete-licence-close" class="btn-icon" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <div class="warning-box">
+        <p><strong>Warning:</strong> You are about to permanently delete the driver's licence photo for <span id="delete-licence-driver-name" class="highlight-name">this driver</span>.</p>
+        <p class="warning-details">This document will be permanently deleted from Cloud Storage and database records. The driver will no longer have a licence photo on file. This cannot be undone.</p>
+      </div>
+
+      <div id="delete-licence-countdown-banner" class="countdown-banner">
+        <span class="countdown-icon">⏳</span>
+        <span id="delete-licence-countdown-text">Please wait <strong>5</strong> seconds to confirm...</span>
+      </div>
+
+      <div class="modal-actions">
+        <button id="delete-licence-cancel" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="delete-licence-confirm" class="btn btn-danger" type="button" disabled>Delete Permanently (5s)</button>
+      </div>
+    </div>
   </div>
 
   <!-- Firebase (compat v9.23.0 — matches the rest of web-poortjie) -->
@@ -676,6 +719,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
   <script src="../../security/firebase-config.js"></script>
   <script src="../../security/manager.js"></script>

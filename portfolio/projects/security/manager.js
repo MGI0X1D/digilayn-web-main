@@ -138,11 +138,169 @@
     toastTimer = setTimeout(() => hide(el), 3200);
   }
 
-  $('image-overlay').addEventListener('click', () => hide($('image-overlay')));
-  function viewImage(url) {
+  let currentViewingLicence = { url: '', uid: '', name: '' };
+  let deleteCountdownTimer = null;
+
+  const imgOverlay = $('image-overlay');
+  if (imgOverlay) {
+    imgOverlay.addEventListener('click', (e) => {
+      if (e.target === imgOverlay || e.target.closest('#image-overlay-close')) {
+        hide(imgOverlay);
+      }
+    });
+  }
+
+  const btnDeleteLicence = $('image-overlay-delete');
+  if (btnDeleteLicence) {
+    btnDeleteLicence.addEventListener('click', () => {
+      promptDeleteLicencePhoto();
+    });
+  }
+
+  function viewImage(url, title = 'Driver Licence', uid = '', name = '') {
     if (!url) return;
-    $('image-full').src = url;
+    currentViewingLicence = { url, uid, name };
+    const imgEl = $('image-full');
+    if (imgEl) {
+      imgEl.src = '';
+      imgEl.src = url;
+    }
+    const titleEl = $('image-overlay-title');
+    if (titleEl) titleEl.textContent = title;
+    const linkEl = $('image-overlay-link');
+    if (linkEl) linkEl.href = url;
+    const deleteBtn = $('image-overlay-delete');
+    if (deleteBtn) {
+      if (uid) show(deleteBtn); else hide(deleteBtn);
+    }
     show($('image-overlay'));
+  }
+
+  function promptDeleteLicencePhoto() {
+    if (!currentViewingLicence.uid || !currentViewingLicence.url) {
+      toast('Driver licence reference is missing.', 'error');
+      return;
+    }
+    const d = state.drivers.find((x) => x.uid === currentViewingLicence.uid);
+    const u = userCache.get(currentViewingLicence.uid) || (d && d.user) || {};
+    const driverName = currentViewingLicence.name || u.displayName || (d && d.user && d.user.displayName) || currentViewingLicence.uid;
+
+    const nameEl = $('delete-licence-driver-name');
+    if (nameEl) nameEl.textContent = `${driverName} (${currentViewingLicence.uid.slice(0, 8)}…)`;
+
+    const confirmBtn = $('delete-licence-confirm');
+    const countdownText = $('delete-licence-countdown-text');
+    const countdownBanner = $('delete-licence-countdown-banner');
+
+    if (deleteCountdownTimer) {
+      clearInterval(deleteCountdownTimer);
+      deleteCountdownTimer = null;
+    }
+
+    let seconds = 5;
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = `Delete Permanently (${seconds}s)`;
+    }
+    if (countdownBanner) countdownBanner.classList.remove('is-ready');
+    if (countdownText) countdownText.innerHTML = `Please wait <strong>${seconds}</strong> seconds to confirm...`;
+
+    show($('delete-licence-overlay'));
+
+    deleteCountdownTimer = setInterval(() => {
+      seconds--;
+      if (seconds > 0) {
+        if (confirmBtn) confirmBtn.textContent = `Delete Permanently (${seconds}s)`;
+        if (countdownText) {
+          countdownText.innerHTML = `Please wait <strong>${seconds}</strong> second${seconds === 1 ? '' : 's'} to confirm...`;
+        }
+      } else {
+        clearInterval(deleteCountdownTimer);
+        deleteCountdownTimer = null;
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Delete Permanently';
+        }
+        if (countdownText) {
+          countdownText.innerHTML = 'You may now confirm permanent deletion.';
+        }
+        if (countdownBanner) {
+          countdownBanner.classList.add('is-ready');
+        }
+      }
+    }, 1000);
+  }
+
+  function cancelDeleteLicence() {
+    if (deleteCountdownTimer) {
+      clearInterval(deleteCountdownTimer);
+      deleteCountdownTimer = null;
+    }
+    hide($('delete-licence-overlay'));
+  }
+
+  async function confirmDeleteLicencePhoto() {
+    const { uid, url, name } = currentViewingLicence;
+    if (!uid) return;
+
+    const confirmBtn = $('delete-licence-confirm');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Deleting...';
+    }
+
+    try {
+      // 1. Delete from Firebase Storage if available (best-effort)
+      if (typeof firebase.storage === 'function' && url) {
+        try {
+          const storageRef = firebase.storage().refFromURL(url);
+          await storageRef.delete();
+        } catch (storageErr) {
+          console.warn('Storage delete non-fatal notice (file may not exist or external URL):', storageErr);
+        }
+      }
+
+      // 2. Remove licenceUrl from Firestore driver document
+      await driversCol.doc(uid).update({
+        licenceUrl: firebase.firestore.FieldValue.delete(),
+        licenceDeletedAt: serverTimestamp(),
+        licenceDeletedBy: MANAGER_EMAIL
+      });
+
+      // 3. Update local state
+      const driver = state.drivers.find((x) => x.uid === uid);
+      if (driver) {
+        delete driver.licenceUrl;
+      }
+
+      // 4. Log admin audit
+      await logAdminAction('deleteLicencePhoto', uid, name || '', 'Permanently deleted licence photo via manager console');
+
+      cancelDeleteLicence();
+      hide($('image-overlay'));
+      renderDrivers();
+      toast('Licence photo permanently deleted.', 'success');
+    } catch (err) {
+      console.error('Delete licence failed', err);
+      toast('Failed to delete licence photo: ' + (err.code || err.message || ''), 'error');
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Delete Permanently';
+      }
+    }
+  }
+
+  const deleteOverlay = $('delete-licence-overlay');
+  if (deleteOverlay) {
+    deleteOverlay.addEventListener('click', (e) => {
+      if (e.target === deleteOverlay || e.target.closest('#delete-licence-close') || e.target.closest('#delete-licence-cancel')) {
+        cancelDeleteLicence();
+      }
+    });
+  }
+  const deleteConfirmBtn = $('delete-licence-confirm');
+  if (deleteConfirmBtn) {
+    deleteConfirmBtn.addEventListener('click', confirmDeleteLicencePhoto);
   }
 
   // ---------------------------------------------------------------------------
@@ -712,7 +870,7 @@
     const vehicleType = v.type ? titleCase(String(v.type).replace(/_/g, ' ')) : '—';
     const vehicleLine = [v.make, v.model].filter(Boolean).join(' ') || 'Vehicle not set';
     const licence = d.licenceUrl
-      ? `<img class="doc-thumb" src="${escapeHtml(d.licenceUrl)}" alt="Licence" data-view="${escapeHtml(d.licenceUrl)}" title="View licence" />`
+      ? `<img class="doc-thumb" src="${escapeHtml(d.licenceUrl)}" alt="Licence" data-view="${escapeHtml(d.licenceUrl)}" data-title="Driver Licence — ${escapeHtml(name)}" data-uid="${escapeHtml(d.uid)}" data-name="${escapeHtml(name)}" title="Click to view licence in full" />`
       : '<span class="driver-sub">No licence photo</span>';
 
     let actions = '';
@@ -782,7 +940,12 @@
     host.querySelectorAll('[data-filter-driver-reviews]').forEach((b) =>
       b.addEventListener('click', () => filterReviewsBySubject(b.getAttribute('data-filter-driver-reviews'))));
     host.querySelectorAll('[data-view]').forEach((img) =>
-      img.addEventListener('click', () => viewImage(img.getAttribute('data-view'))));
+      img.addEventListener('click', () => viewImage(
+        img.getAttribute('data-view'),
+        img.getAttribute('data-title') || 'Driver Licence',
+        img.getAttribute('data-uid') || '',
+        img.getAttribute('data-name') || ''
+      )));
   }
 
   // ---------------------------------------------------------------------------
@@ -3320,6 +3483,10 @@ This applies immediately to all connected devices.`,
   // ESC closes overlays.
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if ($('delete-licence-overlay') && !$('delete-licence-overlay').classList.contains('is-hidden')) {
+      cancelDeleteLicence();
+      return;
+    }
     hide($('image-overlay'));
     if ($('booking-detail-overlay') && !$('booking-detail-overlay').classList.contains('is-hidden')) {
       hide($('booking-detail-overlay'));
