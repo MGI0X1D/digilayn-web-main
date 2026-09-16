@@ -1469,7 +1469,7 @@
     if (!term) return true;
     const v = d.vehicle || {};
     const u = d.user || {};
-    return [u.displayName, u.phone, v.make, v.model, v.plate, v.colour, d.uid]
+    return [u.displayName, d.phone, u.phone, v.make, v.model, v.plate, v.colour, d.uid]
       .some((x) => String(x || '').toLowerCase().includes(term));
   }
 
@@ -1772,7 +1772,9 @@
       // 7. Search filter
       if (term) {
         const rider = userCache.get(b.riderId) || {};
+        const driverDoc = state.drivers && state.drivers.find((x) => x.uid === b.driverId);
         const driver = userCache.get(b.driverId) || {};
+        const driverPhone = (driverDoc && driverDoc.phone) || driver.phone || '';
         const pickup = b.pickupAddress || (b.pickup && b.pickup.address) || '';
         const dest = b.dropoffAddress || (b.destination && b.destination.address) || '';
         const matches = [
@@ -1785,6 +1787,7 @@
           rider.email,
           b.driverId,
           driver.displayName,
+          driverPhone,
           driver.phone,
           pickup,
           dest
@@ -1841,14 +1844,16 @@
 
     const rows = list.map((b) => {
       const rider = userCache.get(b.riderId) || {};
+      const driverDoc = state.drivers && state.drivers.find((x) => x.uid === b.driverId);
       const driver = userCache.get(b.driverId) || {};
+      const driverPhone = (driverDoc && driverDoc.phone) || driver.phone || '';
       const riderName = rider.displayName || (b.riderId ? `UID: ${b.riderId.slice(0, 6)}…` : '—');
       const driverName = driver.displayName || (b.driverId ? `UID: ${b.driverId.slice(0, 6)}…` : null);
       const price = getBookingPrice(b);
       const typeStr = b.type ? titleCase(String(b.type).replace(/_/g, ' ')) : 'Standard';
 
       const driverCell = driverName
-        ? `<div class="cell-strong">${escapeHtml(driverName)}</div><div class="cell-dim">${escapeHtml(driver.phone || (b.driverId || '').slice(0, 8))}</div>`
+        ? `<div class="cell-strong">${escapeHtml(driverName)}</div><div class="cell-dim">${escapeHtml(driverPhone || (b.driverId || '').slice(0, 8))}</div>`
         : '<span class="badge badge-unassigned">Unassigned</span>';
 
       const pickup = b.pickupAddress || (b.pickup && b.pickup.address) || '';
@@ -1920,6 +1925,8 @@
 
     const rider = userCache.get(b.riderId) || {};
     const driver = userCache.get(b.driverId) || {};
+    const driverDoc = state.drivers && state.drivers.find((x) => x.uid === b.driverId);
+    const driverPhone = (driverDoc && driverDoc.phone) || driver.phone || '—';
 
     $('booking-modal-title').textContent = 'Booking Details';
     $('booking-modal-id').textContent = 'ID: ' + b.id;
@@ -1994,7 +2001,7 @@
             </div>
             <div class="detail-item">
               <span class="detail-item-label">Phone</span>
-              <span class="detail-item-value">${escapeHtml(driver.phone || '—')}</span>
+              <span class="detail-item-value">${escapeHtml(driverPhone)}</span>
             </div>
             <div class="detail-item">
               <span class="detail-item-label">Driver UID</span>

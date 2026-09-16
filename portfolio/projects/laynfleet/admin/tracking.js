@@ -332,6 +332,8 @@
       driversMap.set(uid, {
         uid,
         user,
+        photoUrl: fDoc.photoUrl || user.photoUrl || '',
+        phone: fDoc.phone || user.phone || '',
         vehicle: fDoc.vehicle || {},
         approvalStatus: fDoc.approvalStatus || 'APPROVED',
         ratingAvg: fDoc.ratingAvg || 5.0,
@@ -408,7 +410,7 @@
 
       if (term) {
         const name = String(d.user?.displayName || '').toLowerCase();
-        const phone = String(d.user?.phone || '').toLowerCase();
+        const phone = String(d.phone || d.user?.phone || '').toLowerCase();
         const plate = String(d.vehicle?.plate || '').toLowerCase();
         const make = String(d.vehicle?.make || '').toLowerCase();
         const model = String(d.vehicle?.model || '').toLowerCase();
@@ -432,7 +434,7 @@
     host.innerHTML = list.map((d) => {
       const isSelected = d.uid === state.selectedDriverId;
       const name = d.user?.displayName || 'Driver';
-      const photo = d.user?.photoUrl;
+      const photo = d.photoUrl || d.user?.photoUrl;
       const vLine = [d.vehicle?.make, d.vehicle?.model].filter(Boolean).join(' ') || 'Vehicle not set';
       const plate = d.vehicle?.plate || '—';
       const speed = Math.round(d.location?.speed || 0);
@@ -495,8 +497,8 @@
                   ℹ️ Details
                 </button>
               `}
-              ${d.user?.phone ? `
-                <a class="btn-card-action" href="https://wa.me/${cleanPhone(d.user.phone)}" target="_blank" title="WhatsApp Driver">
+              ${(d.phone || d.user?.phone) ? `
+                <a class="btn-card-action" href="https://wa.me/${cleanPhone(d.phone || d.user.phone)}" target="_blank" title="WhatsApp Driver">
                   💬 WhatsApp
                 </a>
               ` : ''}
@@ -705,8 +707,8 @@
     if (!el || !driver) return;
 
     const name = driver.user?.displayName || 'Driver';
-    const photo = driver.user?.photoUrl;
-    const phone = driver.user?.phone || 'Not recorded';
+    const photo = driver.photoUrl || driver.user?.photoUrl;
+    const phone = driver.phone || driver.user?.phone || 'Not recorded';
     const plate = driver.vehicle?.plate || '—';
     const model = [driver.vehicle?.make, driver.vehicle?.model].filter(Boolean).join(' ') || 'Vehicle not set';
     const speed = Math.round(driver.location?.speed || 0);
