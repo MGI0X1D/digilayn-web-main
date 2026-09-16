@@ -279,6 +279,7 @@
       cancelDeleteLicence();
       hide($('image-overlay'));
       renderDrivers();
+      if (currentViewingDriverUid) showDriverProfile(currentViewingDriverUid);
       toast('Licence photo permanently deleted.', 'success');
     } catch (err) {
       console.error('Delete licence failed', err);
@@ -301,6 +302,647 @@
   const deleteConfirmBtn = $('delete-licence-confirm');
   if (deleteConfirmBtn) {
     deleteConfirmBtn.addEventListener('click', confirmDeleteLicencePhoto);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Permanent Deletion Warning Modal & Driver Profile Modal Logic
+  // ---------------------------------------------------------------------------
+  let permanentDeleteCountdownTimer = null;
+  let currentViewingDriverUid = null;
+
+  function promptPermanentDelete({ title, subtitle, driverName, itemLabel, detailsText, onConfirm }) {
+    const overlay = $('delete-permanent-overlay');
+    if (!overlay) return;
+
+    const titleEl = $('delete-permanent-title');
+    const subEl = $('delete-permanent-subtitle');
+    const nameEl = $('delete-permanent-driver-name');
+    const itemEl = $('delete-permanent-item-label');
+    const detailsEl = $('delete-permanent-details');
+    const confirmBtn = $('delete-permanent-confirm');
+    const countdownText = $('delete-permanent-countdown-text');
+    const countdownBanner = $('delete-permanent-countdown-banner');
+
+    if (titleEl && title) titleEl.textContent = title;
+    if (subEl && subtitle) subEl.textContent = subtitle;
+    if (nameEl) nameEl.textContent = driverName || 'this driver';
+    if (itemEl && itemLabel) itemEl.textContent = itemLabel;
+    if (detailsEl && detailsText) detailsEl.textContent = detailsText;
+
+    if (permanentDeleteCountdownTimer) {
+      clearInterval(permanentDeleteCountdownTimer);
+      permanentDeleteCountdownTimer = null;
+    }
+
+    let seconds = 5;
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = `Delete Permanently (${seconds}s)`;
+      confirmBtn.onclick = async () => {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Deleting...';
+        try {
+          await onConfirm();
+        } catch (err) {
+          console.error('Permanent delete execution failed:', err);
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Delete Permanently';
+        }
+      };
+    }
+    if (countdownBanner) countdownBanner.classList.remove('is-ready');
+    if (countdownText) countdownText.innerHTML = `Please wait <strong>${seconds}</strong> seconds to confirm...`;
+
+    show(overlay);
+
+    permanentDeleteCountdownTimer = setInterval(() => {
+      seconds--;
+      if (seconds > 0) {
+        if (confirmBtn) confirmBtn.textContent = `Delete Permanently (${seconds}s)`;
+        if (countdownText) {
+          countdownText.innerHTML = `Please wait <strong>${seconds}</strong> second${seconds === 1 ? '' : 's'} to confirm...`;
+        }
+      } else {
+        clearInterval(permanentDeleteCountdownTimer);
+        permanentDeleteCountdownTimer = null;
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Delete Permanently';
+        }
+        if (countdownText) {
+          countdownText.innerHTML = 'You may now confirm permanent deletion.';
+        }
+        if (countdownBanner) {
+          countdownBanner.classList.add('is-ready');
+        }
+      }
+    }, 1000);
+  }
+
+  function cancelPermanentDelete() {
+    if (permanentDeleteCountdownTimer) {
+      clearInterval(permanentDeleteCountdownTimer);
+      permanentDeleteCountdownTimer = null;
+    }
+    hide($('delete-permanent-overlay'));
+  }
+
+  async function deleteDriverPhoneNumber(uid, driverName, phone) {
+    try {
+      const batch = db.batch();
+      batch.update(usersCol.doc(uid), {
+        phone: firebase.firestore.FieldValue.delete(),
+        phoneDeletedAt: serverTimestamp(),
+        phoneDeletedBy: MANAGER_EMAIL
+      });
+      batch.update(driversCol.doc(uid), {
+        phone: firebase.firestore.FieldValue.delete(),
+        phoneDeletedAt: serverTimestamp(),
+        phoneDeletedBy: MANAGER_EMAIL
+      });
+      await batch.commit();
+
+      const cachedUser = userCache.get(uid);
+      if (cachedUser) {
+        delete cachedUser.phone;
+      }
+      const d = state.drivers.find((x) => x.uid === uid);
+      if (d) {
+        delete d.phone;
+        if (d.user) delete d.user.phone;
+      }
+
+      await logAdminAction(
+        'deleteDriverPhone',
+        uid,
+        driverName,
+        `Permanently deleted phone number (${phone}) from user and driver records`
+      );
+
+      cancelPermanentDelete();
+      renderDrivers();
+      if (currentViewingDriverUid === uid) showDriverProfile(uid);
+      toast('Phone number permanently deleted.', 'success');
+    } catch (err) {
+      console.error('Delete phone failed:', err);
+      toast('Failed to delete phone number: ' + (err.code || err.message || ''), 'error');
+    }
+  }
+
+  async function deleteDriverProfilePhoto(uid, driverName, photoUrl) {
+    try {
+      if (typeof firebase.storage === 'function' && photoUrl) {
+        try {
+          const storageRef = firebase.storage().refFromURL(photoUrl);
+          await storageRef.delete();
+        } catch (storageErr) {
+          console.warn('Storage delete non-fatal notice (file may not exist or external URL):', storageErr);
+        }
+      }
+
+      const batch = db.batch();
+      batch.update(usersCol.doc(uid), {
+        photoUrl: firebase.firestore.FieldValue.delete(),
+        photoDeletedAt: serverTimestamp(),
+        photoDeletedBy: MANAGER_EMAIL
+      });
+      batch.update(driversCol.doc(uid), {
+        photoUrl: firebase.firestore.FieldValue.delete(),
+        photoDeletedAt: serverTimestamp(),
+        photoDeletedBy: MANAGER_EMAIL
+      });
+      await batch.commit();
+
+      const cachedUser = userCache.get(uid);
+      if (cachedUser) {
+        delete cachedUser.photoUrl;
+      }
+      const d = state.drivers.find((x) => x.uid === uid);
+      if (d) {
+        delete d.photoUrl;
+        if (d.user) delete d.user.photoUrl;
+      }
+
+      await logAdminAction(
+        'deleteDriverProfilePhoto',
+        uid,
+        driverName,
+        'Permanently deleted profile photo from storage, user record, and driver record'
+      );
+
+      cancelPermanentDelete();
+      renderDrivers();
+      if (currentViewingDriverUid === uid) showDriverProfile(uid);
+      toast('Profile picture permanently deleted.', 'success');
+    } catch (err) {
+      console.error('Delete profile photo failed:', err);
+      toast('Failed to delete profile picture: ' + (err.code || err.message || ''), 'error');
+    }
+  }
+
+  async function saveDriverVehicle(uid) {
+    const makeEl = $('vehicle-input-make');
+    const modelEl = $('vehicle-input-model');
+    const colourEl = $('vehicle-input-colour');
+    const plateEl = $('vehicle-input-plate');
+    const seatsEl = $('vehicle-input-seats');
+    const typeEl = $('vehicle-input-type');
+    const saveBtn = $('btn-save-vehicle');
+
+    if (!makeEl || !modelEl || !plateEl) return;
+
+    const make = makeEl.value.trim();
+    const model = modelEl.value.trim();
+    const colour = (colourEl ? colourEl.value : '').trim();
+    const plate = plateEl.value.trim().toUpperCase();
+    const seats = parseInt(seatsEl ? seatsEl.value : '4', 10) || 4;
+    const type = typeEl ? typeEl.value : 'PRIVATE_CAR';
+
+    if (!make || !model) {
+      toast('Vehicle make and model are required.', 'error');
+      return;
+    }
+    if (!plate) {
+      toast('Licence plate number is required.', 'error');
+      return;
+    }
+
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+    }
+
+    try {
+      const vehicleData = {
+        make,
+        model,
+        colour,
+        plate,
+        seats,
+        type
+      };
+
+      await driversCol.doc(uid).update({
+        vehicle: vehicleData,
+        updatedAt: serverTimestamp(),
+        updatedBy: MANAGER_EMAIL
+      });
+
+      const d = state.drivers.find((x) => x.uid === uid);
+      const u = (d && d.user) || userCache.get(uid) || {};
+      const driverName = u.displayName || uid;
+      if (d) {
+        d.vehicle = vehicleData;
+        d.updatedAt = Date.now();
+        d.updatedBy = MANAGER_EMAIL;
+      }
+
+      await logAdminAction(
+        'editDriverVehicle',
+        uid,
+        driverName,
+        `Updated vehicle to ${make} ${model} (${plate}), ${seats} seats, ${type}`
+      );
+
+      renderDrivers();
+      renderOverview();
+      showDriverProfile(uid);
+      toast('Vehicle details updated successfully.', 'success');
+    } catch (err) {
+      console.error('Save vehicle failed:', err);
+      toast('Failed to save vehicle details: ' + (err.code || err.message || ''), 'error');
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Save Vehicle Details';
+      }
+    }
+  }
+
+  function showDriverProfile(uid) {
+    const d = state.drivers.find((x) => x.uid === uid);
+    if (!d) {
+      toast('Driver record not found.', 'error');
+      return;
+    }
+    currentViewingDriverUid = uid;
+    const u = (d && d.user) || userCache.get(uid) || {};
+    const v = d.vehicle || {};
+    const name = u.displayName || 'Unnamed Driver';
+    const email = u.email || '—';
+    const phone = d.phone || u.phone || '';
+    const photoUrl = d.photoUrl || u.photoUrl || '';
+    const licenceUrl = d.licenceUrl || '';
+    const vType = String(v.type || 'PRIVATE_CAR').toUpperCase();
+
+    $('driver-modal-name').textContent = name;
+    $('driver-modal-id').textContent = `UID: ${uid}`;
+
+    // Presence & Status
+    const rtdbEntry = state.driverLocations && state.driverLocations[uid];
+    const isRtdbOnline = rtdbEntry && rtdbEntry.online === true;
+    const rtdbAge = (rtdbEntry && rtdbEntry.updatedAt) ? (Date.now() - rtdbEntry.updatedAt) : Infinity;
+    const isFresh = isRtdbOnline && rtdbAge < 65000;
+    const onlineBadge = (d.approvalStatus === 'APPROVED' && d.online && isFresh)
+      ? '<span class="badge badge-online">● Online Now</span>'
+      : (d.approvalStatus === 'APPROVED' && d.online && !isFresh)
+      ? '<span class="badge badge-offline" title="Connection lost / stale heartbeat">● Offline (Stale Heartbeat)</span>'
+      : '<span class="badge badge-offline">● Offline</span>';
+
+    const statusBadge = {
+      PENDING: '<span class="badge badge-pending">Pending Application</span>',
+      APPROVED: '<span class="badge badge-approved">Approved Fleet Driver</span>',
+      DEMOTED: '<span class="badge badge-demoted">Demoted Driver</span>',
+      REJECTED: '<span class="badge badge-rejected">Rejected Application</span>'
+    }[d.approvalStatus] || '';
+
+    const suspendedBadge = u.suspended
+      ? `<span class="badge badge-suspended" title="${escapeHtml(u.suspendedReason || '')}">Suspended</span>`
+      : '';
+    const playStoreBadge = d.testAccount === true
+      ? '<span class="badge badge-driver">Play Store Test Account</span>'
+      : '';
+
+    const ratingAvg = Number(d.ratingAvg || 0).toFixed(1);
+    const ratingCount = d.ratingCount || 0;
+    const tripsCount = d.tripsCount || 0;
+    const cancelCount = d.cancelCount || 0;
+
+    const bodyEl = $('driver-modal-body');
+    bodyEl.innerHTML = `
+      <!-- Header Card -->
+      <div class="driver-detail-header-card">
+        ${photoUrl
+          ? `<img class="driver-detail-avatar" src="${escapeHtml(photoUrl)}" alt="" data-view-full-photo="${escapeHtml(photoUrl)}" data-name="${escapeHtml(name)}" style="cursor: zoom-in;" title="Click to view full photo" />`
+          : `<div class="driver-detail-avatar">${escapeHtml(initials(name))}</div>`}
+        <div class="driver-detail-meta">
+          <div class="driver-detail-name">
+            <span>${escapeHtml(name)}</span>
+            ${statusBadge}
+            ${onlineBadge}
+            ${suspendedBadge}
+            ${playStoreBadge}
+          </div>
+          <div style="font-size: 13px; color: var(--text-dim); display: flex; gap: 8px; flex-wrap: wrap;">
+            <span>✉️ ${escapeHtml(email)}</span>
+            <span>📞 ${escapeHtml(phone || 'No phone')}</span>
+          </div>
+          <div style="margin-top: 4px;">
+            <span class="uid-chip" data-copy="${escapeHtml(uid)}" title="Copy UID">${escapeHtml(uid)}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div class="detail-section">
+        <div class="detail-section-title"><span>Performance &amp; Operational Metrics</span></div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-item-label">Customer Rating</span>
+            <span class="detail-item-value">
+              ★ ${ratingAvg} · ${ratingCount} review${ratingCount === 1 ? '' : 's'}
+              ${ratingCount > 0 ? `<button class="btn btn-ghost btn-xs" id="btn-modal-filter-reviews" data-driver-name="${escapeHtml(name)}" style="margin-left: 6px;">View Reviews</button>` : ''}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item-label">Completed Trips</span>
+            <span class="detail-item-value">${tripsCount} trips</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item-label">Cancellations</span>
+            <span class="detail-item-value">${cancelCount} cancelled</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item-label">Terms Accepted</span>
+            <span class="detail-item-value">${d.legitAcceptedAt ? formatDate(d.legitAcceptedAt) : 'Not recorded'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item-label">Application Date</span>
+            <span class="detail-item-value">${formatDate(d.createdAt)}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item-label">Last Status Update</span>
+            <span class="detail-item-value">
+              ${d.approvalStatus === 'APPROVED' && d.approvedAt ? `Approved ${formatDate(d.approvedAt)}${d.approvedBy ? ` by ${d.approvedBy}` : ''}` : ''}
+              ${d.approvalStatus === 'DEMOTED' && d.demotedAt ? `Demoted ${formatDate(d.demotedAt)}: ${d.demoteReason || ''}` : ''}
+              ${d.approvalStatus === 'REJECTED' ? `Rejected: ${d.rejectedReason || ''}` : ''}
+              ${d.approvalStatus === 'PENDING' ? 'Pending initial review' : ''}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact & Phone Number Management -->
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <span>Contact Numbers &amp; Permanent Removal</span>
+          <span style="font-size: 10px; text-transform: none; color: var(--danger);">Irreversible deletion</span>
+        </div>
+        <div class="driver-detail-contact-row">
+          <div>
+            <div style="font-size: 11px; color: var(--text-faint); margin-bottom: 2px;">Registered Mobile Phone</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--text);">
+              ${phone ? `📞 ${escapeHtml(phone)}` : '<span class="cell-dim">No phone number recorded</span>'}
+            </div>
+          </div>
+          ${phone ? `
+            <button class="btn btn-danger btn-xs" id="btn-delete-phone-direct" type="button" title="Permanently delete phone number from user record">
+              🗑️ Delete Number Permanently
+            </button>` : ''}
+        </div>
+      </div>
+
+      <!-- Profile Picture Management -->
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <span>Profile Picture &amp; Cloud Storage</span>
+          <span style="font-size: 10px; text-transform: none; color: var(--danger);">Permanent delete</span>
+        </div>
+        ${photoUrl ? `
+          <div class="driver-photo-manage-card">
+            <img class="driver-photo-manage-thumb" src="${escapeHtml(photoUrl)}" alt="Driver photo" />
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">Active Profile Picture</div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Stored in Cloud Storage / user document</div>
+            </div>
+            <div class="driver-photo-manage-actions">
+              <button class="btn btn-ghost btn-xs" id="btn-view-photo-direct" type="button">
+                🔍 View Full Photo
+              </button>
+              <button class="btn btn-danger btn-xs" id="btn-delete-photo-direct" type="button" title="Permanently delete profile photo from storage and database">
+                🗑️ Delete Photo Permanently
+              </button>
+            </div>
+          </div>` : `
+          <div style="padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-dim); font-size: 13px;">
+            No profile picture uploaded.
+          </div>`}
+      </div>
+
+      <!-- Licence Document Management -->
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <span>Driver Licence Document</span>
+          <span style="font-size: 10px; text-transform: none; color: var(--danger);">Permanent delete</span>
+        </div>
+        ${licenceUrl ? `
+          <div class="driver-photo-manage-card">
+            <img class="driver-photo-manage-thumb doc-thumb" src="${escapeHtml(licenceUrl)}" alt="Licence document" />
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">Driver Licence Photo</div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Stored in driver-docs / driver record</div>
+            </div>
+            <div class="driver-photo-manage-actions">
+              <button class="btn btn-ghost btn-xs" id="btn-view-licence-direct" type="button">
+                🔍 View Licence
+              </button>
+              <button class="btn btn-danger btn-xs" id="btn-delete-licence-modal" type="button" title="Permanently delete licence photo from storage and database">
+                🗑️ Delete Licence Permanently
+              </button>
+            </div>
+          </div>` : `
+          <div style="padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-dim); font-size: 13px;">
+            No licence photo on file.
+          </div>`}
+      </div>
+
+      <!-- Vehicle Details (Editable) -->
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <span>🚘 Vehicle Details (Editable)</span>
+          <span style="font-size: 11px; text-transform: none; color: var(--brand);">Instant fleet sync</span>
+        </div>
+        <form id="driver-vehicle-form" onsubmit="return false;">
+          <div class="vehicle-form-grid">
+            <label class="field">
+              <span class="field-label">Vehicle Make</span>
+              <input id="vehicle-input-make" type="text" class="field-input" value="${escapeHtml(v.make || '')}" placeholder="e.g. Toyota" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Vehicle Model</span>
+              <input id="vehicle-input-model" type="text" class="field-input" value="${escapeHtml(v.model || '')}" placeholder="e.g. Corolla Quest" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Vehicle Colour</span>
+              <input id="vehicle-input-colour" type="text" class="field-input" value="${escapeHtml(v.colour || '')}" placeholder="e.g. White / Silver" />
+            </label>
+            <label class="field">
+              <span class="field-label">Licence Plate</span>
+              <input id="vehicle-input-plate" type="text" class="field-input" value="${escapeHtml(v.plate || '')}" placeholder="e.g. CA 123-456" required style="text-transform: uppercase;" />
+            </label>
+            <label class="field">
+              <span class="field-label">Passenger Seats</span>
+              <input id="vehicle-input-seats" type="number" min="1" max="50" class="field-input" value="${v.seats != null ? v.seats : 4}" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Vehicle Type</span>
+              <select id="vehicle-input-type" class="field-input">
+                <option value="PRIVATE_CAR" ${vType === 'PRIVATE_CAR' || vType === 'STANDARD' ? 'selected' : ''}>Private Car (Standard)</option>
+                <option value="XL" ${vType === 'XL' ? 'selected' : ''}>XL (6+ Seats)</option>
+                <option value="PREMIUM" ${vType === 'PREMIUM' ? 'selected' : ''}>Premium</option>
+                <option value="DELIVERY" ${vType === 'DELIVERY' ? 'selected' : ''}>Delivery</option>
+                <option value="TUKTUK" ${vType === 'TUKTUK' ? 'selected' : ''}>Tuktuk</option>
+              </select>
+            </label>
+          </div>
+          <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
+            <button id="btn-save-vehicle" type="button" class="btn btn-primary btn-sm">
+              💾 Save Vehicle Details
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Management Lifecycle Actions -->
+      <div class="detail-section">
+        <div class="detail-section-title"><span>Driver Fleet Controls</span></div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          ${d.approvalStatus === 'PENDING' ? `
+            <button class="btn btn-success btn-sm" id="btn-modal-approve">Approve Application</button>
+            <button class="btn btn-danger btn-sm" id="btn-modal-reject">Reject Application</button>
+          ` : ''}
+          ${d.approvalStatus === 'APPROVED' ? `
+            <button class="btn btn-warn btn-sm" id="btn-modal-demote">Demote Driver</button>
+            ${u.suspended ? `
+              <button class="btn btn-ghost btn-sm" id="btn-modal-reactivate">Reactivate User</button>
+            ` : `
+              <button class="btn btn-danger btn-sm" id="btn-modal-suspend">Suspend User</button>
+            `}
+          ` : ''}
+          ${d.approvalStatus === 'DEMOTED' ? `
+            <button class="btn btn-success btn-sm" id="btn-modal-reapprove">Re-approve Driver</button>
+            <button class="btn btn-danger btn-sm" id="btn-modal-reject">Reject Application</button>
+          ` : ''}
+          ${d.approvalStatus === 'REJECTED' ? `
+            <button class="btn btn-ghost btn-sm" id="btn-modal-reapprove">Re-approve Driver</button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+
+    // Wire listeners inside driver details modal
+    const saveVehicleBtn = $('btn-save-vehicle');
+    if (saveVehicleBtn) {
+      saveVehicleBtn.addEventListener('click', () => saveDriverVehicle(uid));
+    }
+
+    const deletePhoneBtn = $('btn-delete-phone-direct');
+    if (deletePhoneBtn && phone) {
+      deletePhoneBtn.addEventListener('click', () => {
+        promptPermanentDelete({
+          title: '⚠️ Permanently Delete Phone Number',
+          subtitle: 'Irreversible action — permanent removal from user record',
+          driverName: `${name} (${uid.slice(0, 8)}…)`,
+          itemLabel: `phone number "${phone}"`,
+          detailsText: `You are about to permanently delete the phone number (${phone}) for ${name}. The phone field will be removed from database records. The driver will have no contact number on file. This cannot be undone.`,
+          onConfirm: () => deleteDriverPhoneNumber(uid, name, phone)
+        });
+      });
+    }
+
+    const viewPhotoBtn = $('btn-view-photo-direct');
+    if (viewPhotoBtn && photoUrl) {
+      viewPhotoBtn.addEventListener('click', () => viewImage(photoUrl, 'Profile Photo — ' + name));
+    }
+
+    const deletePhotoBtn = $('btn-delete-photo-direct');
+    if (deletePhotoBtn && photoUrl) {
+      deletePhotoBtn.addEventListener('click', () => {
+        promptPermanentDelete({
+          title: '⚠️ Permanently Delete Profile Picture',
+          subtitle: 'Irreversible action — permanent removal from storage and database',
+          driverName: `${name} (${uid.slice(0, 8)}…)`,
+          itemLabel: 'profile picture',
+          detailsText: `You are about to permanently delete the profile picture for ${name}. The image file will be deleted from Cloud Storage and removed from user records. This cannot be undone.`,
+          onConfirm: () => deleteDriverProfilePhoto(uid, name, photoUrl)
+        });
+      });
+    }
+
+    const viewLicenceBtn = $('btn-view-licence-direct');
+    if (viewLicenceBtn && licenceUrl) {
+      viewLicenceBtn.addEventListener('click', () => viewImage(licenceUrl, 'Driver Licence — ' + name, uid, name));
+    }
+
+    const deleteLicenceModalBtn = $('btn-delete-licence-modal');
+    if (deleteLicenceModalBtn && licenceUrl) {
+      deleteLicenceModalBtn.addEventListener('click', () => {
+        currentViewingLicence = { url: licenceUrl, uid, name };
+        promptPermanentDelete({
+          title: '⚠️ Permanently Delete Licence Photo',
+          subtitle: 'Irreversible action — permanent removal from storage and database',
+          driverName: `${name} (${uid.slice(0, 8)}…)`,
+          itemLabel: 'driver licence document',
+          detailsText: `You are about to permanently delete the licence document for ${name}. The file will be deleted from Cloud Storage and database records. The driver will no longer have a licence on file. This cannot be undone.`,
+          onConfirm: async () => {
+            await confirmDeleteLicencePhoto();
+            cancelPermanentDelete();
+            if (currentViewingDriverUid === uid) showDriverProfile(uid);
+          }
+        });
+      });
+    }
+
+    const filterReviewsBtn = $('btn-modal-filter-reviews');
+    if (filterReviewsBtn) {
+      filterReviewsBtn.addEventListener('click', () => {
+        hide($('driver-detail-overlay'));
+        currentViewingDriverUid = null;
+        filterReviewsBySubject(name);
+      });
+    }
+
+    // Lifecycle actions
+    const modalApprove = $('btn-modal-approve');
+    if (modalApprove) {
+      modalApprove.addEventListener('click', async () => {
+        await approveDriver(uid);
+        if (currentViewingDriverUid === uid) showDriverProfile(uid);
+      });
+    }
+    const modalReapprove = $('btn-modal-reapprove');
+    if (modalReapprove) {
+      modalReapprove.addEventListener('click', async () => {
+        await approveDriver(uid);
+        if (currentViewingDriverUid === uid) showDriverProfile(uid);
+      });
+    }
+    const modalReject = $('btn-modal-reject');
+    if (modalReject) {
+      modalReject.addEventListener('click', async () => {
+        await rejectDriver(uid);
+        if (currentViewingDriverUid === uid) showDriverProfile(uid);
+      });
+    }
+    const modalDemote = $('btn-modal-demote');
+    if (modalDemote) {
+      modalDemote.addEventListener('click', async () => {
+        await demoteDriver(uid);
+        if (currentViewingDriverUid === uid) showDriverProfile(uid);
+      });
+    }
+    const modalSuspend = $('btn-modal-suspend');
+    if (modalSuspend) {
+      modalSuspend.addEventListener('click', async () => {
+        await suspendUser(uid);
+        if (currentViewingDriverUid === uid) showDriverProfile(uid);
+      });
+    }
+    const modalReactivate = $('btn-modal-reactivate');
+    if (modalReactivate) {
+      modalReactivate.addEventListener('click', async () => {
+        await reactivateUser(uid);
+        if (currentViewingDriverUid === uid) showDriverProfile(uid);
+      });
+    }
+
+    bodyEl.querySelectorAll('[data-copy]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const text = el.getAttribute('data-copy');
+        navigator.clipboard.writeText(text).then(() => toast('Copied UID to clipboard', 'success'));
+      });
+    });
+
+    show($('driver-detail-overlay'));
   }
 
   // ---------------------------------------------------------------------------
@@ -497,6 +1139,9 @@
       state.drivers = docs;
       renderDrivers();
       renderOverview();
+      if (currentViewingDriverUid && $('driver-detail-overlay') && !$('driver-detail-overlay').classList.contains('is-hidden')) {
+        showDriverProfile(currentViewingDriverUid);
+      }
     }, (err) => {
       console.error('drivers listener', err);
       toast('Failed to load drivers (check access).', 'error');
@@ -832,10 +1477,10 @@
     const u = d.user || {};
     const v = d.vehicle || {};
     const name = u.displayName || 'Unnamed driver';
-    const photo = u.photoUrl;
+    const photo = d.photoUrl || u.photoUrl;
     const avatar = photo
-      ? `<img class="avatar" src="${escapeHtml(photo)}" alt="" />`
-      : `<div class="avatar">${escapeHtml(initials(name))}</div>`;
+      ? `<img class="avatar" src="${escapeHtml(photo)}" alt="" data-view-driver="${escapeHtml(d.uid)}" style="cursor:pointer;" title="Click to view full driver profile" />`
+      : `<div class="avatar" data-view-driver="${escapeHtml(d.uid)}" style="cursor:pointer;" title="Click to view full driver profile">${escapeHtml(initials(name))}</div>`;
 
     const statusBadge = {
       PENDING: '<span class="badge badge-pending">Pending</span>',
@@ -908,9 +1553,9 @@
       <div class="driver-card">
         ${avatar}
         <div class="driver-info">
-          <div class="driver-name">${escapeHtml(name)} ${playStoreTestBadge} ${statusBadge} ${onlineBadge} ${suspendedBadge} ${ratingBadge}</div>
+          <div class="driver-name" data-view-driver="${escapeHtml(d.uid)}" style="cursor:pointer;" title="Click to view full driver profile">${escapeHtml(name)} ${playStoreTestBadge} ${statusBadge} ${onlineBadge} ${suspendedBadge} ${ratingBadge}</div>
           <div class="driver-meta">
-            <span>📞 ${escapeHtml(u.phone || '—')}</span>
+            <span>📞 ${escapeHtml(d.phone || u.phone || '—')}</span>
             <span>🚘 ${escapeHtml(vehicleType)} · ${escapeHtml(vehicleLine)}</span>
             <span>🎨 ${escapeHtml(v.colour || '—')}</span>
             <span>🔢 ${escapeHtml(v.plate || '—')}</span>
@@ -921,12 +1566,17 @@
         </div>
         <div class="driver-actions">
           ${licence}
+          <button class="btn btn-ghost btn-sm" data-view-driver="${escapeHtml(d.uid)}" title="Inspect full profile, edit car details, delete records">
+            🔍 Full Profile
+          </button>
           ${actions}
         </div>
       </div>`;
   }
 
   function wireDriverCardActions(host) {
+    host.querySelectorAll('[data-view-driver]').forEach((b) =>
+      b.addEventListener('click', () => showDriverProfile(b.getAttribute('data-view-driver'))));
     host.querySelectorAll('[data-approve]').forEach((b) =>
       b.addEventListener('click', () => approveDriver(b.getAttribute('data-approve'))));
     host.querySelectorAll('[data-reject]').forEach((b) =>
@@ -3280,6 +3930,41 @@ This applies immediately to all connected devices.`,
     });
   }
 
+  // Driver Profile Modal Close Handlers
+  const dModalClose = $('driver-modal-close');
+  if (dModalClose) dModalClose.addEventListener('click', () => {
+    currentViewingDriverUid = null;
+    hide($('driver-detail-overlay'));
+  });
+  const dModalDone = $('driver-modal-done');
+  if (dModalDone) dModalDone.addEventListener('click', () => {
+    currentViewingDriverUid = null;
+    hide($('driver-detail-overlay'));
+  });
+
+  const dDetailOverlay = $('driver-detail-overlay');
+  if (dDetailOverlay) {
+    dDetailOverlay.addEventListener('click', (e) => {
+      if (e.target === dDetailOverlay) {
+        currentViewingDriverUid = null;
+        hide(dDetailOverlay);
+      }
+    });
+  }
+
+  // Permanent Deletion Warning Modal Handlers
+  const permClose = $('delete-permanent-close');
+  if (permClose) permClose.addEventListener('click', cancelPermanentDelete);
+  const permCancel = $('delete-permanent-cancel');
+  if (permCancel) permCancel.addEventListener('click', cancelPermanentDelete);
+
+  const permOverlay = $('delete-permanent-overlay');
+  if (permOverlay) {
+    permOverlay.addEventListener('click', (e) => {
+      if (e.target === permOverlay) cancelPermanentDelete();
+    });
+  }
+
   // Review Quick Tabs
   document.querySelectorAll('#review-quick-tabs [data-review-tab]').forEach((b) => {
     b.addEventListener('click', () => {
@@ -3483,11 +4168,19 @@ This applies immediately to all connected devices.`,
   // ESC closes overlays.
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if ($('delete-permanent-overlay') && !$('delete-permanent-overlay').classList.contains('is-hidden')) {
+      cancelPermanentDelete();
+      return;
+    }
     if ($('delete-licence-overlay') && !$('delete-licence-overlay').classList.contains('is-hidden')) {
       cancelDeleteLicence();
       return;
     }
     hide($('image-overlay'));
+    if ($('driver-detail-overlay') && !$('driver-detail-overlay').classList.contains('is-hidden')) {
+      currentViewingDriverUid = null;
+      hide($('driver-detail-overlay'));
+    }
     if ($('booking-detail-overlay') && !$('booking-detail-overlay').classList.contains('is-hidden')) {
       hide($('booking-detail-overlay'));
     }

@@ -629,6 +629,23 @@
     </div>
   </div>
 
+  <!-- ===================== DRIVER PROFILE DETAILS MODAL ===================== -->
+  <div id="driver-detail-overlay" class="modal-overlay is-hidden" style="z-index: 95;" role="dialog" aria-modal="true">
+    <div class="modal modal-lg" style="max-width: 680px;">
+      <div class="modal-header">
+        <div>
+          <h3 id="driver-modal-name" class="modal-title">Driver Profile</h3>
+          <p id="driver-modal-id" class="modal-subtitle">—</p>
+        </div>
+        <button id="driver-modal-close" class="btn-icon" type="button" aria-label="Close">✕</button>
+      </div>
+      <div id="driver-modal-body" class="driver-detail-body"></div>
+      <div class="modal-actions" id="driver-modal-actions">
+        <button id="driver-modal-done" class="btn btn-ghost" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== REVIEW SCRUTINY MODAL ===================== -->
   <div id="review-detail-overlay" class="modal-overlay is-hidden">
     <div class="modal modal-lg" role="dialog" aria-modal="true">
@@ -710,6 +727,34 @@
       <div class="modal-actions">
         <button id="delete-licence-cancel" class="btn btn-ghost" type="button">Cancel</button>
         <button id="delete-licence-confirm" class="btn btn-danger" type="button" disabled>Delete Permanently (5s)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PERMANENT DELETION WARNING MODAL (5s COUNTDOWN) ===================== -->
+  <div id="delete-permanent-overlay" class="modal-overlay is-hidden" style="z-index: 125;" role="dialog" aria-modal="true">
+    <div class="modal modal-warning-card">
+      <div class="modal-header">
+        <div class="modal-header-text">
+          <h3 id="delete-permanent-title" class="modal-title" style="color: var(--danger);">⚠️ Permanently Delete Item</h3>
+          <p id="delete-permanent-subtitle" class="modal-subtitle">Irreversible action — permanent removal</p>
+        </div>
+        <button id="delete-permanent-close" class="btn-icon" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <div class="warning-box">
+        <p><strong>Warning:</strong> You are about to permanently delete <span id="delete-permanent-item-label" class="highlight-name">this item</span> for <span id="delete-permanent-driver-name" class="highlight-name">this driver</span>.</p>
+        <p id="delete-permanent-details" class="warning-details">This data will be permanently wiped from database records and storage. This cannot be undone.</p>
+      </div>
+
+      <div id="delete-permanent-countdown-banner" class="countdown-banner">
+        <span class="countdown-icon">⏳</span>
+        <span id="delete-permanent-countdown-text">Please wait <strong>5</strong> seconds to confirm...</span>
+      </div>
+
+      <div class="modal-actions">
+        <button id="delete-permanent-cancel" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="delete-permanent-confirm" class="btn btn-danger" type="button" disabled>Delete Permanently (5s)</button>
       </div>
     </div>
   </div>
