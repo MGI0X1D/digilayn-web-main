@@ -18,6 +18,18 @@
 </head>
 <body class="bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen">
 
+    <!-- Initial Page Loader (active until admin session is validated) -->
+    <div id="initialPageLoader" class="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center transition-opacity duration-300">
+        <div class="relative flex items-center justify-center">
+            <div class="w-14 h-14 rounded-full border-4 border-slate-200 dark:border-slate-800 border-t-green-500 animate-spin"></div>
+            <div class="absolute text-green-500 text-lg font-bold">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+        </div>
+        <h3 class="mt-4 text-sm font-bold text-slate-800 dark:text-slate-200 tracking-wide">Digilayn Admin Hub</h3>
+        <p class="text-xs text-slate-400 mt-1">Verifying administrative credentials...</p>
+    </div>
+
     <!-- Navigation -->
     <nav id="navBar" class="hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -155,6 +167,17 @@
                     </select>
                 </div>
 
+                <!-- Account Type / Integrity -->
+                <div class="all-users-filter-group">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Account Type</label>
+                    <select id="integritySelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All Account Types</option>
+                        <option value="complete">Auth + Firestore</option>
+                        <option value="auth-only">Auth-Only</option>
+                        <option value="firestore-only">Firestore-Only</option>
+                    </select>
+                </div>
+
                 <!-- Delete Pending -->
                 <div class="all-users-filter-group">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Delete Pending</label>
@@ -209,14 +232,132 @@
             </div>
         </div>
 
-        <!-- Users List -->
-        <div id="usersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Loading State -->
-            <div id="loadingState" class="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
-                <i class="fas fa-circle-notch fa-spin text-4xl mb-4 text-green-500"></i>
-                <p>Loading users...</p>
+        <!-- Loading State (Shimmer Skeleton Cards + Status Banner) -->
+        <div id="loadingState" class="mb-8">
+            <div class="flex items-center justify-center gap-3 p-4 mb-6 rounded-2xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800/40 text-green-700 dark:text-green-300 text-sm font-medium animate-pulse">
+                <i class="fas fa-circle-notch fa-spin text-green-500 text-base"></i>
+                <span id="loadingMessage">Fetching global accounts, fleet records, and cloud storage inventory...</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Skeleton Card 1 -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 animate-pulse space-y-4 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
+                            <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-1/2"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-5/6"></div>
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-2/3"></div>
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-16"></div>
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-20"></div>
+                    </div>
+                    <div class="h-6 bg-slate-100 dark:bg-slate-800/30 rounded-xl pt-2"></div>
+                </div>
+                <!-- Skeleton Card 2 -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 animate-pulse space-y-4 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
+                            <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-1/2"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-5/6"></div>
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-2/3"></div>
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-16"></div>
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-20"></div>
+                    </div>
+                    <div class="h-6 bg-slate-100 dark:bg-slate-800/30 rounded-xl pt-2"></div>
+                </div>
+                <!-- Skeleton Card 3 -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 animate-pulse space-y-4 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
+                            <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-1/2"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-5/6"></div>
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-2/3"></div>
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-16"></div>
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-20"></div>
+                    </div>
+                    <div class="h-6 bg-slate-100 dark:bg-slate-800/30 rounded-xl pt-2"></div>
+                </div>
+                <!-- Skeleton Card 4 -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 animate-pulse space-y-4 shadow-sm hidden md:block">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
+                            <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-1/2"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-5/6"></div>
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-2/3"></div>
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-16"></div>
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-20"></div>
+                    </div>
+                    <div class="h-6 bg-slate-100 dark:bg-slate-800/30 rounded-xl pt-2"></div>
+                </div>
+                <!-- Skeleton Card 5 -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 animate-pulse space-y-4 shadow-sm hidden lg:block">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
+                            <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-1/2"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-5/6"></div>
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-2/3"></div>
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-16"></div>
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-20"></div>
+                    </div>
+                    <div class="h-6 bg-slate-100 dark:bg-slate-800/30 rounded-xl pt-2"></div>
+                </div>
+                <!-- Skeleton Card 6 -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 animate-pulse space-y-4 shadow-sm hidden lg:block">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
+                            <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-1/2"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-5/6"></div>
+                        <div class="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-2/3"></div>
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-16"></div>
+                        <div class="h-5 bg-slate-100 dark:bg-slate-800/50 rounded w-20"></div>
+                    </div>
+                    <div class="h-6 bg-slate-100 dark:bg-slate-800/30 rounded-xl pt-2"></div>
+                </div>
             </div>
         </div>
+
+        <!-- Users List -->
+        <div id="usersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
@@ -866,8 +1007,10 @@
         import { initAdminAuth, loginAdmin, logoutAdmin } from "../../scripts/admin-auth.js";
         import { userManager } from "../../scripts/user-management.js";
 
+        const initialPageLoader = document.getElementById('initialPageLoader');
         const usersList = document.getElementById('usersList');
         const loadingState = document.getElementById('loadingState');
+        const loadingMessage = document.getElementById('loadingMessage');
         const emptyState = document.getElementById('emptyState');
         const errorState = document.getElementById('errorState');
         const status = document.getElementById('status');
@@ -875,6 +1018,7 @@
         const searchInput = document.getElementById('searchInput');
         const sortSelect = document.getElementById('sortSelect');
         const emailDomainSelect = document.getElementById('emailDomainSelect');
+        const integritySelect = document.getElementById('integritySelect');
         const deletePendingSelect = document.getElementById('deletePendingSelect');
         const suspendedSelect = document.getElementById('suspendedSelect');
         const hasUsernameSelect = document.getElementById('hasUsernameSelect');
@@ -1171,7 +1315,7 @@
                         : '<div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-file"></i></div>';
                     
                     const ownerBadge = data.claimedOwnerUid
-                        ? `<span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500 truncate max-w-[150px]">Unlinked UID: ${data.claimedOwnerUid}</span>`
+                        ? `<button type="button" class="copy-uid-btn px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500 hover:text-red-600 transition-colors truncate max-w-[150px] cursor-pointer flex items-center gap-1" data-uid="${data.claimedOwnerUid}" title="Click to copy UID"><i class="far fa-copy text-[9px]"></i><span>UID: ${data.claimedOwnerUid}</span></button>`
                         : `<span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500">No Owner UID</span>`;
 
                     card.innerHTML = `
@@ -1266,7 +1410,7 @@
                     }
 
                     const uidBadge = data.claimedUid 
-                        ? `<span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500 truncate max-w-[150px]">Unlinked UID: ${data.claimedUid}</span>`
+                        ? `<button type="button" class="copy-uid-btn px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500 hover:text-red-600 transition-colors truncate max-w-[150px] cursor-pointer flex items-center gap-1" data-uid="${data.claimedUid}" title="Click to copy UID"><i class="far fa-copy text-[9px]"></i><span>UID: ${data.claimedUid}</span></button>`
                         : `<span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500">No Owner UID</span>`;
 
                     card.innerHTML = `
@@ -1956,7 +2100,10 @@
                     </div>
 
                     <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 flex items-center justify-between">
-                        <span class="font-mono opacity-50 truncate max-w-[150px]">UID: ${user.userId}</span>
+                        <button type="button" class="copy-uid-btn font-mono opacity-60 hover:opacity-100 hover:text-green-600 dark:hover:text-green-400 transition-all flex items-center gap-1.5 cursor-pointer truncate max-w-[180px] p-1 -ml-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-uid="${user.userId}" title="Click to copy UID">
+                            <i class="far fa-copy text-[10px]"></i>
+                            <span class="truncate">UID: ${user.userId}</span>
+                        </button>
                         <span>Created: ${formatDate(user.createdAt)}</span>
                     </div>
                 `;
@@ -2086,6 +2233,13 @@
                                     <p class="text-[10px] text-red-400 mt-1">${formatDate(driver.demotedAt)} · by ${driver.demotedBy || 'manager'}</p>
                                 </div>
                             ` : ''}
+                            <div class="pt-2 text-[10px] text-slate-400 flex items-center justify-between">
+                                <button type="button" class="copy-uid-btn font-mono opacity-60 hover:opacity-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all flex items-center gap-1.5 cursor-pointer truncate max-w-[180px] p-1 -ml-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-uid="${driver.uid}" title="Click to copy UID">
+                                    <i class="far fa-copy text-[10px]"></i>
+                                    <span class="truncate">UID: ${driver.uid}</span>
+                                </button>
+                                <span>${formatDate(u.createdAt || driver.createdAt)}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -2233,9 +2387,12 @@
                                 </div>
                             ` : ''}
 
-                            <div class="pt-1 text-[10px] text-slate-400">
-                                <span>Path: laynfleet/dog-towing/drivers/${driver.uid.slice(0, 8)}…</span>
-                                ${driver.addedAt ? ` · Added ${formatDate(driver.addedAt)}` : ''}
+                            <div class="pt-2 text-[10px] text-slate-400 flex items-center justify-between">
+                                <button type="button" class="copy-uid-btn font-mono opacity-60 hover:opacity-100 hover:text-amber-600 dark:hover:text-amber-400 transition-all flex items-center gap-1.5 cursor-pointer truncate max-w-[180px] p-1 -ml-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-uid="${driver.uid}" title="Click to copy UID">
+                                    <i class="far fa-copy text-[10px]"></i>
+                                    <span class="truncate">UID: ${driver.uid}</span>
+                                </button>
+                                <span>${driver.addedAt ? `Added ${formatDate(driver.addedAt)}` : 'Active'}</span>
                             </div>
 
                             ${isRevoked ? `
@@ -2419,7 +2576,10 @@
                     </div>
 
                     <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
-                        <span class="font-mono text-[10px] opacity-40 truncate">UID: ${rider.uid}</span>
+                        <button type="button" class="copy-uid-btn font-mono text-[10px] opacity-60 hover:opacity-100 hover:text-blue-600 dark:hover:text-blue-400 transition-all flex items-center gap-1.5 cursor-pointer truncate max-w-[180px] p-1 -ml-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-uid="${rider.uid}" title="Click to copy UID">
+                            <i class="far fa-copy text-[10px]"></i>
+                            <span class="truncate">UID: ${rider.uid}</span>
+                        </button>
                         <button class="suspend-btn px-3 py-1.5 rounded-xl font-bold transition text-xs ${u.suspended ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'}" data-uid="${rider.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}">
                             ${u.suspended ? 'Unsuspend' : 'Suspend Account'}
                         </button>
@@ -2526,7 +2686,10 @@
                     </div>
 
                     <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                        <span class="font-mono text-[10px] opacity-40 truncate">UID: ${user.userId}</span>
+                        <button type="button" class="copy-uid-btn font-mono text-[10px] opacity-60 hover:opacity-100 hover:text-purple-600 dark:hover:text-purple-400 transition-all flex items-center gap-1.5 cursor-pointer truncate max-w-[180px] p-1 -ml-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800" data-uid="${user.userId}" title="Click to copy UID">
+                            <i class="far fa-copy text-[10px]"></i>
+                            <span class="truncate">UID: ${user.userId}</span>
+                        </button>
                         <span>Updated: ${formatDate(user.updatedAt)}</span>
                     </div>
                 `;
@@ -3084,14 +3247,25 @@
 
         // Initialize App
         console.log("Users.html: Initializing Admin Auth...");
+        const dismissInitialLoader = () => {
+            if (initialPageLoader) {
+                initialPageLoader.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    try { initialPageLoader.remove(); } catch (_) {}
+                }, 300);
+            }
+        };
+
         initAdminAuth(
             (user) => {
                 console.log("Users.html: Admin authorized:", user.email);
+                dismissInitialLoader();
                 loginSection.classList.add('hidden');
                 adminPanel.classList.remove('hidden');
                 navBar.classList.remove('hidden');
                 
                 loadingState.classList.remove('hidden');
+                if (loadingMessage) loadingMessage.textContent = 'Fetching global accounts, fleet records, and cloud storage inventory...';
                 usersList.classList.add('hidden');
                 emptyState.classList.add('hidden');
                 errorState.classList.add('hidden');
@@ -3117,6 +3291,7 @@
             },
             (error) => {
                 console.log("Users.html: Admin unauthorized or logged out.");
+                dismissInitialLoader();
                 loginSection.classList.remove('hidden');
                 adminPanel.classList.add('hidden');
                 navBar.classList.add('hidden');
@@ -3437,6 +3612,7 @@
             userManager.setFilter('search', searchInput.value);
             userManager.setFilter('sortBy', sortSelect.value);
             if (emailDomainSelect) userManager.setFilter('emailDomain', emailDomainSelect.value);
+            if (integritySelect) userManager.setFilter('integrity', integritySelect.value);
             if (deletePendingSelect) userManager.setFilter('deletePending', deletePendingSelect.value);
             if (suspendedSelect) userManager.setFilter('suspended', suspendedSelect.value);
             if (hasUsernameSelect) userManager.setFilter('hasUsername', hasUsernameSelect.value);
@@ -3449,11 +3625,43 @@
         searchInput.addEventListener('input', updateFilters);
         sortSelect.addEventListener('change', updateFilters);
         emailDomainSelect.addEventListener('change', updateFilters);
+        if (integritySelect) integritySelect.addEventListener('change', updateFilters);
         deletePendingSelect.addEventListener('change', updateFilters);
         suspendedSelect.addEventListener('change', updateFilters);
         hasUsernameSelect.addEventListener('change', updateFilters);
         dateStart.addEventListener('change', updateFilters);
         dateEnd.addEventListener('change', updateFilters);
+
+        // Global delegated handler for copying UIDs
+        document.addEventListener('click', async (e) => {
+            const copyBtn = e.target.closest('.copy-uid-btn');
+            if (!copyBtn) return;
+            const uid = copyBtn.dataset.uid;
+            if (!uid) return;
+
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(uid);
+                } else {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = uid;
+                    textArea.style.position = 'fixed';
+                    textArea.style.opacity = '0';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+                const originalHtml = copyBtn.innerHTML;
+                copyBtn.innerHTML = `<i class="fas fa-check text-green-500"></i><span class="text-green-600 dark:text-green-400 font-bold ml-1">Copied!</span>`;
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHtml;
+                }, 1800);
+            } catch (err) {
+                console.error("Failed to copy UID:", err);
+            }
+        });
 
         retryBtn.addEventListener('click', () => {
             errorState.classList.add('hidden');

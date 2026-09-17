@@ -23,7 +23,7 @@ class UserManagement {
       search: "", deletePending: "all", suspended: "all", hasUsername: "all",
       laynFleetDriver: "all", poortjieAdmin: "all", poortjieTaxiAdmin: "all",
       poortjieSupport: "all", tuktukDriver: "all", tuktukOwner: "all",
-      emailDomain: "all",
+      emailDomain: "all", integrity: "all",
       dateStart: null, dateEnd: null, sortBy: "newest"
     };
     this.getInventory = httpsCallable(functions, "getGlobalUserInventoryCallable");
@@ -135,6 +135,9 @@ class UserManagement {
       } else if (this.filters.emailDomain === "no-email") {
         filtered = filtered.filter((user) => !user.email || String(user.email).trim().length === 0);
       }
+    }
+    if (this.filters.integrity && this.filters.integrity !== "all") {
+      filtered = filtered.filter((user) => user.integrity === this.filters.integrity);
     }
     if (this.filters.dateStart) {
       const start = new Date(this.filters.dateStart).getTime();
