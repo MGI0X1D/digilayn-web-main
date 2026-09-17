@@ -50,6 +50,75 @@
         <!-- Status Messages -->
         <div id="status" class="hidden"></div>
 
+        <!-- App Hub Navigation Bar -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between flex-wrap gap-3 pb-2">
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight flex items-center gap-3">
+                        <span>Directory &amp; Fleet Ecosystem</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-1">Switch between apps to manage drivers, towing owners, riders, and platform roles.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-3" id="appTabsContainer">
+                <button type="button" class="app-tab-btn active p-4 rounded-2xl border text-left transition-all relative overflow-hidden bg-white dark:bg-slate-900 border-green-500 ring-2 ring-green-500/20 shadow-sm cursor-pointer" data-app="all">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-9 h-9 rounded-xl bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span id="tabCountAll" class="px-2 py-0.5 rounded-full text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">0</span>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">All Users</h3>
+                    <p class="text-[11px] text-slate-500 truncate mt-0.5">Global account directory</p>
+                </button>
+
+                <button type="button" class="app-tab-btn p-4 rounded-2xl border text-left transition-all relative overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer" data-app="layndriver">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-car-side"></i>
+                        </div>
+                        <span id="tabCountDriver" class="px-2 py-0.5 rounded-full text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">0</span>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">LaynDriver</h3>
+                    <p class="text-[11px] text-slate-500 truncate mt-0.5">Ride-booking fleet</p>
+                </button>
+
+                <button type="button" class="app-tab-btn p-4 rounded-2xl border text-left transition-all relative overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer" data-app="laynassist">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-truck-pickup"></i>
+                        </div>
+                        <span id="tabCountAssist" class="px-2 py-0.5 rounded-full text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">0</span>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">LaynAssist</h3>
+                    <p class="text-[11px] text-slate-500 truncate mt-0.5">Dog Towing fleet</p>
+                </button>
+
+                <button type="button" class="app-tab-btn p-4 rounded-2xl border text-left transition-all relative overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer" data-app="laynrider">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span id="tabCountRider" class="px-2 py-0.5 rounded-full text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">0</span>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">LaynRider</h3>
+                    <p class="text-[11px] text-slate-500 truncate mt-0.5">Passenger accounts</p>
+                </button>
+
+                <button type="button" class="app-tab-btn p-4 rounded-2xl border text-left transition-all relative overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 col-span-2 sm:col-span-1 cursor-pointer" data-app="poortjie">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-city"></i>
+                        </div>
+                        <span id="tabCountPoortjie" class="px-2 py-0.5 rounded-full text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">0</span>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">Poortjie (Web)</h3>
+                    <p class="text-[11px] text-slate-500 truncate mt-0.5">Community roles</p>
+                </button>
+            </div>
+        </div>
+
         <!-- Filters & Search -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -58,7 +127,7 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Search</label>
                     <div class="relative">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="searchInput" placeholder="Search name, username, email, phone or UID..."
+                        <input type="text" id="searchInput" placeholder="Search name, username, email, phone, UID or car plate..."
                                class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 transition-all outline-none">
                     </div>
                 </div>
@@ -76,7 +145,7 @@
                 </div>
 
                 <!-- Email Domain / Suffix -->
-                <div>
+                <div class="all-users-filter-group">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Email Suffix</label>
                     <select id="emailDomainSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
                         <option value="all">All Emails</option>
@@ -87,7 +156,7 @@
                 </div>
 
                 <!-- Delete Pending -->
-                <div>
+                <div class="all-users-filter-group">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Delete Pending</label>
                     <select id="deletePendingSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
                         <option value="all">All</option>
@@ -97,7 +166,7 @@
                 </div>
 
                 <!-- Suspended -->
-                <div>
+                <div class="all-users-filter-group">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Suspended</label>
                     <select id="suspendedSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
                         <option value="all">All</option>
@@ -107,7 +176,7 @@
                 </div>
 
                 <!-- Has Username -->
-                <div>
+                <div class="all-users-filter-group">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Username</label>
                     <select id="hasUsernameSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
                         <option value="all">All</option>
@@ -116,65 +185,8 @@
                     </select>
                 </div>
 
-                <!-- LaynFleet Driver Application -->
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">LaynFleet Driver</label>
-                    <select id="laynFleetDriverSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
-                        <option value="all">All</option>
-                        <option value="true">Driver Only</option>
-                        <option value="false">Not Driver</option>
-                    </select>
-                </div>
-
-                <!-- Poortjie Roles -->
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Poortjie Admin</label>
-                    <select id="poortjieAdminSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
-                        <option value="all">All</option>
-                        <option value="true">Admin Only</option>
-                        <option value="false">Not Admin</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Taxi Rank Admin</label>
-                    <select id="poortjieTaxiAdminSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
-                        <option value="all">All</option>
-                        <option value="true">Taxi Admin Only</option>
-                        <option value="false">Not Taxi Admin</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Support List</label>
-                    <select id="poortjieSupportSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
-                        <option value="all">All</option>
-                        <option value="true">On Support List</option>
-                        <option value="false">Not on Support</option>
-                    </select>
-                </div>
-
-                <!-- Tuktuk Roles -->
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Tuktuk Driver</label>
-                    <select id="tuktukDriverSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
-                        <option value="all">All</option>
-                        <option value="true">Drivers Only</option>
-                        <option value="false">Not Drivers</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Tuktuk Owner</label>
-                    <select id="tuktukOwnerSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
-                        <option value="all">All</option>
-                        <option value="true">Owners Only</option>
-                        <option value="false">Not Owners</option>
-                    </select>
-                </div>
-
                 <!-- Date Range -->
-                <div class="lg:col-span-2 grid grid-cols-2 gap-2">
+                <div class="all-users-filter-group grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">From Date</label>
                         <input type="date" id="dateStart" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
@@ -183,6 +195,16 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">To Date</label>
                         <input type="date" id="dateEnd" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
                     </div>
+                </div>
+            </div>
+
+            <!-- App Specific Action Toolbar -->
+            <div id="appActionBanner" class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div id="appToolbarLeft" class="flex flex-wrap items-center gap-2">
+                    <!-- Status pills injected dynamically -->
+                </div>
+                <div id="appToolbarRight" class="flex items-center gap-2">
+                    <!-- Promote buttons injected dynamically -->
                 </div>
             </div>
         </div>
@@ -538,6 +560,271 @@
         </div>
     </div>
 
+    <!-- Promote LaynDriver Modal -->
+    <div id="promoteDriverModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" id="promoteDriverBackdrop"></div>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 p-6 sm:p-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-car-side"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold">Promote to LaynDriver</h3>
+                        <p class="text-xs text-slate-500">Approve fleet driver privileges for ride-booking</p>
+                    </div>
+                </div>
+                <button id="closePromoteDriverBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Search User by Email</label>
+                    <div class="relative">
+                        <i class="far fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="email" id="promoteDriverEmailInput" placeholder="Enter registered user email..."
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                    </div>
+                </div>
+
+                <!-- User Found Match Card -->
+                <div id="promoteDriverUserMatch" class="hidden p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50">
+                    <div class="flex items-center gap-3">
+                        <div id="promoteDriverMatchAvatar" class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0">?</div>
+                        <div class="min-w-0 flex-1">
+                            <h4 id="promoteDriverMatchName" class="text-sm font-bold truncate"></h4>
+                            <p id="promoteDriverMatchEmail" class="text-xs text-slate-500 truncate"></p>
+                        </div>
+                        <span id="promoteDriverMatchBadge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Registered</span>
+                    </div>
+                </div>
+                <div id="promoteDriverNoUser" class="hidden text-xs text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                    No registered user found with this email. User must exist in the global directory first.
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Vehicle Information</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">Make</label>
+                            <input type="text" id="promoteDriverCarMake" placeholder="e.g. Toyota" class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">Model</label>
+                            <input type="text" id="promoteDriverCarModel" placeholder="e.g. Corolla" class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">Licence Plate</label>
+                            <input type="text" id="promoteDriverCarPlate" placeholder="e.g. CA 123-456" class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">Colour</label>
+                            <input type="text" id="promoteDriverCarColour" placeholder="e.g. White" class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-4">
+                    <button type="button" id="cancelPromoteDriverBtn" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                        Cancel
+                    </button>
+                    <button type="button" id="confirmPromoteDriverBtn" disabled class="flex-1 py-2.5 rounded-xl bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs hover:bg-emerald-700 transition shadow-md shadow-emerald-600/20">
+                        Approve &amp; Promote
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promote LaynAssist (Dog Towing) Modal -->
+    <div id="promoteAssistModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" id="promoteAssistBackdrop"></div>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 p-6 sm:p-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-truck-pickup"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold">Promote to LaynAssist</h3>
+                        <p class="text-xs text-slate-500">Dog Towing fleet (laynfleet/dog-towing/drivers)</p>
+                    </div>
+                </div>
+                <button id="closePromoteAssistBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Search User by Email</label>
+                    <div class="relative">
+                        <i class="far fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="email" id="promoteAssistEmailInput" placeholder="Enter registered user email..."
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                    </div>
+                </div>
+
+                <!-- User Found Match Card -->
+                <div id="promoteAssistUserMatch" class="hidden p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50">
+                    <div class="flex items-center gap-3">
+                        <div id="promoteAssistMatchAvatar" class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-sm shrink-0">?</div>
+                        <div class="min-w-0 flex-1">
+                            <h4 id="promoteAssistMatchName" class="text-sm font-bold truncate"></h4>
+                            <p id="promoteAssistMatchEmail" class="text-xs text-slate-500 truncate"></p>
+                        </div>
+                        <span id="promoteAssistMatchBadge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Registered</span>
+                    </div>
+                </div>
+                <div id="promoteAssistNoUser" class="hidden text-xs text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                    No registered user found with this email.
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Select Role</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer border-amber-500 ring-2 ring-amber-500/30 bg-amber-50/20 dark:bg-amber-950/20 assist-role-option" data-role="OWNER">
+                            <input type="radio" name="assistRoleRadio" value="OWNER" checked class="mt-1 text-amber-600 focus:ring-amber-500">
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                                    <span>👑 Fleet Owner</span>
+                                </h5>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Live fleet map, tracking, dispatch authority</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 assist-role-option" data-role="DRIVER">
+                            <input type="radio" name="assistRoleRadio" value="DRIVER" class="mt-1 text-amber-600 focus:ring-amber-500">
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                                    <span>🛞 Tow Truck Driver</span>
+                                </h5>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Dispatches only, incident navigation &amp; tow jobs</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="assistVehicleSection" class="hidden space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tow Vehicle (Optional)</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="promoteAssistCarMake" placeholder="Truck Make/Model" class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-amber-500">
+                        <input type="text" id="promoteAssistCarPlate" placeholder="Licence Plate" class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-4">
+                    <button type="button" id="cancelPromoteAssistBtn" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                        Cancel
+                    </button>
+                    <button type="button" id="confirmPromoteAssistBtn" disabled class="flex-1 py-2.5 rounded-xl bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs hover:bg-amber-600 transition shadow-md shadow-amber-500/20">
+                        Promote to LaynAssist
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Poortjie Role Modal -->
+    <div id="assignPoortjieModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" id="assignPoortjieBackdrop"></div>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 p-6 sm:p-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-city"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold">Poortjie Web Roles</h3>
+                        <p class="text-xs text-slate-500">Assign or revoke community roles</p>
+                    </div>
+                </div>
+                <button id="closeAssignPoortjieBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Search User by Email</label>
+                    <div class="relative">
+                        <i class="far fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="email" id="assignPoortjieEmailInput" placeholder="Enter registered user email..."
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-purple-500 text-sm">
+                    </div>
+                </div>
+
+                <div id="assignPoortjieUserMatch" class="hidden p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50">
+                    <div class="flex items-center gap-3">
+                        <div id="assignPoortjieMatchAvatar" class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-sm shrink-0">?</div>
+                        <div class="min-w-0 flex-1">
+                            <h4 id="assignPoortjieMatchName" class="text-sm font-bold truncate"></h4>
+                            <p id="assignPoortjieMatchEmail" class="text-xs text-slate-500 truncate"></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="assignPoortjieNoUser" class="hidden text-xs text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                    No registered user found with this email.
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Roles</p>
+                    <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 cursor-pointer">
+                        <input type="checkbox" id="roleCheckAdmin" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500">
+                        <span class="text-xs font-bold">Poortjie Admin</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 cursor-pointer">
+                        <input type="checkbox" id="roleCheckTaxiAdmin" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500">
+                        <span class="text-xs font-bold">Taxi Rank Admin</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 cursor-pointer">
+                        <input type="checkbox" id="roleCheckSupport" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500">
+                        <span class="text-xs font-bold">Listed for Support</span>
+                    </label>
+                </div>
+
+                <div class="flex items-center gap-3 pt-4">
+                    <button type="button" id="cancelAssignPoortjieBtn" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                        Cancel
+                    </button>
+                    <button type="button" id="confirmAssignPoortjieBtn" disabled class="flex-1 py-2.5 rounded-xl bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs hover:bg-purple-700 transition shadow-md shadow-purple-600/20">
+                        Save Roles
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demote Reason Modal -->
+    <div id="demoteReasonModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" id="demoteReasonBackdrop"></div>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 p-6 sm:p-8">
+            <div class="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center text-xl mb-4">
+                <i class="fas fa-user-minus"></i>
+            </div>
+            <h3 id="demoteModalTitle" class="text-xl font-bold mb-1">Demote Driver</h3>
+            <p id="demoteModalSubtitle" class="text-xs text-slate-500 mb-4"></p>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Reason for Demotion</label>
+                    <textarea id="demoteReasonInput" rows="3" placeholder="Provide a reason for the audit trail..." class="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="button" id="cancelDemoteBtn" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    Cancel
+                </button>
+                <button type="button" id="confirmDemoteBtn" class="flex-1 py-2.5 rounded-xl bg-amber-500 text-white font-bold text-xs hover:bg-amber-600 transition shadow-md shadow-amber-500/20">
+                    Confirm Demote
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="loginSection" class="hidden min-h-screen flex flex-col items-center justify-center p-6">
         <div class="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700">
             <h2 class="text-3xl font-extrabold mb-2">Admin Access</h2>
@@ -591,10 +878,11 @@
         const deletePendingSelect = document.getElementById('deletePendingSelect');
         const suspendedSelect = document.getElementById('suspendedSelect');
         const hasUsernameSelect = document.getElementById('hasUsernameSelect');
-        const laynFleetDriverSelect = document.getElementById('laynFleetDriverSelect');
         const dateStart = document.getElementById('dateStart');
         const dateEnd = document.getElementById('dateEnd');
+        const allUsersFilterGroups = document.querySelectorAll('.all-users-filter-group');
         const retryBtn = document.getElementById('retryBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
         const userCountBadge = document.getElementById('userCountBadge');
         const copyEmailsBtn = document.getElementById('copyEmailsBtn');
         const copyEmailsCount = document.getElementById('copyEmailsCount');
@@ -602,30 +890,93 @@
         const copyAllEmailsCount = document.getElementById('copyAllEmailsCount');
         let currentDisplayedUsers = [];
 
-        const orphanSection = document.getElementById('orphanSection');
-        const orphanList = document.getElementById('orphanList');
-        const orphanCountBadge = document.getElementById('orphanCountBadge');
+        // App Switcher Elements
+        const appTabsContainer = document.getElementById('appTabsContainer');
+        const appTabBtns = document.querySelectorAll('.app-tab-btn');
+        const tabCountAll = document.getElementById('tabCountAll');
+        const tabCountDriver = document.getElementById('tabCountDriver');
+        const tabCountAssist = document.getElementById('tabCountAssist');
+        const tabCountRider = document.getElementById('tabCountRider');
+        const tabCountPoortjie = document.getElementById('tabCountPoortjie');
+        const appActionBanner = document.getElementById('appActionBanner');
+        const appToolbarLeft = document.getElementById('appToolbarLeft');
+        const appToolbarRight = document.getElementById('appToolbarRight');
 
-        // Orphan Section & Toolbar Elements
-        const orphanDeleteSelectedBtn = document.getElementById('orphanDeleteSelectedBtn');
-        const orphanSelectedCount = document.getElementById('orphanSelectedCount');
-        const orphanSelectAllCheckbox = document.getElementById('orphanSelectAllCheckbox');
-        const orphanSelectStorageBtn = document.getElementById('orphanSelectStorageBtn');
-        const orphanStorageCount = document.getElementById('orphanStorageCount');
-        const orphanSelectUsernamesBtn = document.getElementById('orphanSelectUsernamesBtn');
-        const orphanUsernamesCount = document.getElementById('orphanUsernamesCount');
-        const orphanSelectDocsBtn = document.getElementById('orphanSelectDocsBtn');
-        const orphanDocsCount = document.getElementById('orphanDocsCount');
-        const orphanClearSelectionBtn = document.getElementById('orphanClearSelectionBtn');
-        const orphanTypeFilter = document.getElementById('orphanTypeFilter');
-        const orphanEmptyState = document.getElementById('orphanEmptyState');
+        // Promote LaynDriver Modal
+        const promoteDriverModal = document.getElementById('promoteDriverModal');
+        const promoteDriverBackdrop = document.getElementById('promoteDriverBackdrop');
+        const closePromoteDriverBtn = document.getElementById('closePromoteDriverBtn');
+        const cancelPromoteDriverBtn = document.getElementById('cancelPromoteDriverBtn');
+        const confirmPromoteDriverBtn = document.getElementById('confirmPromoteDriverBtn');
+        const promoteDriverEmailInput = document.getElementById('promoteDriverEmailInput');
+        const promoteDriverUserMatch = document.getElementById('promoteDriverUserMatch');
+        const promoteDriverNoUser = document.getElementById('promoteDriverNoUser');
+        const promoteDriverMatchAvatar = document.getElementById('promoteDriverMatchAvatar');
+        const promoteDriverMatchName = document.getElementById('promoteDriverMatchName');
+        const promoteDriverMatchEmail = document.getElementById('promoteDriverMatchEmail');
+        const promoteDriverCarMake = document.getElementById('promoteDriverCarMake');
+        const promoteDriverCarModel = document.getElementById('promoteDriverCarModel');
+        const promoteDriverCarPlate = document.getElementById('promoteDriverCarPlate');
+        const promoteDriverCarColour = document.getElementById('promoteDriverCarColour');
 
-        // Role Selects
-        const poortjieAdminSelect = document.getElementById('poortjieAdminSelect');
-        const poortjieTaxiAdminSelect = document.getElementById('poortjieTaxiAdminSelect');
-        const poortjieSupportSelect = document.getElementById('poortjieSupportSelect');
-        const tuktukDriverSelect = document.getElementById('tuktukDriverSelect');
-        const tuktukOwnerSelect = document.getElementById('tuktukOwnerSelect');
+        // Promote LaynAssist Modal
+        const promoteAssistModal = document.getElementById('promoteAssistModal');
+        const promoteAssistBackdrop = document.getElementById('promoteAssistBackdrop');
+        const closePromoteAssistBtn = document.getElementById('closePromoteAssistBtn');
+        const cancelPromoteAssistBtn = document.getElementById('cancelPromoteAssistBtn');
+        const confirmPromoteAssistBtn = document.getElementById('confirmPromoteAssistBtn');
+        const promoteAssistEmailInput = document.getElementById('promoteAssistEmailInput');
+        const promoteAssistUserMatch = document.getElementById('promoteAssistUserMatch');
+        const promoteAssistNoUser = document.getElementById('promoteAssistNoUser');
+        const promoteAssistMatchAvatar = document.getElementById('promoteAssistMatchAvatar');
+        const promoteAssistMatchName = document.getElementById('promoteAssistMatchName');
+        const promoteAssistMatchEmail = document.getElementById('promoteAssistMatchEmail');
+        const assistRoleRadios = document.querySelectorAll('input[name="assistRoleRadio"]');
+        const assistRoleOptions = document.querySelectorAll('.assist-role-option');
+        const assistVehicleSection = document.getElementById('assistVehicleSection');
+        const promoteAssistCarMake = document.getElementById('promoteAssistCarMake');
+        const promoteAssistCarPlate = document.getElementById('promoteAssistCarPlate');
+
+        // Assign Poortjie Modal
+        const assignPoortjieModal = document.getElementById('assignPoortjieModal');
+        const assignPoortjieBackdrop = document.getElementById('assignPoortjieBackdrop');
+        const closeAssignPoortjieBtn = document.getElementById('closeAssignPoortjieBtn');
+        const cancelAssignPoortjieBtn = document.getElementById('cancelAssignPoortjieBtn');
+        const confirmAssignPoortjieBtn = document.getElementById('confirmAssignPoortjieBtn');
+        const assignPoortjieEmailInput = document.getElementById('assignPoortjieEmailInput');
+        const assignPoortjieUserMatch = document.getElementById('assignPoortjieUserMatch');
+        const assignPoortjieNoUser = document.getElementById('assignPoortjieNoUser');
+        const assignPoortjieMatchAvatar = document.getElementById('assignPoortjieMatchAvatar');
+        const assignPoortjieMatchName = document.getElementById('assignPoortjieMatchName');
+        const assignPoortjieMatchEmail = document.getElementById('assignPoortjieMatchEmail');
+        const roleCheckAdmin = document.getElementById('roleCheckAdmin');
+        const roleCheckTaxiAdmin = document.getElementById('roleCheckTaxiAdmin');
+        const roleCheckSupport = document.getElementById('roleCheckSupport');
+
+        // Demote Reason Modal
+        const demoteReasonModal = document.getElementById('demoteReasonModal');
+        const demoteReasonBackdrop = document.getElementById('demoteReasonBackdrop');
+        const demoteModalTitle = document.getElementById('demoteModalTitle');
+        const demoteModalSubtitle = document.getElementById('demoteModalSubtitle');
+        const demoteReasonInput = document.getElementById('demoteReasonInput');
+        const cancelDemoteBtn = document.getElementById('cancelDemoteBtn');
+        const confirmDemoteBtn = document.getElementById('confirmDemoteBtn');
+
+        // Active State
+        let activeAppTab = 'all'; // 'all' | 'layndriver' | 'laynassist' | 'laynrider' | 'poortjie'
+        let activeDriverFilter = 'all'; // 'all' | 'APPROVED' | 'PENDING' | 'DEMOTED' | 'REJECTED' | 'SUSPENDED'
+        let activeAssistFilter = 'all'; // 'all' | 'OWNER' | 'DRIVER' | 'REVOKED' | 'SUSPENDED'
+        let activeRiderFilter = 'all'; // 'all' | 'ACTIVE' | 'SUSPENDED'
+        let activePoortjieFilter = 'all'; // 'all' | 'admin' | 'taxiAdmin' | 'support'
+
+        let cachedLaynDrivers = [];
+        let cachedDogTowing = [];
+        let cachedLaynRiders = [];
+
+        let matchedPromoteDriverUser = null;
+        let matchedPromoteAssistUser = null;
+        let matchedAssignPoortjieUser = null;
+        let demoteActionContext = null;
 
         // Delete Modal Elements
         const deleteModal = document.getElementById('deleteModal');
@@ -1242,22 +1593,280 @@
             }
         });
 
+        function updateTabCounters() {
+            if (tabCountAll) tabCountAll.textContent = (userManager.users || []).length;
+            if (tabCountDriver) tabCountDriver.textContent = cachedLaynDrivers.length;
+            if (tabCountAssist) tabCountAssist.textContent = cachedDogTowing.length;
+            if (tabCountRider) tabCountRider.textContent = cachedLaynRiders.length;
+            if (tabCountPoortjie) {
+                tabCountPoortjie.textContent = (userManager.users || []).filter(u => 
+                    u.roles?.poortjie?.isAdmin || u.roles?.poortjie?.isTaxiRankAdmin || u.roles?.poortjie?.listForSupport
+                ).length;
+            }
+        }
+
+        async function loadAppData(force = false) {
+            try {
+                if (force || cachedLaynDrivers.length === 0) {
+                    cachedLaynDrivers = await userManager.fetchLaynFleetDrivers();
+                }
+                if (force || cachedDogTowing.length === 0) {
+                    cachedDogTowing = await userManager.fetchDogTowingDrivers();
+                }
+                if (force || cachedLaynRiders.length === 0) {
+                    cachedLaynRiders = await userManager.fetchLaynFleetRiders();
+                }
+                updateTabCounters();
+            } catch (err) {
+                console.error("Failed loading app data:", err);
+            }
+        }
+
+        function openDemoteModal(context) {
+            demoteActionContext = context;
+            demoteReasonInput.value = '';
+            if (context.type === 'layndriver') {
+                demoteModalTitle.textContent = 'Demote LaynDriver';
+                demoteModalSubtitle.textContent = `Demote driver privileges for ${context.name} (${context.uid}).`;
+            } else if (context.type === 'assist_to_driver') {
+                demoteModalTitle.textContent = 'Demote Owner to Tow Driver';
+                demoteModalSubtitle.textContent = `Demote ${context.name} from Fleet Owner to Tow Truck Driver.`;
+            } else if (context.type === 'assist_revoke') {
+                demoteModalTitle.textContent = 'Revoke LaynAssist Access';
+                demoteModalSubtitle.textContent = `Revoke Dog Towing privileges for ${context.name} (${context.uid}).`;
+            }
+            demoteReasonModal.classList.remove('hidden');
+            setTimeout(() => demoteReasonInput.focus(), 50);
+        }
+
+        function openPromoteDriverDialog() {
+            promoteDriverEmailInput.value = '';
+            promoteDriverCarMake.value = '';
+            promoteDriverCarModel.value = '';
+            promoteDriverCarPlate.value = '';
+            promoteDriverCarColour.value = '';
+            promoteDriverUserMatch.classList.add('hidden');
+            promoteDriverNoUser.classList.add('hidden');
+            confirmPromoteDriverBtn.disabled = true;
+            matchedPromoteDriverUser = null;
+            promoteDriverModal.classList.remove('hidden');
+            setTimeout(() => promoteDriverEmailInput.focus(), 50);
+        }
+
+        function openPromoteAssistDialog() {
+            promoteAssistEmailInput.value = '';
+            promoteAssistCarMake.value = '';
+            promoteAssistCarPlate.value = '';
+            promoteAssistUserMatch.classList.add('hidden');
+            promoteAssistNoUser.classList.add('hidden');
+            confirmPromoteAssistBtn.disabled = true;
+            matchedPromoteAssistUser = null;
+            assistRoleRadios.forEach(r => { r.checked = (r.value === 'OWNER'); });
+            updateAssistRoleVisuals();
+            promoteAssistModal.classList.remove('hidden');
+            setTimeout(() => promoteAssistEmailInput.focus(), 50);
+        }
+
+        function openAssignPoortjieDialog() {
+            assignPoortjieEmailInput.value = '';
+            roleCheckAdmin.checked = false;
+            roleCheckTaxiAdmin.checked = false;
+            roleCheckSupport.checked = false;
+            assignPoortjieUserMatch.classList.add('hidden');
+            assignPoortjieNoUser.classList.add('hidden');
+            confirmAssignPoortjieBtn.disabled = true;
+            matchedAssignPoortjieUser = null;
+            assignPoortjieModal.classList.remove('hidden');
+            setTimeout(() => assignPoortjieEmailInput.focus(), 50);
+        }
+
+        function renderAppToolbar() {
+            if (!appToolbarLeft || !appToolbarRight) return;
+            appToolbarLeft.innerHTML = '';
+            appToolbarRight.innerHTML = '';
+
+            if (activeAppTab === 'all') {
+                appToolbarLeft.innerHTML = `
+                    <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 py-1">
+                        <i class="fas fa-users text-green-500"></i>
+                        <span>Showing registered platform accounts in global directory</span>
+                    </div>
+                `;
+                return;
+            }
+
+            if (activeAppTab === 'layndriver') {
+                const total = cachedLaynDrivers.length;
+                const approvedCount = cachedLaynDrivers.filter(d => (d.approvalStatus || '').toUpperCase() === 'APPROVED').length;
+                const pendingCount = cachedLaynDrivers.filter(d => (d.approvalStatus || '').toUpperCase() === 'PENDING').length;
+                const demotedCount = cachedLaynDrivers.filter(d => (d.approvalStatus || '').toUpperCase() === 'DEMOTED').length;
+
+                const pills = [
+                    { id: 'all', label: 'All Drivers', count: total },
+                    { id: 'APPROVED', label: 'Approved', count: approvedCount },
+                    { id: 'PENDING', label: 'Pending', count: pendingCount },
+                    { id: 'DEMOTED', label: 'Demoted', count: demotedCount }
+                ];
+
+                pills.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    const isActive = activeDriverFilter === p.id;
+                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        isActive 
+                            ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30' 
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`;
+                    btn.innerHTML = `<span>${p.label}</span><span class="px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}">${p.count}</span>`;
+                    btn.addEventListener('click', () => {
+                        activeDriverFilter = p.id;
+                        renderActiveView();
+                    });
+                    appToolbarLeft.appendChild(btn);
+                });
+
+                appToolbarRight.innerHTML = `
+                    <button id="openPromoteDriverBtn" type="button" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer">
+                        <i class="fas fa-plus"></i>
+                        <span>Promote Driver by Email</span>
+                    </button>
+                `;
+                document.getElementById('openPromoteDriverBtn')?.addEventListener('click', openPromoteDriverDialog);
+                return;
+            }
+
+            if (activeAppTab === 'laynassist') {
+                const total = cachedDogTowing.length;
+                const ownersCount = cachedDogTowing.filter(d => (d.role || '').toUpperCase() === 'OWNER').length;
+                const driversCount = cachedDogTowing.filter(d => (d.role || '').toUpperCase() === 'DRIVER').length;
+                const revokedCount = cachedDogTowing.filter(d => (d.approvalStatus || '').toUpperCase() === 'REVOKED').length;
+
+                const pills = [
+                    { id: 'all', label: 'All Fleet', count: total },
+                    { id: 'OWNER', label: 'Fleet Owners', count: ownersCount },
+                    { id: 'DRIVER', label: 'Tow Drivers', count: driversCount },
+                    { id: 'REVOKED', label: 'Revoked', count: revokedCount }
+                ];
+
+                pills.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    const isActive = activeAssistFilter === p.id;
+                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        isActive 
+                            ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30' 
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`;
+                    btn.innerHTML = `<span>${p.label}</span><span class="px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}">${p.count}</span>`;
+                    btn.addEventListener('click', () => {
+                        activeAssistFilter = p.id;
+                        renderActiveView();
+                    });
+                    appToolbarLeft.appendChild(btn);
+                });
+
+                appToolbarRight.innerHTML = `
+                    <button id="openPromoteAssistBtn" type="button" class="w-full sm:w-auto px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 cursor-pointer">
+                        <i class="fas fa-truck-pickup"></i>
+                        <span>Promote to LaynAssist by Email</span>
+                    </button>
+                `;
+                document.getElementById('openPromoteAssistBtn')?.addEventListener('click', openPromoteAssistDialog);
+                return;
+            }
+
+            if (activeAppTab === 'laynrider') {
+                const total = cachedLaynRiders.length;
+                const activeCount = cachedLaynRiders.filter(r => !r.user?.suspended).length;
+                const suspendedCount = cachedLaynRiders.filter(r => !!r.user?.suspended).length;
+
+                const pills = [
+                    { id: 'all', label: 'All Passengers', count: total },
+                    { id: 'ACTIVE', label: 'Active', count: activeCount },
+                    { id: 'SUSPENDED', label: 'Suspended', count: suspendedCount }
+                ];
+
+                pills.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    const isActive = activeRiderFilter === p.id;
+                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        isActive 
+                            ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30' 
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`;
+                    btn.innerHTML = `<span>${p.label}</span><span class="px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}">${p.count}</span>`;
+                    btn.addEventListener('click', () => {
+                        activeRiderFilter = p.id;
+                        renderActiveView();
+                    });
+                    appToolbarLeft.appendChild(btn);
+                });
+
+                appToolbarRight.innerHTML = `
+                    <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                        <i class="fas fa-mobile-alt text-blue-500"></i>
+                        <span>Passenger accounts registered via LaynRider</span>
+                    </div>
+                `;
+                return;
+            }
+
+            if (activeAppTab === 'poortjie') {
+                const allPoortjieUsers = (userManager.users || []).filter(u => u.roles?.poortjie?.isAdmin || u.roles?.poortjie?.isTaxiRankAdmin || u.roles?.poortjie?.listForSupport);
+                const adminCount = (userManager.users || []).filter(u => u.roles?.poortjie?.isAdmin).length;
+                const taxiAdminCount = (userManager.users || []).filter(u => u.roles?.poortjie?.isTaxiRankAdmin).length;
+                const supportCount = (userManager.users || []).filter(u => u.roles?.poortjie?.listForSupport).length;
+
+                const pills = [
+                    { id: 'all', label: 'All Roles', count: allPoortjieUsers.length },
+                    { id: 'admin', label: 'Admins', count: adminCount },
+                    { id: 'taxiAdmin', label: 'Taxi Rank Admins', count: taxiAdminCount },
+                    { id: 'support', label: 'Support List', count: supportCount }
+                ];
+
+                pills.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    const isActive = activePoortjieFilter === p.id;
+                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        isActive 
+                            ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/30' 
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`;
+                    btn.innerHTML = `<span>${p.label}</span><span class="px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}">${p.count}</span>`;
+                    btn.addEventListener('click', () => {
+                        activePoortjieFilter = p.id;
+                        renderActiveView();
+                    });
+                    appToolbarLeft.appendChild(btn);
+                });
+
+                appToolbarRight.innerHTML = `
+                    <button id="openAssignPoortjieBtn" type="button" class="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-purple-600/20 cursor-pointer">
+                        <i class="fas fa-plus"></i>
+                        <span>Assign Role by Email</span>
+                    </button>
+                `;
+                document.getElementById('openAssignPoortjieBtn')?.addEventListener('click', openAssignPoortjieDialog);
+                return;
+            }
+        }
+
         function renderUsers(users) {
-            console.log(`Users.html: Rendering ${users.length} users.`);
             loadingState.classList.add('hidden');
             errorState.classList.add('hidden');
             
-            // Track currently rendered users for email copy
             currentDisplayedUsers = users || [];
             updateEmailCopyButtons();
             
-            // Update count badge
             userCountBadge.textContent = users.length;
             userCountBadge.classList.remove('hidden');
             
             if (users.length === 0) {
                 usersList.classList.add('hidden');
                 emptyState.classList.remove('hidden');
+                document.getElementById('emptyMessage').textContent = 'No users found matching current filters.';
                 return;
             }
 
@@ -1275,109 +1884,84 @@
 
                 const photoHtml = user.photoUrl 
                     ? `<img src="${user.photoUrl}" class="profile-pic w-12 h-12 rounded-full object-cover bg-slate-200 cursor-zoom-in hover:ring-2 hover:ring-green-500 transition-all" data-full="${user.photoUrl}" data-name="${user.displayName || 'User'}">`
-                    : `<div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 flex items-center justify-center font-bold text-xl">${(user.displayName || '?')[0]}</div>`;
+                    : `<div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 flex items-center justify-center font-bold text-xl">${(user.displayName || '?')[0].toUpperCase()}</div>`;
 
-                const isLaynFleetDriver = !!user.applications?.laynFleet?.isDriver;
+                let appBadges = [];
+                if (user.applications?.laynFleet?.isDriver) {
+                    appBadges.push(`<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 flex items-center gap-1"><i class="fas fa-car-side"></i>LaynDriver</span>`);
+                }
+                if (user.applications?.laynAssist?.isOwner) {
+                    appBadges.push(`<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 flex items-center gap-1"><i class="fas fa-crown"></i>Assist Owner</span>`);
+                } else if (user.applications?.laynAssist?.isDriver) {
+                    appBadges.push(`<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 flex items-center gap-1"><i class="fas fa-truck"></i>Assist Tow</span>`);
+                }
+                if (user.roles?.poortjie?.isAdmin) {
+                    appBadges.push(`<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 flex items-center gap-1"><i class="fas fa-city"></i>Admin</span>`);
+                }
+                if (user.roles?.poortjie?.isTaxiRankAdmin) {
+                    appBadges.push(`<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400 flex items-center gap-1"><i class="fas fa-taxi"></i>Taxi Rank</span>`);
+                }
+                if (user.roles?.poortjie?.listForSupport) {
+                    appBadges.push(`<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 dark:text-indigo-400 flex items-center gap-1"><i class="fas fa-headset"></i>Support</span>`);
+                }
+                if (appBadges.length === 0) {
+                    appBadges.push(`<span class="text-[10px] text-slate-400 italic">Standard Global Account</span>`);
+                }
 
                 card.innerHTML = `
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            ${photoHtml}
-                            <div>
-                                <h4 class="font-bold text-lg leading-none">${user.displayName || 'No Name'}</h4>
-                                <p class="text-sm text-green-600 font-medium mt-1">@${user.username || 'no-username'}</p>
+                    <div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3 min-w-0">
+                                ${photoHtml}
+                                <div class="min-w-0">
+                                    <h4 class="font-bold text-base leading-snug truncate">${user.displayName || 'No Name'}</h4>
+                                    <p class="text-xs text-green-600 font-medium truncate">@${user.username || 'no-username'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" data-suspended="${user.suspended}" title="${user.suspended ? 'Unsuspend' : 'Suspend'}">
+                                    <i class="fas ${user.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
+                                </button>
+                                <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors p-1.5" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" title="Permanently Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-2" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" data-suspended="${user.suspended}" title="${user.suspended ? 'Unsuspend' : 'Suspend'}">
-                                <i class="fas ${user.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
-                            </button>
-                            <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors p-2" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" title="Permanently Delete">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="far fa-envelope w-4"></i>
+                                <span class="truncate">${user.email || 'No Email'}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="fas fa-phone w-4"></i>
+                                <span>${user.phone || 'No Phone'}</span>
+                            </div>
+                            <div class="pt-2 flex flex-wrap gap-1.5">
+                                ${user.deletePending ? '<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase rounded">Delete Pending</span>' : ''}
+                                ${user.suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase rounded">Suspended</span>' : ''}
+                                ${user.integrity !== 'complete' ? `<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 text-[10px] font-bold uppercase rounded">${user.integrity}</span>` : '<span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 text-[10px] font-bold uppercase rounded">Auth + Firestore</span>'}
+                                <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold rounded">${user.storageObjects.length} files</span>
+                                <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold rounded">${user.providers.join(', ') || 'Password'}</span>
+                            </div>
+
+                            <!-- App Affiliation & Access -->
+                            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
+                                <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1.5">Platform Access</p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    ${appBadges.join('')}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="space-y-2 text-sm">
-                        <div class="flex items-center gap-2 text-slate-500">
-                            <i class="far fa-envelope w-4"></i>
-                            <span class="truncate">${user.email || 'No Email'}</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-slate-500">
-                            <i class="fas fa-phone w-4 text-xs"></i>
-                            <span>${user.phone || 'No Phone'}</span>
-                        </div>
-                        <div class="pt-2 flex flex-wrap gap-2">
-                            ${user.deletePending ? '<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">Delete Pending</span>' : ''}
-                            ${user.suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider rounded">Suspended</span>' : ''}
-                            ${user.integrity !== 'complete' ? `<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">${user.integrity}</span>` : '<span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 text-[10px] font-bold uppercase tracking-wider rounded">Auth + Firestore</span>'}
-                            <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded">${user.storageObjects.length} files</span>
-                            <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded">${user.providers.join(', ') || 'No Auth provider'}</span>
-                            ${isLaynFleetDriver ? '<span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded">LaynFleet Driver</span>' : ''}
-                        </div>
-                        
-                        <!-- LaynFleet Application Section -->
-                        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
-                            <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">LaynFleet Application</p>
-                            <div class="flex flex-wrap gap-2">
-                                <button class="driver-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${isLaynFleetDriver ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.userId}" data-status="${isLaynFleetDriver}">
-                                    ${isLaynFleetDriver ? '✓ DRIVER ACTIVE' : 'MAKE DRIVER'}
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Poortjie Roles Section -->
-                        <div class="pt-3">
-                            <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">Poortjie Roles</p>
-                            <div class="flex flex-wrap gap-2">
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.isAdmin ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.userId}" data-role="poortjie.isAdmin" data-status="${!!user.roles?.poortjie?.isAdmin}">
-                                    ADMIN
-                                </button>
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.isTaxiRankAdmin ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.userId}" data-role="poortjie.isTaxiRankAdmin" data-status="${!!user.roles?.poortjie?.isTaxiRankAdmin}">
-                                    TAXI ADMIN
-                                </button>
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.poortjie?.listForSupport ? 'bg-green-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.userId}" data-role="poortjie.listForSupport" data-status="${!!user.roles?.poortjie?.listForSupport}">
-                                    SUPPORT
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Tuktuk Roles Section -->
-                        <div class="pt-3">
-                            <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">Tuktuk Roles</p>
-                            <div class="flex flex-wrap gap-2">
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.tuktuk?.isDriver ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.userId}" data-role="tuktuk.isDriver" data-status="${!!user.roles?.tuktuk?.isDriver}">
-                                    DRIVER
-                                </button>
-                                <button class="role-toggle px-2 py-1 rounded text-[10px] font-bold transition-all ${user.roles?.tuktuk?.isOwner ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}" 
-                                    data-uid="${user.userId}" data-role="tuktuk.isOwner" data-status="${!!user.roles?.tuktuk?.isOwner}">
-                                    OWNER
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 grid grid-cols-2 gap-2 text-[10px] uppercase font-bold tracking-widest text-slate-400">
-                            <div>
-                                <p>Created</p>
-                                <p class="text-slate-500">${formatDate(user.createdAt)}</p>
-                            </div>
-                            <div>
-                                <p>Updated</p>
-                                <p class="text-slate-500">${formatDate(user.updatedAt)}</p>
-                            </div>
-                        </div>
-                        <div class="mt-2 text-[10px] font-mono opacity-30 truncate">
-                            UID: ${user.userId}
-                        </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 flex items-center justify-between">
+                        <span class="font-mono opacity-50 truncate max-w-[150px]">UID: ${user.userId}</span>
+                        <span>Created: ${formatDate(user.createdAt)}</span>
                     </div>
                 `;
 
-                card.querySelector('.delete-btn').addEventListener('click', (e) => {
+                card.querySelector('.delete-btn')?.addEventListener('click', (e) => {
                     const btn = e.currentTarget;
                     showDeleteModal({
                         uid: btn.dataset.uid,
@@ -1387,7 +1971,7 @@
                     });
                 });
 
-                card.querySelector('.suspend-btn').addEventListener('click', (e) => {
+                card.querySelector('.suspend-btn')?.addEventListener('click', (e) => {
                     const btn = e.currentTarget;
                     showSuspendModal({
                         uid: btn.dataset.uid,
@@ -1398,50 +1982,587 @@
                     });
                 });
 
-                const profilePic = card.querySelector('.profile-pic');
-                if (profilePic) {
-                    profilePic.addEventListener('click', (e) => {
-                        showImageViewer(e.target.dataset.full, e.target.dataset.name);
-                    });
+                card.querySelector('.profile-pic')?.addEventListener('click', (e) => {
+                    showImageViewer(e.target.dataset.full, e.target.dataset.name);
+                });
+
+                usersList.appendChild(card);
+            });
+        }
+
+        function renderLaynDrivers(drivers) {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            userCountBadge.textContent = drivers.length;
+            userCountBadge.classList.remove('hidden');
+            currentDisplayedUsers = drivers.map(d => ({ email: d.user?.email, displayName: d.user?.displayName }));
+            updateEmailCopyButtons();
+
+            if (drivers.length === 0) {
+                usersList.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                document.getElementById('emptyMessage').textContent = 'No LaynDriver records found.';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            usersList.classList.remove('hidden');
+            usersList.innerHTML = '';
+
+            drivers.forEach(driver => {
+                const u = driver.user || {};
+                const isApproved = (driver.approvalStatus || '').toUpperCase() === 'APPROVED';
+                const isDemoted = (driver.approvalStatus || '').toUpperCase() === 'DEMOTED';
+
+                const photoHtml = u.photoUrl 
+                    ? `<img src="${u.photoUrl}" class="profile-pic w-12 h-12 rounded-full object-cover bg-slate-200 cursor-zoom-in hover:ring-2 hover:ring-emerald-500 transition-all" data-full="${u.photoUrl}" data-name="${u.displayName || 'Driver'}">`
+                    : `<div class="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xl">${(u.displayName || 'D')[0].toUpperCase()}</div>`;
+
+                const onlinePill = driver.online
+                    ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>Online</span>`
+                    : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Offline</span>`;
+
+                let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">⌛ Pending</span>`;
+                if (isApproved) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">✓ Approved</span>`;
+                } else if (isDemoted) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">✕ Demoted</span>`;
                 }
 
-                const driverToggleBtn = card.querySelector('.driver-toggle');
-                if (driverToggleBtn) {
-                    driverToggleBtn.addEventListener('click', async (e) => {
-                        const target = e.currentTarget;
-                        const uid = target.dataset.uid;
-                        const currentStatus = target.dataset.status === 'true';
-                        
-                        target.disabled = true;
-                        target.classList.add('opacity-50');
-                        
-                        try {
-                            await userManager.toggleLaynFleetDriver(uid, currentStatus);
-                            setStatus(`Driver status ${currentStatus ? 'removed' : 'granted'} for ${uid}.`);
-                        } catch (error) {
-                            console.error("Driver toggle failed:", error);
-                            setStatus(`Failed to toggle driver status: ${error.message}`, true);
-                            target.disabled = false;
-                            target.classList.remove('opacity-50');
-                        }
-                    });
-                }
+                const vehicle = driver.vehicle || {};
+                const vehicleText = [vehicle.make, vehicle.model, vehicle.plate ? `(${vehicle.plate})` : '', vehicle.colour ? `• ${vehicle.colour}` : ''].filter(Boolean).join(' ') || 'No vehicle recorded';
 
-                card.querySelectorAll('.role-toggle').forEach(btn => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3 min-w-0">
+                                ${photoHtml}
+                                <div class="min-w-0">
+                                    <h4 class="font-bold text-base leading-snug truncate">${u.displayName || 'Unknown Driver'}</h4>
+                                    <p class="text-xs text-emerald-600 dark:text-emerald-400 font-medium truncate">@${u.username || 'no-username'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                ${onlinePill}
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${driver.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" title="${u.suspended ? 'Unsuspend' : 'Suspend'}">
+                                    <i class="fas ${u.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="far fa-envelope w-4"></i>
+                                <span class="truncate">${u.email || 'No Email'}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="fas fa-phone w-4"></i>
+                                <span>${u.phone || 'No Phone'}</span>
+                            </div>
+
+                            <div class="pt-2 flex flex-wrap items-center gap-1.5">
+                                ${statusBadge}
+                                ${u.suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase rounded">Suspended</span>' : ''}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${driver.tripsCount || 0} rides</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-amber-600">${driver.ratingAvg ? `⭐ ${Number(driver.ratingAvg).toFixed(1)} (${driver.ratingCount || 0})` : '⭐ New'}</span>
+                            </div>
+
+                            <!-- Vehicle details box -->
+                            <div class="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Vehicle Assignment</p>
+                                <p class="font-medium text-slate-700 dark:text-slate-200 truncate flex items-center gap-1.5">
+                                    <i class="fas fa-car text-emerald-500"></i>
+                                    <span>${vehicleText}</span>
+                                </p>
+                            </div>
+
+                            ${isDemoted ? `
+                                <div class="mt-2 p-2.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 text-[11px] text-red-600 dark:text-red-400">
+                                    <p class="font-bold">Demotion reason:</p>
+                                    <p class="italic break-words">"${driver.demoteReason || 'Demoted by manager'}"</p>
+                                    <p class="text-[10px] text-red-400 mt-1">${formatDate(driver.demotedAt)} · by ${driver.demotedBy || 'manager'}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Actions Footer -->
+                    <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                        ${isApproved ? `
+                            <button class="demote-driver-btn flex-1 py-2 bg-amber-50 hover:bg-amber-500 text-amber-600 hover:text-white dark:bg-amber-900/20 dark:hover:bg-amber-600 dark:text-amber-400 dark:hover:text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer" data-uid="${driver.uid}" data-name="${u.displayName || driver.uid}">
+                                <i class="fas fa-user-minus"></i>
+                                <span>Demote Driver</span>
+                            </button>
+                        ` : `
+                            <button class="reapprove-driver-btn flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer" data-uid="${driver.uid}" data-name="${u.displayName || driver.uid}">
+                                <i class="fas fa-check-circle"></i>
+                                <span>${isDemoted ? 'Re-instate / Approve' : 'Approve Driver'}</span>
+                            </button>
+                        `}
+                    </div>
+                `;
+
+                card.querySelector('.profile-pic')?.addEventListener('click', (e) => {
+                    showImageViewer(e.target.dataset.full, e.target.dataset.name);
+                });
+
+                card.querySelector('.suspend-btn')?.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    showSuspendModal({
+                        uid: btn.dataset.uid,
+                        username: btn.dataset.username,
+                        email: btn.dataset.email,
+                        displayName: btn.dataset.displayname,
+                        isSuspended: btn.dataset.suspended === 'true'
+                    });
+                });
+
+                card.querySelector('.demote-driver-btn')?.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    openDemoteModal({
+                        type: 'layndriver',
+                        uid: btn.dataset.uid,
+                        name: btn.dataset.name
+                    });
+                });
+
+                card.querySelector('.reapprove-driver-btn')?.addEventListener('click', async (e) => {
+                    const btn = e.currentTarget;
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50');
+                    try {
+                        await userManager.promoteLaynDriver(driver.uid, driver.vehicle || {});
+                        setStatus(`Driver ${driver.uid} approved successfully!`);
+                        await loadAppData(true);
+                        renderActiveView();
+                    } catch (err) {
+                        console.error("Re-approval failed:", err);
+                        setStatus(`Approval failed: ${err.message}`, true);
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                    }
+                });
+
+                usersList.appendChild(card);
+            });
+        }
+
+        function renderDogTowing(drivers) {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            userCountBadge.textContent = drivers.length;
+            userCountBadge.classList.remove('hidden');
+            currentDisplayedUsers = drivers.map(d => ({ email: d.user?.email, displayName: d.user?.displayName }));
+            updateEmailCopyButtons();
+
+            if (drivers.length === 0) {
+                usersList.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                document.getElementById('emptyMessage').textContent = 'No LaynAssist (Dog Towing) records found. Click "+ Promote to LaynAssist by Email" above to add fleet members.';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            usersList.classList.remove('hidden');
+            usersList.innerHTML = '';
+
+            drivers.forEach(driver => {
+                const u = driver.user || {};
+                const isOwner = (driver.role || '').toUpperCase() === 'OWNER';
+                const isRevoked = (driver.approvalStatus || '').toUpperCase() === 'REVOKED';
+
+                const photoHtml = u.photoUrl 
+                    ? `<img src="${u.photoUrl}" class="profile-pic w-12 h-12 rounded-full object-cover bg-slate-200 cursor-zoom-in hover:ring-2 hover:ring-amber-500 transition-all" data-full="${u.photoUrl}" data-name="${u.displayName || 'Assist Member'}">`
+                    : `<div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xl">${(u.displayName || 'A')[0].toUpperCase()}</div>`;
+
+                const rolePill = isOwner
+                    ? `<span class="px-2.5 py-1 rounded-lg text-xs font-black bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700/50 flex items-center gap-1.5"><i class="fas fa-crown text-amber-500"></i> FLEET OWNER</span>`
+                    : `<span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center gap-1.5"><i class="fas fa-truck text-blue-500"></i> TOW DRIVER</span>`;
+
+                const statusPill = isRevoked
+                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">✕ Revoked</span>`
+                    : `<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">✓ Active</span>`;
+
+                const vehicle = driver.vehicle || {};
+                const vehicleText = [vehicle.make, vehicle.plate ? `(${vehicle.plate})` : ''].filter(Boolean).join(' ');
+
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3 min-w-0">
+                                ${photoHtml}
+                                <div class="min-w-0">
+                                    <h4 class="font-bold text-base leading-snug truncate">${u.displayName || 'Unknown Member'}</h4>
+                                    <p class="text-xs text-amber-600 dark:text-amber-400 font-medium truncate">@${u.username || 'no-username'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${driver.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" title="${u.suspended ? 'Unsuspend' : 'Suspend'}">
+                                    <i class="fas ${u.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center justify-between pb-1">
+                                ${rolePill}
+                                ${statusPill}
+                            </div>
+
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="far fa-envelope w-4"></i>
+                                <span class="truncate">${u.email || 'No Email'}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="fas fa-phone w-4"></i>
+                                <span>${u.phone || 'No Phone'}</span>
+                            </div>
+
+                            ${vehicleText ? `
+                                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-[11px]">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tow Vehicle</p>
+                                    <p class="font-medium text-slate-700 dark:text-slate-200 truncate mt-0.5">
+                                        <i class="fas fa-truck-pickup text-amber-500 mr-1"></i>${vehicleText}
+                                    </p>
+                                </div>
+                            ` : ''}
+
+                            <div class="pt-1 text-[10px] text-slate-400">
+                                <span>Path: laynfleet/dog-towing/drivers/${driver.uid.slice(0, 8)}…</span>
+                                ${driver.addedAt ? ` · Added ${formatDate(driver.addedAt)}` : ''}
+                            </div>
+
+                            ${isRevoked ? `
+                                <div class="p-2.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 text-[11px] text-red-600 dark:text-red-400">
+                                    <p class="font-bold">Revocation reason:</p>
+                                    <p class="italic break-words">"${driver.demoteReason || 'Access revoked'}"</p>
+                                    <p class="text-[10px] text-red-400 mt-1">${formatDate(driver.demotedAt)}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Actions Footer -->
+                    <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                        ${isOwner ? `
+                            <button class="assist-demote-to-driver-btn flex-1 py-2 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white dark:bg-blue-900/20 dark:hover:bg-blue-600 dark:text-blue-300 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 cursor-pointer" data-uid="${driver.uid}" data-name="${u.displayName || driver.uid}">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Demote to Driver</span>
+                            </button>
+                            <button class="assist-revoke-btn flex-1 py-2 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 cursor-pointer" data-uid="${driver.uid}" data-name="${u.displayName || driver.uid}">
+                                <i class="fas fa-ban"></i>
+                                <span>Revoke</span>
+                            </button>
+                        ` : `
+                            <button class="assist-promote-to-owner-btn flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 shadow-sm shadow-amber-500/20 cursor-pointer" data-uid="${driver.uid}" data-name="${u.displayName || driver.uid}">
+                                <i class="fas fa-crown"></i>
+                                <span>Promote to Owner</span>
+                            </button>
+                            ${isRevoked ? `
+                                <button class="assist-reapprove-btn flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 shadow-sm shadow-emerald-600/20 cursor-pointer" data-uid="${driver.uid}">
+                                    <i class="fas fa-check"></i>
+                                    <span>Re-approve</span>
+                                </button>
+                            ` : `
+                                <button class="assist-revoke-btn flex-1 py-2 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 cursor-pointer" data-uid="${driver.uid}" data-name="${u.displayName || driver.uid}">
+                                    <i class="fas fa-user-minus"></i>
+                                    <span>Revoke</span>
+                                </button>
+                            `}
+                        `}
+                    </div>
+                `;
+
+                card.querySelector('.profile-pic')?.addEventListener('click', (e) => {
+                    showImageViewer(e.target.dataset.full, e.target.dataset.name);
+                });
+
+                card.querySelector('.suspend-btn')?.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    showSuspendModal({
+                        uid: btn.dataset.uid,
+                        username: btn.dataset.username,
+                        email: btn.dataset.email,
+                        displayName: btn.dataset.displayname,
+                        isSuspended: btn.dataset.suspended === 'true'
+                    });
+                });
+
+                card.querySelector('.assist-demote-to-driver-btn')?.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    openDemoteModal({
+                        type: 'assist_to_driver',
+                        uid: btn.dataset.uid,
+                        name: btn.dataset.name
+                    });
+                });
+
+                card.querySelector('.assist-revoke-btn')?.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    openDemoteModal({
+                        type: 'assist_revoke',
+                        uid: btn.dataset.uid,
+                        name: btn.dataset.name
+                    });
+                });
+
+                card.querySelector('.assist-promote-to-owner-btn')?.addEventListener('click', async (e) => {
+                    const btn = e.currentTarget;
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50');
+                    try {
+                        await userManager.promoteDogTowingUser(driver.uid, 'OWNER', driver.vehicle || {});
+                        setStatus(`Promoted ${u.displayName || driver.uid} to LaynAssist Fleet Owner!`);
+                        await loadAppData(true);
+                        renderActiveView();
+                    } catch (err) {
+                        console.error("Promote to owner failed:", err);
+                        setStatus(`Promotion failed: ${err.message}`, true);
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                    }
+                });
+
+                card.querySelector('.assist-reapprove-btn')?.addEventListener('click', async (e) => {
+                    const btn = e.currentTarget;
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50');
+                    try {
+                        await userManager.reapproveDogTowingDriver(driver.uid);
+                        setStatus(`Re-approved Dog Towing driver ${u.displayName || driver.uid}!`);
+                        await loadAppData(true);
+                        renderActiveView();
+                    } catch (err) {
+                        console.error("Re-approval failed:", err);
+                        setStatus(`Re-approval failed: ${err.message}`, true);
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                    }
+                });
+
+                usersList.appendChild(card);
+            });
+        }
+
+        function renderLaynRiders(riders) {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            userCountBadge.textContent = riders.length;
+            userCountBadge.classList.remove('hidden');
+            currentDisplayedUsers = riders.map(r => ({ email: r.user?.email, displayName: r.user?.displayName }));
+            updateEmailCopyButtons();
+
+            if (riders.length === 0) {
+                usersList.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                document.getElementById('emptyMessage').textContent = 'No LaynRider passenger records found.';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            usersList.classList.remove('hidden');
+            usersList.innerHTML = '';
+
+            riders.forEach(rider => {
+                const u = rider.user || {};
+
+                const photoHtml = u.photoUrl 
+                    ? `<img src="${u.photoUrl}" class="profile-pic w-12 h-12 rounded-full object-cover bg-slate-200 cursor-zoom-in hover:ring-2 hover:ring-blue-500 transition-all" data-full="${u.photoUrl}" data-name="${u.displayName || 'Rider'}">`
+                    : `<div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xl">${(u.displayName || 'R')[0].toUpperCase()}</div>`;
+
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3 min-w-0">
+                                ${photoHtml}
+                                <div class="min-w-0">
+                                    <h4 class="font-bold text-base leading-snug truncate">${u.displayName || 'Rider'}</h4>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 font-medium truncate">@${u.username || 'no-username'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${rider.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" title="${u.suspended ? 'Unsuspend' : 'Suspend'}">
+                                    <i class="fas ${u.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="far fa-envelope w-4"></i>
+                                <span class="truncate">${u.email || 'No Email'}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="fas fa-phone w-4"></i>
+                                <span>${u.phone || 'No Phone'}</span>
+                            </div>
+
+                            <div class="pt-2 flex flex-wrap items-center gap-1.5">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">${rider.tripsCount || 0} rides completed</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-amber-600">${rider.ratingAvg ? `⭐ ${Number(rider.ratingAvg).toFixed(1)} (${rider.ratingCount || 0})` : '⭐ New Passenger'}</span>
+                                ${u.suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 text-[10px] font-bold uppercase rounded">Suspended</span>' : ''}
+                            </div>
+
+                            <div class="pt-2 text-[10px] text-slate-400">
+                                <span>Joined: ${formatDate(rider.joinedAt)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+                        <span class="font-mono text-[10px] opacity-40 truncate">UID: ${rider.uid}</span>
+                        <button class="suspend-btn px-3 py-1.5 rounded-xl font-bold transition text-xs ${u.suspended ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'}" data-uid="${rider.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}">
+                            ${u.suspended ? 'Unsuspend' : 'Suspend Account'}
+                        </button>
+                    </div>
+                `;
+
+                card.querySelector('.profile-pic')?.addEventListener('click', (e) => {
+                    showImageViewer(e.target.dataset.full, e.target.dataset.name);
+                });
+
+                card.querySelectorAll('.suspend-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const b = e.currentTarget;
+                        showSuspendModal({
+                            uid: b.dataset.uid,
+                            username: b.dataset.username,
+                            email: b.dataset.email,
+                            displayName: b.dataset.displayname,
+                            isSuspended: b.dataset.suspended === 'true'
+                        });
+                    });
+                });
+
+                usersList.appendChild(card);
+            });
+        }
+
+        function renderPoortjie(users) {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            userCountBadge.textContent = users.length;
+            userCountBadge.classList.remove('hidden');
+            currentDisplayedUsers = users.map(u => ({ email: u.email, displayName: u.displayName }));
+            updateEmailCopyButtons();
+
+            if (users.length === 0) {
+                usersList.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                document.getElementById('emptyMessage').textContent = 'No Poortjie Web roles assigned yet. Click "+ Assign Role by Email" above.';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            usersList.classList.remove('hidden');
+            usersList.innerHTML = '';
+
+            users.forEach(user => {
+                const isAdmin = !!user.roles?.poortjie?.isAdmin;
+                const isTaxiRankAdmin = !!user.roles?.poortjie?.isTaxiRankAdmin;
+                const listForSupport = !!user.roles?.poortjie?.listForSupport;
+
+                const photoHtml = user.photoUrl 
+                    ? `<img src="${user.photoUrl}" class="profile-pic w-12 h-12 rounded-full object-cover bg-slate-200 cursor-zoom-in hover:ring-2 hover:ring-purple-500 transition-all" data-full="${user.photoUrl}" data-name="${user.displayName || 'User'}">`
+                    : `<div class="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-xl">${(user.displayName || 'P')[0].toUpperCase()}</div>`;
+
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3 min-w-0">
+                                ${photoHtml}
+                                <div class="min-w-0">
+                                    <h4 class="font-bold text-base leading-snug truncate">${user.displayName || 'No Name'}</h4>
+                                    <p class="text-xs text-purple-600 dark:text-purple-400 font-medium truncate">@${user.username || 'no-username'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" data-suspended="${user.suspended}" title="${user.suspended ? 'Unsuspend' : 'Suspend'}">
+                                    <i class="fas ${user.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="far fa-envelope w-4"></i>
+                                <span class="truncate">${user.email || 'No Email'}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <i class="fas fa-phone w-4"></i>
+                                <span>${user.phone || 'No Phone'}</span>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                                <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">Assign / Revoke Roles</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <button class="poortjie-toggle-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${isAdmin ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}" data-uid="${user.userId}" data-role="isAdmin" data-current="${isAdmin}">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <span>${isAdmin ? '✓ Admin' : 'Admin'}</span>
+                                    </button>
+                                    <button class="poortjie-toggle-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${isTaxiRankAdmin ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}" data-uid="${user.userId}" data-role="isTaxiRankAdmin" data-current="${isTaxiRankAdmin}">
+                                        <i class="fas fa-taxi"></i>
+                                        <span>${isTaxiRankAdmin ? '✓ Taxi Rank' : 'Taxi Rank'}</span>
+                                    </button>
+                                    <button class="poortjie-toggle-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${listForSupport ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}" data-uid="${user.userId}" data-role="listForSupport" data-current="${listForSupport}">
+                                        <i class="fas fa-headset"></i>
+                                        <span>${listForSupport ? '✓ Support' : 'Support'}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                        <span class="font-mono text-[10px] opacity-40 truncate">UID: ${user.userId}</span>
+                        <span>Updated: ${formatDate(user.updatedAt)}</span>
+                    </div>
+                `;
+
+                card.querySelector('.profile-pic')?.addEventListener('click', (e) => {
+                    showImageViewer(e.target.dataset.full, e.target.dataset.name);
+                });
+
+                card.querySelector('.suspend-btn')?.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    showSuspendModal({
+                        uid: btn.dataset.uid,
+                        username: btn.dataset.username,
+                        email: btn.dataset.email,
+                        displayName: btn.dataset.displayname,
+                        isSuspended: btn.dataset.suspended === 'true'
+                    });
+                });
+
+                card.querySelectorAll('.poortjie-toggle-btn').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const target = e.currentTarget;
                         const uid = target.dataset.uid;
-                        const role = target.dataset.role;
-                        const currentStatus = target.dataset.status === 'true';
-                        
+                        const roleKey = target.dataset.role;
+                        const currentStatus = target.dataset.current === 'true';
+
                         target.disabled = true;
                         target.classList.add('opacity-50');
-                        
+
                         try {
-                            await userManager.toggleUserRole(uid, role, currentStatus);
-                        } catch (error) {
-                            console.error("Role toggle failed:", error);
-                            setStatus(`Failed to toggle role: ${error.message}`, true);
+                            await userManager.togglePoortjieRole(uid, roleKey, currentStatus);
+                            setStatus(`Poortjie ${roleKey} updated for ${uid}.`);
+                            renderActiveView();
+                        } catch (err) {
+                            console.error("Poortjie role toggle failed:", err);
+                            setStatus(`Failed to update Poortjie role: ${err.message}`, true);
                             target.disabled = false;
                             target.classList.remove('opacity-50');
                         }
@@ -1450,6 +2571,113 @@
 
                 usersList.appendChild(card);
             });
+        }
+
+        function renderActiveView() {
+            renderAppToolbar();
+            updateTabCounters();
+
+            const query = (searchInput.value || '').trim().toLowerCase();
+
+            if (activeAppTab === 'all') {
+                allUsersFilterGroups.forEach(el => el.classList.remove('hidden'));
+                const filteredUsers = userManager.applyFilters(userManager.users || []);
+                renderUsers(filteredUsers);
+                return;
+            }
+
+            allUsersFilterGroups.forEach(el => el.classList.add('hidden'));
+
+            if (activeAppTab === 'layndriver') {
+                let list = cachedLaynDrivers.slice();
+                if (activeDriverFilter !== 'all') {
+                    list = list.filter(d => (d.approvalStatus || '').toUpperCase() === activeDriverFilter);
+                }
+                if (query) {
+                    list = list.filter(d => {
+                        const name = (d.user?.displayName || '').toLowerCase();
+                        const email = (d.user?.email || '').toLowerCase();
+                        const username = (d.user?.username || '').toLowerCase();
+                        const phone = (d.user?.phone || '').toLowerCase();
+                        const uid = (d.uid || '').toLowerCase();
+                        const make = (d.vehicle?.make || '').toLowerCase();
+                        const model = (d.vehicle?.model || '').toLowerCase();
+                        const plate = (d.vehicle?.plate || '').toLowerCase();
+                        return name.includes(query) || email.includes(query) || username.includes(query) || phone.includes(query) || uid.includes(query) || make.includes(query) || model.includes(query) || plate.includes(query);
+                    });
+                }
+                renderLaynDrivers(list);
+                return;
+            }
+
+            if (activeAppTab === 'laynassist') {
+                let list = cachedDogTowing.slice();
+                if (activeAssistFilter === 'OWNER') {
+                    list = list.filter(d => (d.role || '').toUpperCase() === 'OWNER');
+                } else if (activeAssistFilter === 'DRIVER') {
+                    list = list.filter(d => (d.role || '').toUpperCase() === 'DRIVER');
+                } else if (activeAssistFilter === 'REVOKED') {
+                    list = list.filter(d => (d.approvalStatus || '').toUpperCase() === 'REVOKED');
+                }
+                if (query) {
+                    list = list.filter(d => {
+                        const name = (d.user?.displayName || '').toLowerCase();
+                        const email = (d.user?.email || '').toLowerCase();
+                        const username = (d.user?.username || '').toLowerCase();
+                        const phone = (d.user?.phone || '').toLowerCase();
+                        const uid = (d.uid || '').toLowerCase();
+                        const make = (d.vehicle?.make || '').toLowerCase();
+                        const plate = (d.vehicle?.plate || '').toLowerCase();
+                        return name.includes(query) || email.includes(query) || username.includes(query) || phone.includes(query) || uid.includes(query) || make.includes(query) || plate.includes(query);
+                    });
+                }
+                renderDogTowing(list);
+                return;
+            }
+
+            if (activeAppTab === 'laynrider') {
+                let list = cachedLaynRiders.slice();
+                if (activeRiderFilter === 'ACTIVE') {
+                    list = list.filter(r => !r.user?.suspended);
+                } else if (activeRiderFilter === 'SUSPENDED') {
+                    list = list.filter(r => !!r.user?.suspended);
+                }
+                if (query) {
+                    list = list.filter(r => {
+                        const name = (r.user?.displayName || '').toLowerCase();
+                        const email = (r.user?.email || '').toLowerCase();
+                        const username = (r.user?.username || '').toLowerCase();
+                        const phone = (r.user?.phone || '').toLowerCase();
+                        const uid = (r.uid || '').toLowerCase();
+                        return name.includes(query) || email.includes(query) || username.includes(query) || phone.includes(query) || uid.includes(query);
+                    });
+                }
+                renderLaynRiders(list);
+                return;
+            }
+
+            if (activeAppTab === 'poortjie') {
+                let list = (userManager.users || []).filter(u => u.roles?.poortjie?.isAdmin || u.roles?.poortjie?.isTaxiRankAdmin || u.roles?.poortjie?.listForSupport);
+                if (activePoortjieFilter === 'admin') {
+                    list = list.filter(u => !!u.roles?.poortjie?.isAdmin);
+                } else if (activePoortjieFilter === 'taxiAdmin') {
+                    list = list.filter(u => !!u.roles?.poortjie?.isTaxiRankAdmin);
+                } else if (activePoortjieFilter === 'support') {
+                    list = list.filter(u => !!u.roles?.poortjie?.listForSupport);
+                }
+                if (query) {
+                    list = list.filter(u => {
+                        const name = (u.displayName || '').toLowerCase();
+                        const email = (u.email || '').toLowerCase();
+                        const username = (u.username || '').toLowerCase();
+                        const phone = (u.phone || '').toLowerCase();
+                        const uid = (u.userId || '').toLowerCase();
+                        return name.includes(query) || email.includes(query) || username.includes(query) || phone.includes(query) || uid.includes(query);
+                    });
+                }
+                renderPoortjie(list);
+                return;
+            }
         }
 
         function showSuspendModal(user) {
@@ -1532,6 +2760,8 @@
                 const result = await userManager.toggleUserSuspension(uid, isCurrentlySuspended);
                 if (result.success) {
                     setStatus(`User ${uid} ${result.suspended ? 'suspended' : 'unsuspended'} successfully.`);
+                    await loadAppData(true);
+                    renderActiveView();
                 }
             } catch (error) {
                 console.error("Suspension toggle failed:", error);
@@ -1667,6 +2897,11 @@
                     clearInterval(suspendCountdownTimer);
                     userToSuspend = null;
                 }
+                promoteDriverModal?.classList.add('hidden');
+                promoteAssistModal?.classList.add('hidden');
+                assignPoortjieModal?.classList.add('hidden');
+                demoteReasonModal?.classList.add('hidden');
+                demoteActionContext = null;
             }
         });
 
@@ -1712,6 +2947,8 @@
                     userDeleteProgressTitle.textContent = 'User permanently deleted';
                     userDeleteActionContainer.classList.remove('hidden');
                     setStatus(`User ${uid} deleted successfully.`);
+                    await loadAppData(true);
+                    renderActiveView();
 
                     // Auto-close after 2.5 seconds if modal is still open
                     setTimeout(() => {
@@ -1862,21 +3099,12 @@
                 userManager.destroy();
 
                 userManager.init(
-                    (filteredUsers, inventory) => {
-                        console.log(`Users.html: Received ${filteredUsers.length} users after filtering.`);
+                    async (filteredUsers, inventory) => {
+                        console.log(`Users.html: Received ${(userManager.users || []).length} users.`);
                         loadingState.classList.add('hidden');
                         
-                        userCountBadge.textContent = filteredUsers.length;
-                        userCountBadge.classList.remove('hidden');
-
-                        if (filteredUsers.length === 0) {
-                            emptyState.classList.remove('hidden');
-                            usersList.classList.add('hidden');
-                        } else {
-                            emptyState.classList.add('hidden');
-                            usersList.classList.remove('hidden');
-                            renderUsers(filteredUsers);
-                        }
+                        await loadAppData();
+                        renderActiveView();
                         renderOrphans(inventory);
                     },
                     (error) => {
@@ -1912,25 +3140,310 @@
             }
         });
 
-        // Event Listeners for filters
+        // App Switcher Tabs
+        appTabBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const app = btn.dataset.app;
+                if (activeAppTab === app) return;
+                activeAppTab = app;
+
+                appTabBtns.forEach(b => {
+                    if (b.dataset.app === app) {
+                        b.classList.add('active', 'border-green-500', 'ring-2', 'ring-green-500/20', 'shadow-sm');
+                        b.classList.remove('border-slate-200', 'dark:border-slate-800');
+                    } else {
+                        b.classList.remove('active', 'border-green-500', 'ring-2', 'ring-green-500/20', 'shadow-sm');
+                        b.classList.add('border-slate-200', 'dark:border-slate-800');
+                    }
+                });
+
+                loadingState.classList.remove('hidden');
+                usersList.classList.add('hidden');
+                emptyState.classList.add('hidden');
+
+                await loadAppData();
+                renderActiveView();
+            });
+        });
+
+        // Promote LaynDriver Modal
+        let driverSearchTimer = null;
+        promoteDriverEmailInput?.addEventListener('input', () => {
+            clearTimeout(driverSearchTimer);
+            driverSearchTimer = setTimeout(() => {
+                const email = (promoteDriverEmailInput.value || '').trim().toLowerCase();
+                if (!email) {
+                    promoteDriverUserMatch?.classList.add('hidden');
+                    promoteDriverNoUser?.classList.add('hidden');
+                    confirmPromoteDriverBtn.disabled = true;
+                    matchedPromoteDriverUser = null;
+                    return;
+                }
+                const user = userManager.findUserByEmail(email);
+                if (user) {
+                    matchedPromoteDriverUser = user;
+                    promoteDriverMatchName.textContent = user.displayName || 'No Name';
+                    promoteDriverMatchEmail.textContent = user.email || email;
+                    promoteDriverMatchAvatar.textContent = (user.displayName || '?')[0].toUpperCase();
+                    promoteDriverUserMatch.classList.remove('hidden');
+                    promoteDriverNoUser.classList.add('hidden');
+                    confirmPromoteDriverBtn.disabled = false;
+                } else {
+                    matchedPromoteDriverUser = null;
+                    promoteDriverUserMatch.classList.add('hidden');
+                    promoteDriverNoUser.classList.remove('hidden');
+                    confirmPromoteDriverBtn.disabled = true;
+                }
+            }, 250);
+        });
+
+        confirmPromoteDriverBtn?.addEventListener('click', async () => {
+            if (!matchedPromoteDriverUser) return;
+            const uid = matchedPromoteDriverUser.userId || matchedPromoteDriverUser.uid;
+            const vehicleData = {
+                make: promoteDriverCarMake.value.trim(),
+                model: promoteDriverCarModel.value.trim(),
+                plate: promoteDriverCarPlate.value.trim(),
+                colour: promoteDriverCarColour.value.trim()
+            };
+
+            confirmPromoteDriverBtn.disabled = true;
+            confirmPromoteDriverBtn.textContent = 'Promoting...';
+
+            try {
+                await userManager.promoteLaynDriver(uid, vehicleData);
+                promoteDriverModal.classList.add('hidden');
+                setStatus(`Promoted ${matchedPromoteDriverUser.displayName || matchedPromoteDriverUser.email} to LaynDriver!`);
+                await loadAppData(true);
+                renderActiveView();
+            } catch (err) {
+                console.error("Promotion failed:", err);
+                setStatus(`Promotion failed: ${err.message}`, true);
+            } finally {
+                confirmPromoteDriverBtn.disabled = false;
+                confirmPromoteDriverBtn.textContent = 'Approve & Promote';
+            }
+        });
+
+        cancelPromoteDriverBtn?.addEventListener('click', () => promoteDriverModal.classList.add('hidden'));
+        closePromoteDriverBtn?.addEventListener('click', () => promoteDriverModal.classList.add('hidden'));
+        promoteDriverBackdrop?.addEventListener('click', () => promoteDriverModal.classList.add('hidden'));
+
+        // Promote LaynAssist Modal
+        function updateAssistRoleVisuals() {
+            const selected = document.querySelector('input[name="assistRoleRadio"]:checked')?.value || 'OWNER';
+            assistRoleOptions.forEach(opt => {
+                if (opt.dataset.role === selected) {
+                    opt.classList.add('border-amber-500', 'ring-2', 'ring-amber-500/30', 'bg-amber-50/20', 'dark:bg-amber-950/20');
+                    opt.classList.remove('border-slate-200', 'dark:border-slate-800');
+                } else {
+                    opt.classList.remove('border-amber-500', 'ring-2', 'ring-amber-500/30', 'bg-amber-50/20', 'dark:bg-amber-950/20');
+                    opt.classList.add('border-slate-200', 'dark:border-slate-800');
+                }
+            });
+            if (selected === 'DRIVER') {
+                assistVehicleSection.classList.remove('hidden');
+            } else {
+                assistVehicleSection.classList.add('hidden');
+            }
+        }
+
+        assistRoleOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                const role = opt.dataset.role;
+                assistRoleRadios.forEach(r => { r.checked = (r.value === role); });
+                updateAssistRoleVisuals();
+            });
+        });
+
+        assistRoleRadios.forEach(r => {
+            r.addEventListener('change', updateAssistRoleVisuals);
+        });
+
+        let assistSearchTimer = null;
+        promoteAssistEmailInput?.addEventListener('input', () => {
+            clearTimeout(assistSearchTimer);
+            assistSearchTimer = setTimeout(() => {
+                const email = (promoteAssistEmailInput.value || '').trim().toLowerCase();
+                if (!email) {
+                    promoteAssistUserMatch?.classList.add('hidden');
+                    promoteAssistNoUser?.classList.add('hidden');
+                    confirmPromoteAssistBtn.disabled = true;
+                    matchedPromoteAssistUser = null;
+                    return;
+                }
+                const user = userManager.findUserByEmail(email);
+                if (user) {
+                    matchedPromoteAssistUser = user;
+                    promoteAssistMatchName.textContent = user.displayName || 'No Name';
+                    promoteAssistMatchEmail.textContent = user.email || email;
+                    promoteAssistMatchAvatar.textContent = (user.displayName || '?')[0].toUpperCase();
+                    promoteAssistUserMatch.classList.remove('hidden');
+                    promoteAssistNoUser.classList.add('hidden');
+                    confirmPromoteAssistBtn.disabled = false;
+                } else {
+                    matchedPromoteAssistUser = null;
+                    promoteAssistUserMatch.classList.add('hidden');
+                    promoteAssistNoUser.classList.remove('hidden');
+                    confirmPromoteAssistBtn.disabled = true;
+                }
+            }, 250);
+        });
+
+        confirmPromoteAssistBtn?.addEventListener('click', async () => {
+            if (!matchedPromoteAssistUser) return;
+            const uid = matchedPromoteAssistUser.userId || matchedPromoteAssistUser.uid;
+            const selectedRole = document.querySelector('input[name="assistRoleRadio"]:checked')?.value || 'OWNER';
+            const vehicleData = {
+                make: promoteAssistCarMake.value.trim(),
+                plate: promoteAssistCarPlate.value.trim()
+            };
+
+            confirmPromoteAssistBtn.disabled = true;
+            confirmPromoteAssistBtn.textContent = 'Promoting...';
+
+            try {
+                await userManager.promoteDogTowingUser(uid, selectedRole, vehicleData);
+                promoteAssistModal.classList.add('hidden');
+                setStatus(`Promoted ${matchedPromoteAssistUser.displayName || matchedPromoteAssistUser.email} to LaynAssist ${selectedRole}!`);
+                await loadAppData(true);
+                renderActiveView();
+            } catch (err) {
+                console.error("Assist promotion failed:", err);
+                setStatus(`Promotion failed: ${err.message}`, true);
+            } finally {
+                confirmPromoteAssistBtn.disabled = false;
+                confirmPromoteAssistBtn.textContent = 'Promote to LaynAssist';
+            }
+        });
+
+        cancelPromoteAssistBtn?.addEventListener('click', () => promoteAssistModal.classList.add('hidden'));
+        closePromoteAssistBtn?.addEventListener('click', () => promoteAssistModal.classList.add('hidden'));
+        promoteAssistBackdrop?.addEventListener('click', () => promoteAssistModal.classList.add('hidden'));
+
+        // Assign Poortjie Modal
+        let poortjieSearchTimer = null;
+        assignPoortjieEmailInput?.addEventListener('input', () => {
+            clearTimeout(poortjieSearchTimer);
+            poortjieSearchTimer = setTimeout(() => {
+                const email = (assignPoortjieEmailInput.value || '').trim().toLowerCase();
+                if (!email) {
+                    assignPoortjieUserMatch?.classList.add('hidden');
+                    assignPoortjieNoUser?.classList.add('hidden');
+                    confirmAssignPoortjieBtn.disabled = true;
+                    matchedAssignPoortjieUser = null;
+                    return;
+                }
+                const user = userManager.findUserByEmail(email);
+                if (user) {
+                    matchedAssignPoortjieUser = user;
+                    assignPoortjieMatchName.textContent = user.displayName || 'No Name';
+                    assignPoortjieMatchEmail.textContent = user.email || email;
+                    assignPoortjieMatchAvatar.textContent = (user.displayName || '?')[0].toUpperCase();
+
+                    roleCheckAdmin.checked = !!user.roles?.poortjie?.isAdmin;
+                    roleCheckTaxiAdmin.checked = !!user.roles?.poortjie?.isTaxiRankAdmin;
+                    roleCheckSupport.checked = !!user.roles?.poortjie?.listForSupport;
+
+                    assignPoortjieUserMatch.classList.remove('hidden');
+                    assignPoortjieNoUser.classList.add('hidden');
+                    confirmAssignPoortjieBtn.disabled = false;
+                } else {
+                    matchedAssignPoortjieUser = null;
+                    assignPoortjieUserMatch.classList.add('hidden');
+                    assignPoortjieNoUser.classList.remove('hidden');
+                    confirmAssignPoortjieBtn.disabled = true;
+                }
+            }, 250);
+        });
+
+        confirmAssignPoortjieBtn?.addEventListener('click', async () => {
+            if (!matchedAssignPoortjieUser) return;
+            const uid = matchedAssignPoortjieUser.userId || matchedAssignPoortjieUser.uid;
+            const admin = roleCheckAdmin.checked;
+            const taxi = roleCheckTaxiAdmin.checked;
+            const support = roleCheckSupport.checked;
+
+            confirmAssignPoortjieBtn.disabled = true;
+            confirmAssignPoortjieBtn.textContent = 'Saving...';
+
+            try {
+                if (!!matchedAssignPoortjieUser.roles?.poortjie?.isAdmin !== admin) {
+                    await userManager.togglePoortjieRole(uid, 'isAdmin', !admin);
+                }
+                if (!!matchedAssignPoortjieUser.roles?.poortjie?.isTaxiRankAdmin !== taxi) {
+                    await userManager.togglePoortjieRole(uid, 'isTaxiRankAdmin', !taxi);
+                }
+                if (!!matchedAssignPoortjieUser.roles?.poortjie?.listForSupport !== support) {
+                    await userManager.togglePoortjieRole(uid, 'listForSupport', !support);
+                }
+
+                assignPoortjieModal.classList.add('hidden');
+                setStatus(`Poortjie roles updated for ${matchedAssignPoortjieUser.displayName || matchedAssignPoortjieUser.email}.`);
+                renderActiveView();
+            } catch (err) {
+                console.error("Assign Poortjie roles failed:", err);
+                setStatus(`Failed to update roles: ${err.message}`, true);
+            } finally {
+                confirmAssignPoortjieBtn.disabled = false;
+                confirmAssignPoortjieBtn.textContent = 'Save Roles';
+            }
+        });
+
+        cancelAssignPoortjieBtn?.addEventListener('click', () => assignPoortjieModal.classList.add('hidden'));
+        closeAssignPoortjieBtn?.addEventListener('click', () => assignPoortjieModal.classList.add('hidden'));
+        assignPoortjieBackdrop?.addEventListener('click', () => assignPoortjieModal.classList.add('hidden'));
+
+        // Demote Reason Modal
+        confirmDemoteBtn?.addEventListener('click', async () => {
+            if (!demoteActionContext) return;
+            const reason = demoteReasonInput.value.trim() || 'Demoted by manager';
+            const ctx = demoteActionContext;
+            demoteReasonModal.classList.add('hidden');
+
+            setStatus("Updating role status...", false);
+            try {
+                if (ctx.type === 'layndriver') {
+                    await userManager.demoteLaynDriver(ctx.uid, reason);
+                    setStatus(`Demoted driver ${ctx.name} successfully.`);
+                } else if (ctx.type === 'assist_to_driver') {
+                    await userManager.demoteDogTowingUser(ctx.uid, 'DRIVER', reason);
+                    setStatus(`Demoted ${ctx.name} to Tow Driver.`);
+                } else if (ctx.type === 'assist_revoke') {
+                    await userManager.demoteDogTowingUser(ctx.uid, 'REVOKED', reason);
+                    setStatus(`Revoked LaynAssist access for ${ctx.name}.`);
+                }
+                await loadAppData(true);
+                renderActiveView();
+            } catch (err) {
+                console.error("Demote failed:", err);
+                setStatus(`Demote failed: ${err.message}`, true);
+            } finally {
+                demoteActionContext = null;
+            }
+        });
+
+        cancelDemoteBtn?.addEventListener('click', () => {
+            demoteReasonModal.classList.add('hidden');
+            demoteActionContext = null;
+        });
+        demoteReasonBackdrop?.addEventListener('click', () => {
+            demoteReasonModal.classList.add('hidden');
+            demoteActionContext = null;
+        });
+
+        // Event Listeners for search & filters
         const updateFilters = () => {
             userManager.setFilter('search', searchInput.value);
             userManager.setFilter('sortBy', sortSelect.value);
-            userManager.setFilter('emailDomain', emailDomainSelect.value);
-            userManager.setFilter('deletePending', deletePendingSelect.value);
-            userManager.setFilter('suspended', suspendedSelect.value);
-            userManager.setFilter('hasUsername', hasUsernameSelect.value);
-            userManager.setFilter('laynFleetDriver', laynFleetDriverSelect.value);
-            userManager.setFilter('dateStart', dateStart.value);
-            userManager.setFilter('dateEnd', dateEnd.value);
+            if (emailDomainSelect) userManager.setFilter('emailDomain', emailDomainSelect.value);
+            if (deletePendingSelect) userManager.setFilter('deletePending', deletePendingSelect.value);
+            if (suspendedSelect) userManager.setFilter('suspended', suspendedSelect.value);
+            if (hasUsernameSelect) userManager.setFilter('hasUsername', hasUsernameSelect.value);
+            if (dateStart) userManager.setFilter('dateStart', dateStart.value);
+            if (dateEnd) userManager.setFilter('dateEnd', dateEnd.value);
             
-            userManager.setFilter('poortjieAdmin', poortjieAdminSelect.value);
-            userManager.setFilter('poortjieTaxiAdmin', poortjieTaxiAdminSelect.value);
-            userManager.setFilter('poortjieSupport', poortjieSupportSelect.value);
-            userManager.setFilter('tuktukDriver', tuktukDriverSelect.value);
-            userManager.setFilter('tuktukOwner', tuktukOwnerSelect.value);
-            
-            renderUsers(userManager.applyFilters(userManager.users));
+            renderActiveView();
         };
 
         searchInput.addEventListener('input', updateFilters);
@@ -1939,21 +3452,17 @@
         deletePendingSelect.addEventListener('change', updateFilters);
         suspendedSelect.addEventListener('change', updateFilters);
         hasUsernameSelect.addEventListener('change', updateFilters);
-        laynFleetDriverSelect.addEventListener('change', updateFilters);
         dateStart.addEventListener('change', updateFilters);
         dateEnd.addEventListener('change', updateFilters);
-        
-        poortjieAdminSelect.addEventListener('change', updateFilters);
-        poortjieTaxiAdminSelect.addEventListener('change', updateFilters);
-        poortjieSupportSelect.addEventListener('change', updateFilters);
-        tuktukDriverSelect.addEventListener('change', updateFilters);
-        tuktukOwnerSelect.addEventListener('change', updateFilters);
 
         retryBtn.addEventListener('click', () => {
             errorState.classList.add('hidden');
             loadingState.classList.remove('hidden');
             userManager.init(
-                (filteredUsers) => renderUsers(filteredUsers),
+                async () => {
+                    await loadAppData();
+                    renderActiveView();
+                },
                 (error) => {
                     loadingState.classList.add('hidden');
                     errorState.classList.remove('hidden');

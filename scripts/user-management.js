@@ -1,5 +1,5 @@
 import { auth, functions, db } from "./firebase-config.js";
-import { doc, Timestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, Timestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
 
 export function getTimestampMs(ts) {
@@ -276,8 +276,306 @@ class UserManagement {
     return { success: true };
   }
 
+  async togglePoortjieRole(uid, roleKey, currentStatus) {
+    await updateDoc(doc(db, "users", uid), { [`roles.poortjie.${roleKey}`]: !currentStatus, updatedAt: Timestamp.now() });
+    await this.refresh();
+    return { success: true };
+  }
+
   async toggleLaynFleetDriver(uid, currentStatus) {
     await updateDoc(doc(db, "users", uid), { "applications.laynFleet.isDriver": !currentStatus, updatedAt: Timestamp.now() });
+    await this.refresh();
+    return { success: true };
+  }
+
+  findUserByEmail(email) {
+    const clean = String(email || "").trim().toLowerCase();
+    if (!clean) return null;
+    return this.users.find((u) => String(u.email || "").trim().toLowerCase() === clean) || null;
+  }
+
+  async fetchLaynFleetDrivers() {
+    const snapshot = await getDocs(collection(db, "laynfleet", "main", "drivers"));
+    const usersByUid = new Map(this.users.map((u) => [u.userId || u.uid, u]));
+
+    return snapshot.docs.map((docSnap) => {
+      const data = docSnap.data() || {};
+      const user = usersByUid.get(docSnap.id) || {};
+      return {
+        uid: docSnap.id,
+        approvalStatus: data.approvalStatus || "PENDING",
+        vehicle: data.vehicle || {},
+        ratingAvg: data.ratingAvg ?? null,
+        ratingCount: data.ratingCount ?? 0,
+        tripsCount: data.tripsCount ?? data.completedTripsCount ?? 0,
+        online: !!data.online,
+        busy: !!data.busy,
+        approvedAt: data.approvedAt || null,
+        approvedBy: data.approvedBy || "",
+        demotedAt: data.demotedAt || null,
+        demotedBy: data.demotedBy || "",
+        demoteReason: data.demoteReason || "",
+        testAccount: !!data.testAccount,
+        user: {
+          displayName: user.displayName || data.displayName || "Unknown Driver",
+          email: user.email || data.email || "",
+          phone: user.phone || data.phone || "",
+          photoUrl: user.photoUrl || data.photoUrl || "",
+          username: user.username || "",
+          suspended: !!user.suspended
+        },
+        raw: data
+      };
+    });
+  }
+
+  async fetchDogTowingDrivers() {
+    const snapshot = await getDocs(collection(db, "laynfleet", "dog-towing", "drivers"));
+    const usersByUid = new Map(this.users.map((u) => [u.userId || u.uid, u]));
+
+    return snapshot.docs.map((docSnap) => {
+      const data = docSnap.data() || {};
+      const user = usersByUid.get(docSnap.id) || {};
+      const rawRole = String(data.role || "DRIVER").toUpperCase();
+      const isOwner = rawRole === "OWNER";
+      const approvalStatus = data.approvalStatus || (isOwner ? "APPROVED" : "PENDING");
+      return {
+        uid: docSnap.id,
+        role: isOwner ? "OWNER" : "DRIVER",
+        approvalStatus,
+        isDriver: data.isDriver !== false,
+        addedBy: data.addedBy || "",
+        addedAt: data.addedAt || 0,
+        demotedAt: data.demotedAt || null,
+        demoteReason: data.demoteReason || "",
+        vehicle: data.vehicle || {},
+        user: {
+          displayName: user.displayName || data.displayName || "Unknown User",
+          email: user.email || data.email || "",
+          phone: user.phone || data.phone || "",
+          photoUrl: user.photoUrl || data.photoUrl || "",
+          username: user.username || "",
+          suspended: !!user.suspended
+        },
+        raw: data
+      };
+    });
+  }
+
+  async fetchLaynFleetRiders() {
+    const snapshot = await getDocs(collection(db, "laynfleet", "main", "riders"));
+    const usersByUid = new Map(this.users.map((u) => [u.userId || u.uid, u]));
+
+    return snapshot.docs.map((docSnap) => {
+      const data = docSnap.data() || {};
+      const user = usersByUid.get(docSnap.id) || {};
+      return {
+        uid: docSnap.id,
+        tripsCount: data.tripsCount ?? data.totalTrips ?? 0,
+        ratingAvg: data.ratingAvg ?? null,
+        ratingCount: data.ratingCount ?? 0,
+        joinedAt: data.joinedAt || user.createdAt || null,
+        user: {
+          displayName: user.displayName || data.displayName || "Rider",
+          email: user.email || data.email || "",
+          phone: user.phone || data.phone || "",
+          photoUrl: user.photoUrl || data.photoUrl || "",
+          username: user.username || "",
+          suspended: !!user.suspended
+        },
+        raw: data
+      };
+    });
+  }
+
+  async promoteLaynDriver(uid, vehicleData = {}) {
+    const batch = writeBatch(db);
+    const driverRef = doc(db, "laynfleet", "main", "drivers", uid);
+    const userRef = doc(db, "users", uid);
+    const managerEmail = auth.currentUser?.email || "usrmusa@gmail.com";
+
+    batch.set(driverRef, {
+      approvalStatus: "APPROVED",
+      approvedBy: managerEmail,
+      approvedAt: Timestamp.now(),
+      demoteReason: null,
+      demotedAt: null,
+      demotedBy: null,
+      updatedAt: Timestamp.now(),
+      vehicle: {
+        make: vehicleData.make || "",
+        model: vehicleData.model || "",
+        colour: vehicleData.colour || "",
+        plate: vehicleData.plate || "",
+        seats: vehicleData.seats || 4,
+        vehicleType: vehicleData.vehicleType || "standard"
+      }
+    }, { merge: true });
+
+    batch.set(userRef, {
+      applications: {
+        laynFleet: {
+          isDriver: true
+        }
+      },
+      updatedAt: Timestamp.now()
+    }, { merge: true });
+
+    await batch.commit();
+    await this.refresh();
+    return { success: true };
+  }
+
+  async demoteLaynDriver(uid, reason = "") {
+    const batch = writeBatch(db);
+    const driverRef = doc(db, "laynfleet", "main", "drivers", uid);
+    const userRef = doc(db, "users", uid);
+    const managerEmail = auth.currentUser?.email || "usrmusa@gmail.com";
+
+    batch.set(driverRef, {
+      approvalStatus: "DEMOTED",
+      online: false,
+      demoteReason: reason || "Demoted by manager",
+      demotedAt: Timestamp.now(),
+      demotedBy: managerEmail,
+      updatedAt: Timestamp.now()
+    }, { merge: true });
+
+    batch.set(userRef, {
+      applications: {
+        laynFleet: {
+          isDriver: false
+        }
+      },
+      updatedAt: Timestamp.now()
+    }, { merge: true });
+
+    await batch.commit();
+    await this.refresh();
+    return { success: true };
+  }
+
+  async reapproveLaynDriver(uid) {
+    return this.promoteLaynDriver(uid);
+  }
+
+  async promoteDogTowingUser(uid, role = "DRIVER", vehicleData = {}) {
+    const batch = writeBatch(db);
+    const driverRef = doc(db, "laynfleet", "dog-towing", "drivers", uid);
+    const userRef = doc(db, "users", uid);
+    const managerEmail = auth.currentUser?.email || "usrmusa@gmail.com";
+    const isOwner = role === "OWNER";
+
+    batch.set(driverRef, {
+      role: isOwner ? "OWNER" : "DRIVER",
+      approvalStatus: "APPROVED",
+      isDriver: true,
+      addedBy: managerEmail,
+      addedAt: Date.now(),
+      updatedAt: Timestamp.now(),
+      vehicle: {
+        make: vehicleData.make || "",
+        model: vehicleData.model || "",
+        plate: vehicleData.plate || ""
+      }
+    }, { merge: true });
+
+    batch.set(userRef, {
+      applications: {
+        laynAssist: {
+          role: isOwner ? "OWNER" : "DRIVER",
+          isDriver: true,
+          isOwner: isOwner,
+          approved: true
+        }
+      },
+      updatedAt: Timestamp.now()
+    }, { merge: true });
+
+    await batch.commit();
+    await this.refresh();
+    return { success: true };
+  }
+
+  async demoteDogTowingUser(uid, newRole = "DRIVER", reason = "") {
+    const batch = writeBatch(db);
+    const driverRef = doc(db, "laynfleet", "dog-towing", "drivers", uid);
+    const userRef = doc(db, "users", uid);
+    const managerEmail = auth.currentUser?.email || "usrmusa@gmail.com";
+
+    if (newRole === "DRIVER") {
+      batch.set(driverRef, {
+        role: "DRIVER",
+        demoteReason: reason || "Demoted from owner to driver",
+        demotedAt: Timestamp.now(),
+        demotedBy: managerEmail,
+        updatedAt: Timestamp.now()
+      }, { merge: true });
+
+      batch.set(userRef, {
+        applications: {
+          laynAssist: {
+            role: "DRIVER",
+            isOwner: false,
+            isDriver: true
+          }
+        },
+        updatedAt: Timestamp.now()
+      }, { merge: true });
+    } else {
+      batch.set(driverRef, {
+        approvalStatus: "REVOKED",
+        isDriver: false,
+        demoteReason: reason || "Access revoked by manager",
+        demotedAt: Timestamp.now(),
+        demotedBy: managerEmail,
+        updatedAt: Timestamp.now()
+      }, { merge: true });
+
+      batch.set(userRef, {
+        applications: {
+          laynAssist: {
+            approved: false,
+            isDriver: false
+          }
+        },
+        updatedAt: Timestamp.now()
+      }, { merge: true });
+    }
+
+    await batch.commit();
+    await this.refresh();
+    return { success: true };
+  }
+
+  async reapproveDogTowingDriver(uid) {
+    const batch = writeBatch(db);
+    const driverRef = doc(db, "laynfleet", "dog-towing", "drivers", uid);
+    const userRef = doc(db, "users", uid);
+    const managerEmail = auth.currentUser?.email || "usrmusa@gmail.com";
+
+    batch.set(driverRef, {
+      approvalStatus: "APPROVED",
+      isDriver: true,
+      approvedAt: Timestamp.now(),
+      approvedBy: managerEmail,
+      demoteReason: null,
+      demotedAt: null,
+      demotedBy: null,
+      updatedAt: Timestamp.now()
+    }, { merge: true });
+
+    batch.set(userRef, {
+      applications: {
+        laynAssist: {
+          isDriver: true,
+          approved: true
+        }
+      },
+      updatedAt: Timestamp.now()
+    }, { merge: true });
+
+    await batch.commit();
     await this.refresh();
     return { success: true };
   }
