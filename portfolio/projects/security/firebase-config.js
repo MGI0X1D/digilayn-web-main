@@ -40,5 +40,5 @@
   };
 
   // Provenance strings written by the apps at registration.
-  global.APP_PACKAGES = ['com.digilayn.laynrider', 'com.digilayn.layndriver'];
+  global.APP_PACKAGES = ['com.digilayn.laynrider', 'com.digilayn.layndriver', 'com.digilayn.laynassist'];
 })(window);

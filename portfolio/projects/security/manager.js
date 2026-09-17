@@ -3387,12 +3387,14 @@
   // ---------------------------------------------------------------------------
   const APP_NAMES = {
     'com.digilayn.laynrider': 'LaynRider (Rider App)',
-    'com.digilayn.layndriver': 'LaynDriver (Driver App)'
+    'com.digilayn.layndriver': 'LaynDriver (Driver App)',
+    'com.digilayn.laynassist': 'LaynAssist (Dog Towing)'
   };
 
   function renderAppControl() {
     const riderConfig = state.appConfig['com.digilayn.laynrider'] || {};
     const driverConfig = state.appConfig['com.digilayn.layndriver'] || {};
+    const assistConfig = state.appConfig['com.digilayn.laynassist'] || {};
 
     // 1. Update KPI overview cards
     const riderMaint = riderConfig.maintenanceMode === true;
@@ -3429,18 +3431,40 @@
       }
     }
 
+    const assistMaint = assistConfig.maintenanceMode === true;
+    const assistMinVer = Number(assistConfig.minVersionCode || 1);
+    const statAssistEl = $('stat-app-assist-status');
+    const statAssistDetailsEl = $('stat-app-assist-details');
+    if (statAssistEl && statAssistDetailsEl) {
+      if (assistMaint) {
+        statAssistEl.innerHTML = '<span class="status-pill status-demoted" style="font-size: 14px;">🚧 Maintenance Active</span>';
+        statAssistDetailsEl.textContent = assistConfig.maintenanceMessage || 'App entrance blocked';
+      } else if (assistMinVer > 1) {
+        statAssistEl.innerHTML = `<span class="status-pill status-approved" style="font-size: 14px;">Operational (Min v${assistMinVer})</span>`;
+        statAssistDetailsEl.textContent = 'Force upgrade policy active';
+      } else {
+        statAssistEl.innerHTML = '<span class="status-pill status-approved" style="font-size: 14px;">🟢 Operational</span>';
+        statAssistDetailsEl.textContent = 'Min v1 · Dedicated Devices';
+      }
+    }
+
     const statGlobalEl = $('stat-app-global-status');
     const statLastUpdatedEl = $('stat-app-last-updated');
     if (statGlobalEl && statLastUpdatedEl) {
-      if (riderMaint && driverMaint) {
+      const activeCount = [riderMaint, driverMaint, assistMaint].filter(Boolean).length;
+      if (activeCount === 3) {
         statGlobalEl.innerHTML = '<span style="color: var(--danger, #ef4444);">Full Fleet Locked</span>';
         statLastUpdatedEl.textContent = 'All apps in maintenance';
-      } else if (riderMaint || driverMaint) {
+      } else if (activeCount > 0) {
         statGlobalEl.innerHTML = '<span style="color: var(--warn, #f59e0b);">Partial Maintenance</span>';
-        statLastUpdatedEl.textContent = riderMaint ? 'Rider app locked' : 'Driver app locked';
+        const locked = [];
+        if (riderMaint) locked.push('Rider');
+        if (driverMaint) locked.push('Driver');
+        if (assistMaint) locked.push('Assist');
+        statLastUpdatedEl.textContent = `${locked.join(' & ')} locked`;
       } else {
         statGlobalEl.innerHTML = '<span style="color: var(--success, #22c55e);">All Systems Live</span>';
-        statLastUpdatedEl.textContent = 'Ready for bookings';
+        statLastUpdatedEl.textContent = 'Ready for rides & tows';
       }
     }
 
@@ -3455,11 +3479,16 @@
       driverBadge.textContent = driverMaint ? 'MAINTENANCE' : `v${driverMinVer}`;
       driverBadge.className = 'tab-badge-pill ' + (driverMaint ? 'pill-danger' : 'pill-success');
     }
+    const assistBadge = $('badge-tab-assist');
+    if (assistBadge) {
+      assistBadge.textContent = assistMaint ? 'MAINTENANCE' : `v${assistMinVer}`;
+      assistBadge.className = 'tab-badge-pill ' + (assistMaint ? 'pill-danger' : 'pill-success');
+    }
 
     // Sidebar badge
     const navBadge = $('nav-badge-appcontrol');
     if (navBadge) {
-      const hasActiveAlert = riderMaint || driverMaint;
+      const hasActiveAlert = riderMaint || driverMaint || assistMaint;
       navBadge.classList.toggle('is-hidden', !hasActiveAlert);
       if (hasActiveAlert) {
         navBadge.textContent = '!';
@@ -3487,8 +3516,7 @@
     hide(emergencyPanel);
 
     const config = state.appConfig[pkg] || {};
-    const isRider = pkg === 'com.digilayn.laynrider';
-    if ($('app-config-title')) $('app-config-title').textContent = isRider ? 'LaynRider Configuration' : 'LaynDriver Configuration';
+    if ($('app-config-title')) $('app-config-title').textContent = `${APP_NAMES[pkg] || pkg} Configuration`;
     if ($('app-config-pkg')) $('app-config-pkg').textContent = pkg;
 
     const maintChecked = config.maintenanceMode === true;
@@ -3672,7 +3700,7 @@ This applies immediately to all connected devices.`,
     const confirm = await openModal({
       title: enable ? 'EMERGENCY: Lock Entire Fleet?' : 'Restore Entire Fleet to Operational?',
       message: enable
-        ? 'WARNING: This will immediately enable Maintenance Mode on BOTH LaynRider and LaynDriver, blocking all user logins and ride requests.'
+        ? 'WARNING: This will immediately enable Maintenance Mode on LaynRider, LaynDriver, and LaynAssist, blocking all user logins, dispatches, and ride requests.'
         : 'This will clear Maintenance Mode across all LaynFleet applications and resume normal operations.',
       confirmText: enable ? 'LOCK ALL APPS' : 'RESTORE ALL APPS',
       confirmClass: enable ? 'btn-danger' : 'btn-primary'
@@ -3682,7 +3710,7 @@ This applies immediately to all connected devices.`,
 
     try {
       const batch = db.batch();
-      const packages = ['com.digilayn.laynrider', 'com.digilayn.layndriver'];
+      const packages = ['com.digilayn.laynrider', 'com.digilayn.layndriver', 'com.digilayn.laynassist'];
 
       packages.forEach((pkg) => {
         const ref = appConfigCol.doc(pkg);
