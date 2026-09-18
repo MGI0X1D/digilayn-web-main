@@ -20,7 +20,7 @@ class UserManagement {
     this.onUpdate = null;
     this.onError = null;
     this.filters = {
-      search: "", deletePending: "all", suspended: "all", hasUsername: "all",
+      search: "", suspensionReason: "all", suspended: "all", hasUsername: "all",
       laynFleetDriver: "all", poortjieAdmin: "all", poortjieTaxiAdmin: "all",
       poortjieSupport: "all", tuktukDriver: "all", tuktukOwner: "all",
       emailDomain: "all", integrity: "all",
@@ -85,7 +85,6 @@ class UserManagement {
       photoUrl: authData?.photoUrl || source.photoUrl || storageObjects.find((item) => String(item.contentType).startsWith("image/"))?.downloadUrl || "",
       suspended: !!source.suspended,
       suspendedReason: source.suspendedReason || "",
-      deletePending: !!source.deletePending,
       applications: source.applications || {}, roles: source.roles || {}, devices: source.devices || {},
       registeredWith: source.registeredWith || "",
       createdAt: authData?.createdAt || source.createdAt || null,
@@ -106,7 +105,7 @@ class UserManagement {
     let filtered = [...users];
     if (this.filters.search) {
       const search = this.filters.search.toLowerCase().trim();
-      filtered = filtered.filter((user) => [user.displayName, user.username, user.email, user.phone, user.userId, user.integrity]
+      filtered = filtered.filter((user) => [user.displayName, user.username, user.email, user.phone, user.userId, user.integrity, user.suspendedReason]
         .some((value) => String(value || "").toLowerCase().includes(search)));
     }
     const booleanFilter = (key, getter) => {
@@ -115,8 +114,22 @@ class UserManagement {
         filtered = filtered.filter((user) => !!getter(user) === expected);
       }
     };
-    booleanFilter("deletePending", (user) => user.deletePending);
     booleanFilter("suspended", (user) => user.suspended);
+    if (this.filters.suspensionReason && this.filters.suspensionReason !== "all") {
+      if (this.filters.suspensionReason === "pending-delete") {
+        filtered = filtered.filter((user) => user.suspended && String(user.suspendedReason || "").trim().toLowerCase() === "pending delete");
+      } else if (this.filters.suspensionReason === "terms-violation") {
+        filtered = filtered.filter((user) => user.suspended && String(user.suspendedReason || "").toLowerCase().includes("violation"));
+      } else if (this.filters.suspensionReason === "suspicious-activity") {
+        filtered = filtered.filter((user) => user.suspended && (String(user.suspendedReason || "").toLowerCase().includes("suspicious") || String(user.suspendedReason || "").toLowerCase().includes("fraud")));
+      } else if (this.filters.suspensionReason === "other") {
+        filtered = filtered.filter((user) => {
+          if (!user.suspended) return false;
+          const r = String(user.suspendedReason || "").trim().toLowerCase();
+          return r !== "pending delete" && !r.includes("violation") && !r.includes("suspicious") && !r.includes("fraud");
+        });
+      }
+    }
     booleanFilter("hasUsername", (user) => user.username);
     booleanFilter("laynFleetDriver", (user) => user.applications?.laynFleet?.isDriver);
     booleanFilter("poortjieAdmin", (user) => user.roles?.poortjie?.isAdmin);
@@ -267,10 +280,15 @@ class UserManagement {
     return results;
   }
 
-  async toggleUserSuspension(uid, isSuspended) {
-    await updateDoc(doc(db, "users", uid), { suspended: !isSuspended, updatedAt: Timestamp.now() });
+  async toggleUserSuspension(uid, isSuspended, reason = "") {
+    const updateData = {
+      suspended: !isSuspended,
+      suspendedReason: !isSuspended ? (String(reason || "").trim() || "Suspended by manager") : "",
+      updatedAt: Timestamp.now()
+    };
+    await updateDoc(doc(db, "users", uid), updateData);
     await this.refresh();
-    return { success: true, suspended: !isSuspended };
+    return { success: true, suspended: !isSuspended, suspendedReason: updateData.suspendedReason };
   }
 
   async toggleUserRole(uid, rolePath, currentStatus) {
@@ -325,7 +343,10 @@ class UserManagement {
           phone: user.phone || data.phone || "",
           photoUrl: user.photoUrl || data.photoUrl || "",
           username: user.username || "",
-          suspended: !!user.suspended
+          suspended: !!user.suspended,
+          suspendedReason: user.suspendedReason || data.suspendedReason || "",
+          updatedAt: user.updatedAt || data.updatedAt || null,
+          createdAt: user.createdAt || data.createdAt || null
         },
         raw: data
       };
@@ -358,7 +379,10 @@ class UserManagement {
           phone: user.phone || data.phone || "",
           photoUrl: user.photoUrl || data.photoUrl || "",
           username: user.username || "",
-          suspended: !!user.suspended
+          suspended: !!user.suspended,
+          suspendedReason: user.suspendedReason || data.suspendedReason || "",
+          updatedAt: user.updatedAt || data.updatedAt || null,
+          createdAt: user.createdAt || data.createdAt || null
         },
         raw: data
       };
@@ -384,7 +408,10 @@ class UserManagement {
           phone: user.phone || data.phone || "",
           photoUrl: user.photoUrl || data.photoUrl || "",
           username: user.username || "",
-          suspended: !!user.suspended
+          suspended: !!user.suspended,
+          suspendedReason: user.suspendedReason || data.suspendedReason || "",
+          updatedAt: user.updatedAt || data.updatedAt || null,
+          createdAt: user.createdAt || data.createdAt || null
         },
         raw: data
       };

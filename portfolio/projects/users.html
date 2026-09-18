@@ -178,16 +178,6 @@
                     </select>
                 </div>
 
-                <!-- Delete Pending -->
-                <div class="all-users-filter-group">
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Delete Pending</label>
-                    <select id="deletePendingSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
-                        <option value="all">All</option>
-                        <option value="true">Pending Only</option>
-                        <option value="false">Not Pending</option>
-                    </select>
-                </div>
-
                 <!-- Suspended -->
                 <div class="all-users-filter-group">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Suspended</label>
@@ -195,6 +185,18 @@
                         <option value="all">All</option>
                         <option value="true">Suspended Only</option>
                         <option value="false">Not Suspended</option>
+                    </select>
+                </div>
+
+                <!-- Suspension Reason -->
+                <div class="all-users-filter-group">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Suspension Reason</label>
+                    <select id="suspensionReasonSelect" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="all">All Reasons</option>
+                        <option value="pending-delete">Pending delete</option>
+                        <option value="terms-violation">Violation of Terms</option>
+                        <option value="suspicious-activity">Suspicious Activity</option>
+                        <option value="other">Other / Custom</option>
                     </select>
                 </div>
 
@@ -661,6 +663,32 @@
                         <span class="text-slate-500">Email:</span>
                         <span id="suspendModalEmail" class="font-semibold"></span>
                     </div>
+                    <div id="suspendCurrentReasonRow" class="flex justify-between hidden text-amber-600 dark:text-amber-400 pt-1 border-t border-slate-200 dark:border-slate-700">
+                        <span class="text-slate-500">Current Reason:</span>
+                        <span id="suspendModalCurrentReason" class="font-semibold italic truncate max-w-[240px]"></span>
+                    </div>
+                </div>
+
+                <div id="suspendReasonGroup" class="mb-5">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                        Suspension Reason <span class="text-amber-500">*</span>
+                    </label>
+                    <div class="flex flex-wrap gap-1.5 mb-2.5">
+                        <button type="button" class="suspend-preset-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 hover:text-amber-700 dark:hover:bg-amber-900/40 dark:hover:text-amber-300 transition-colors" data-reason="Pending delete">
+                            🗑️ Pending delete
+                        </button>
+                        <button type="button" class="suspend-preset-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 hover:text-amber-700 dark:hover:bg-amber-900/40 dark:hover:text-amber-300 transition-colors" data-reason="Violation of Terms of Service">
+                            ⚠️ Terms Violation
+                        </button>
+                        <button type="button" class="suspend-preset-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 hover:text-amber-700 dark:hover:bg-amber-900/40 dark:hover:text-amber-300 transition-colors" data-reason="Suspicious Activity / Fraud Alert">
+                            🛡️ Suspicious Activity
+                        </button>
+                        <button type="button" class="suspend-preset-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 hover:text-amber-700 dark:hover:bg-amber-900/40 dark:hover:text-amber-300 transition-colors" data-reason="Support Complaint / Disciplinary">
+                            📋 Support Complaint
+                        </button>
+                    </div>
+                    <input type="text" id="suspendReasonInput" placeholder="Select preset above or type a custom reason..."
+                        class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 rounded-xl outline-none text-sm transition-all">
                 </div>
 
                 <div class="mb-6">
@@ -1005,7 +1033,7 @@
     </script>
     <script type="module">
         import { initAdminAuth, loginAdmin, logoutAdmin } from "../../scripts/admin-auth.js";
-        import { userManager } from "../../scripts/user-management.js";
+        import { userManager, getTimestampMs } from "../../scripts/user-management.js";
 
         const initialPageLoader = document.getElementById('initialPageLoader');
         const usersList = document.getElementById('usersList');
@@ -1019,8 +1047,8 @@
         const sortSelect = document.getElementById('sortSelect');
         const emailDomainSelect = document.getElementById('emailDomainSelect');
         const integritySelect = document.getElementById('integritySelect');
-        const deletePendingSelect = document.getElementById('deletePendingSelect');
         const suspendedSelect = document.getElementById('suspendedSelect');
+        const suspensionReasonSelect = document.getElementById('suspensionReasonSelect');
         const hasUsernameSelect = document.getElementById('hasUsernameSelect');
         const dateStart = document.getElementById('dateStart');
         const dateEnd = document.getElementById('dateEnd');
@@ -1187,6 +1215,10 @@
         const confirmSuspendBtn = document.getElementById('confirmSuspendBtn');
         const cancelSuspendBtn = document.getElementById('cancelSuspendBtn');
         const suspendModalIcon = document.getElementById('suspendModalIcon');
+        const suspendReasonGroup = document.getElementById('suspendReasonGroup');
+        const suspendReasonInput = document.getElementById('suspendReasonInput');
+        const suspendCurrentReasonRow = document.getElementById('suspendCurrentReasonRow');
+        const suspendModalCurrentReason = document.getElementById('suspendModalCurrentReason');
 
         // Image Viewer elements
         const imageViewerModal = document.getElementById('imageViewerModal');
@@ -1242,6 +1274,62 @@
             if (typeof ts === 'number') return new Date(ts).toLocaleString();
             const parsed = new Date(ts);
             return isNaN(parsed.getTime()) ? 'N/A' : parsed.toLocaleString();
+        }
+
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        const RETENTION_WINDOW_MS = 30 * 24 * 60 * 60 * 1000; // 30 days retention window
+
+        function getSuspensionInfo(user) {
+            const isSuspended = !!(user.suspended || user.user?.suspended);
+            const rawReason = (user.suspendedReason || user.user?.suspendedReason || '').trim();
+            const isPendingDelete = isSuspended && rawReason.toLowerCase() === 'pending delete';
+
+            if (!isSuspended) return { isSuspended: false, isPendingDelete: false, badgeHtml: '' };
+
+            if (!isPendingDelete) {
+                return {
+                    isSuspended: true,
+                    isPendingDelete: false,
+                    reason: rawReason,
+                    badgeHtml: `<span class="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800 text-[10px] font-bold uppercase rounded-lg inline-flex items-center gap-1.5" title="${escapeHtml(rawReason || 'Suspended by management')}"><i class="fas fa-user-slash text-amber-600 dark:text-amber-400"></i><span>Suspended${rawReason ? `: ${escapeHtml(rawReason)}` : ''}</span></span>`
+                };
+            }
+
+            const updatedAt = user.updatedAt || user.user?.updatedAt;
+            const createdAt = user.createdAt || user.user?.createdAt;
+            const baseTime = getTimestampMs(updatedAt) || getTimestampMs(createdAt) || Date.now();
+            const targetMs = baseTime + RETENTION_WINDOW_MS;
+            const msRemaining = targetMs - Date.now();
+            const daysRemaining = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)));
+            const isExpired = msRemaining <= 0;
+            const targetDateStr = new Date(targetMs).toLocaleDateString();
+
+            let badgeHtml = '';
+            if (isExpired) {
+                badgeHtml = `<span class="px-2.5 py-1 bg-red-600 text-white text-[10px] font-extrabold uppercase rounded-lg shadow-sm inline-flex items-center gap-1.5 animate-pulse" title="30-day retention expired on ${targetDateStr}. Ready for permanent deletion."><i class="fas fa-exclamation-triangle"></i><span>⚠️ Deletion Overdue — Purge Ready</span></span>`;
+            } else {
+                badgeHtml = `<span class="px-2.5 py-1 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800 text-[10px] font-bold uppercase rounded-lg inline-flex items-center gap-1.5" title="User requested deletion. Scheduled for permanent deletion on ${targetDateStr}"><i class="fas fa-hourglass-half text-red-500"></i><span>🗑️ Delete in ${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'}</span></span>`;
+            }
+
+            return {
+                isSuspended: true,
+                isPendingDelete: true,
+                reason: rawReason,
+                daysRemaining,
+                isExpired,
+                targetMs,
+                targetDateStr,
+                badgeHtml
+            };
         }
 
         function renderOrphans(inventory = {}) {
@@ -2022,8 +2110,13 @@
                 const card = document.createElement('div');
                 card.className = "bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-between";
                 
-                if (user.deletePending) {
-                    card.classList.add('border-red-500/50', 'bg-red-50/10');
+                const susp = getSuspensionInfo(user);
+                if (susp.isPendingDelete) {
+                    if (susp.isExpired) {
+                        card.classList.add('border-red-500', 'ring-2', 'ring-red-500/40', 'bg-red-50/20', 'dark:bg-red-950/20');
+                    } else {
+                        card.classList.add('border-red-400/80', 'dark:border-red-500/60', 'bg-red-50/10', 'dark:bg-red-950/10');
+                    }
                 }
 
                 const photoHtml = user.photoUrl 
@@ -2063,7 +2156,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
-                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" data-suspended="${user.suspended}" title="${user.suspended ? 'Unsuspend' : 'Suspend'}">
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" data-suspended="${user.suspended}" data-suspendedreason="${escapeHtml(user.suspendedReason || '')}" title="${user.suspended ? 'Unsuspend' : 'Suspend'}">
                                     <i class="fas ${user.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
                                 </button>
                                 <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors p-1.5" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" title="Permanently Delete">
@@ -2081,13 +2174,24 @@
                                 <i class="fas fa-phone w-4"></i>
                                 <span>${user.phone || 'No Phone'}</span>
                             </div>
-                            <div class="pt-2 flex flex-wrap gap-1.5">
-                                ${user.deletePending ? '<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase rounded">Delete Pending</span>' : ''}
-                                ${user.suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase rounded">Suspended</span>' : ''}
+                            <div class="pt-2 flex flex-wrap items-center gap-1.5">
+                                ${susp.badgeHtml || ''}
                                 ${user.integrity !== 'complete' ? `<span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 text-[10px] font-bold uppercase rounded">${user.integrity}</span>` : '<span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 text-[10px] font-bold uppercase rounded">Auth + Firestore</span>'}
                                 <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold rounded">${user.storageObjects.length} files</span>
                                 <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold rounded">${user.providers.join(', ') || 'Password'}</span>
                             </div>
+
+                            ${susp.isPendingDelete && susp.isExpired ? `
+                                <div class="mt-3 p-2.5 bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-800 rounded-xl flex items-center justify-between gap-2">
+                                    <div class="text-[11px] font-semibold text-red-800 dark:text-red-200 flex items-center gap-1.5">
+                                        <i class="fas fa-clock text-red-600"></i>
+                                        <span>Grace period ended. Ready to permanently purge.</span>
+                                    </div>
+                                    <button class="purge-now-btn px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shrink-0 shadow-sm" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}">
+                                        Delete Now
+                                    </button>
+                                </div>
+                            ` : ''}
 
                             <!-- App Affiliation & Access -->
                             <div class="pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
@@ -2118,6 +2222,16 @@
                     });
                 });
 
+                card.querySelector('.purge-now-btn')?.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    showDeleteModal({
+                        uid: btn.dataset.uid,
+                        username: btn.dataset.username,
+                        email: btn.dataset.email,
+                        displayName: btn.dataset.displayname
+                    });
+                });
+
                 card.querySelector('.suspend-btn')?.addEventListener('click', (e) => {
                     const btn = e.currentTarget;
                     showSuspendModal({
@@ -2125,7 +2239,8 @@
                         username: btn.dataset.username,
                         email: btn.dataset.email,
                         displayName: btn.dataset.displayname,
-                        isSuspended: btn.dataset.suspended === 'true'
+                        isSuspended: btn.dataset.suspended === 'true',
+                        suspendedReason: btn.dataset.suspendedreason || ''
                     });
                 });
 
@@ -2194,7 +2309,7 @@
                             </div>
                             <div class="flex items-center gap-1.5 shrink-0">
                                 ${onlinePill}
-                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${driver.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" title="${u.suspended ? 'Unsuspend' : 'Suspend'}">
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${driver.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" data-suspendedreason="${escapeHtml(u.suspendedReason || '')}" title="${u.suspended ? 'Unsuspend' : 'Suspend'}">
                                     <i class="fas ${u.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
                                 </button>
                             </div>
@@ -2212,7 +2327,7 @@
 
                             <div class="pt-2 flex flex-wrap items-center gap-1.5">
                                 ${statusBadge}
-                                ${u.suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase rounded">Suspended</span>' : ''}
+                                ${getSuspensionInfo({ suspended: u.suspended, suspendedReason: u.suspendedReason, updatedAt: u.updatedAt, createdAt: u.createdAt || driver.createdAt }).badgeHtml || ''}
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${driver.tripsCount || 0} rides</span>
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-amber-600">${driver.ratingAvg ? `⭐ ${Number(driver.ratingAvg).toFixed(1)} (${driver.ratingCount || 0})` : '⭐ New'}</span>
                             </div>
@@ -2270,7 +2385,8 @@
                         username: btn.dataset.username,
                         email: btn.dataset.email,
                         displayName: btn.dataset.displayname,
-                        isSuspended: btn.dataset.suspended === 'true'
+                        isSuspended: btn.dataset.suspended === 'true',
+                        suspendedReason: btn.dataset.suspendedreason || ''
                     });
                 });
 
@@ -2357,7 +2473,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5 shrink-0">
-                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${driver.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" title="${u.suspended ? 'Unsuspend' : 'Suspend'}">
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${driver.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" data-suspendedreason="${escapeHtml(u.suspendedReason || '')}" title="${u.suspended ? 'Unsuspend' : 'Suspend'}">
                                     <i class="fas ${u.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
                                 </button>
                             </div>
@@ -2368,6 +2484,11 @@
                                 ${rolePill}
                                 ${statusPill}
                             </div>
+                            ${u.suspended ? `
+                                <div class="pb-1">
+                                    ${getSuspensionInfo({ suspended: u.suspended, suspendedReason: u.suspendedReason, updatedAt: u.updatedAt, createdAt: u.createdAt || driver.addedAt }).badgeHtml || ''}
+                                </div>
+                            ` : ''}
 
                             <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                                 <i class="far fa-envelope w-4"></i>
@@ -2447,7 +2568,8 @@
                         username: btn.dataset.username,
                         email: btn.dataset.email,
                         displayName: btn.dataset.displayname,
-                        isSuspended: btn.dataset.suspended === 'true'
+                        isSuspended: btn.dataset.suspended === 'true',
+                        suspendedReason: btn.dataset.suspendedreason || ''
                     });
                 });
 
@@ -2547,7 +2669,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5 shrink-0">
-                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${rider.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" title="${u.suspended ? 'Unsuspend' : 'Suspend'}">
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${rider.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" data-suspendedreason="${escapeHtml(u.suspendedReason || '')}" title="${u.suspended ? 'Unsuspend' : 'Suspend'}">
                                     <i class="fas ${u.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
                                 </button>
                             </div>
@@ -2566,7 +2688,7 @@
                             <div class="pt-2 flex flex-wrap items-center gap-1.5">
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">${rider.tripsCount || 0} rides completed</span>
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-amber-600">${rider.ratingAvg ? `⭐ ${Number(rider.ratingAvg).toFixed(1)} (${rider.ratingCount || 0})` : '⭐ New Passenger'}</span>
-                                ${u.suspended ? '<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 text-[10px] font-bold uppercase rounded">Suspended</span>' : ''}
+                                ${getSuspensionInfo({ suspended: u.suspended, suspendedReason: u.suspendedReason, updatedAt: u.updatedAt, createdAt: u.createdAt || rider.joinedAt }).badgeHtml || ''}
                             </div>
 
                             <div class="pt-2 text-[10px] text-slate-400">
@@ -2580,7 +2702,7 @@
                             <i class="far fa-copy text-[10px]"></i>
                             <span class="truncate">UID: ${rider.uid}</span>
                         </button>
-                        <button class="suspend-btn px-3 py-1.5 rounded-xl font-bold transition text-xs ${u.suspended ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'}" data-uid="${rider.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}">
+                        <button class="suspend-btn px-3 py-1.5 rounded-xl font-bold transition text-xs ${u.suspended ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'}" data-uid="${rider.uid}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-displayname="${u.displayName || ''}" data-suspended="${u.suspended}" data-suspendedreason="${escapeHtml(u.suspendedReason || '')}">
                             ${u.suspended ? 'Unsuspend' : 'Suspend Account'}
                         </button>
                     </div>
@@ -2598,7 +2720,8 @@
                             username: b.dataset.username,
                             email: b.dataset.email,
                             displayName: b.dataset.displayname,
-                            isSuspended: b.dataset.suspended === 'true'
+                            isSuspended: b.dataset.suspended === 'true',
+                            suspendedReason: b.dataset.suspendedreason || ''
                         });
                     });
                 });
@@ -2649,7 +2772,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
-                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" data-suspended="${user.suspended}" title="${user.suspended ? 'Unsuspend' : 'Suspend'}">
+                                <button class="suspend-btn text-slate-400 hover:text-amber-500 transition-colors p-1.5" data-uid="${user.userId}" data-username="${user.username || ''}" data-email="${user.email || ''}" data-displayname="${user.displayName || ''}" data-suspended="${user.suspended}" data-suspendedreason="${escapeHtml(user.suspendedReason || '')}" title="${user.suspended ? 'Unsuspend' : 'Suspend'}">
                                     <i class="fas ${user.suspended ? 'fa-user-check text-amber-500' : 'fa-user-slash'}"></i>
                                 </button>
                             </div>
@@ -2664,6 +2787,11 @@
                                 <i class="fas fa-phone w-4"></i>
                                 <span>${user.phone || 'No Phone'}</span>
                             </div>
+                            ${user.suspended ? `
+                                <div class="pt-1">
+                                    ${getSuspensionInfo(user).badgeHtml || ''}
+                                </div>
+                            ` : ''}
 
                             <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
                                 <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2">Assign / Revoke Roles</p>
@@ -2705,7 +2833,8 @@
                         username: btn.dataset.username,
                         email: btn.dataset.email,
                         displayName: btn.dataset.displayname,
-                        isSuspended: btn.dataset.suspended === 'true'
+                        isSuspended: btn.dataset.suspended === 'true',
+                        suspendedReason: btn.dataset.suspendedreason || ''
                     });
                 });
 
@@ -2865,6 +2994,20 @@
             
             suspendConfirmInput.value = '';
             confirmSuspendBtn.disabled = true;
+
+            // Handle reason inputs & presets
+            if (isSuspended) {
+                suspendReasonGroup?.classList.add('hidden');
+                if (suspendCurrentReasonRow) {
+                    suspendModalCurrentReason.textContent = user.suspendedReason || 'None specified';
+                    suspendCurrentReasonRow.classList.remove('hidden');
+                }
+            } else {
+                suspendCurrentReasonRow?.classList.add('hidden');
+                suspendReasonGroup?.classList.remove('hidden');
+                if (suspendReasonInput) suspendReasonInput.value = '';
+                document.querySelectorAll('.suspend-preset-btn').forEach(b => b.classList.remove('bg-amber-500', 'text-white', 'ring-2', 'ring-amber-500/40'));
+            }
             
             suspendModal.classList.remove('hidden');
             
@@ -2885,15 +3028,19 @@
                 suspendCountdownText.textContent = `Please read carefully. You can proceed in ${suspendCountdown} seconds.`;
                 suspendCountdownText.className = "text-sm font-medium text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 py-2 rounded-lg";
             } else {
-                suspendCountdownText.textContent = "Please confirm the email below.";
+                suspendCountdownText.textContent = userToSuspend?.isSuspended 
+                    ? "Confirm the email below to restore access." 
+                    : "Select or enter a reason, then confirm email below.";
                 suspendCountdownText.className = "text-sm font-bold text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-900/20 py-2 rounded-lg";
             }
             checkSuspendConfirmation();
         }
 
         function checkSuspendConfirmation() {
+            const isSuspension = !userToSuspend?.isSuspended;
+            const reasonFilled = isSuspension ? ((suspendReasonInput?.value || '').trim().length > 0) : true;
             const emailMatch = suspendConfirmInput.value.trim().toLowerCase() === (userToSuspend?.email || '').toLowerCase();
-            if (suspendCountdown <= 0 && emailMatch) {
+            if (suspendCountdown <= 0 && emailMatch && reasonFilled) {
                 confirmSuspendBtn.disabled = false;
                 confirmSuspendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
@@ -2904,15 +3051,40 @@
 
         suspendConfirmInput.addEventListener('input', checkSuspendConfirmation);
 
+        document.querySelectorAll('.suspend-preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.suspend-preset-btn').forEach(b => b.classList.remove('bg-amber-500', 'text-white', 'ring-2', 'ring-amber-500/40'));
+                btn.classList.add('bg-amber-500', 'text-white', 'ring-2', 'ring-amber-500/40');
+                if (suspendReasonInput) {
+                    suspendReasonInput.value = btn.dataset.reason || '';
+                    checkSuspendConfirmation();
+                }
+            });
+        });
+
+        suspendReasonInput?.addEventListener('input', () => {
+            document.querySelectorAll('.suspend-preset-btn').forEach(b => {
+                if (b.dataset.reason === suspendReasonInput.value.trim()) {
+                    b.classList.add('bg-amber-500', 'text-white', 'ring-2', 'ring-amber-500/40');
+                } else {
+                    b.classList.remove('bg-amber-500', 'text-white', 'ring-2', 'ring-amber-500/40');
+                }
+            });
+            checkSuspendConfirmation();
+        });
+
         cancelSuspendBtn.addEventListener('click', () => {
             suspendModal.classList.add('hidden');
             clearInterval(suspendCountdownTimer);
+            if (suspendReasonInput) suspendReasonInput.value = '';
+            document.querySelectorAll('.suspend-preset-btn').forEach(b => b.classList.remove('bg-amber-500', 'text-white', 'ring-2', 'ring-amber-500/40'));
             userToSuspend = null;
         });
 
         confirmSuspendBtn.addEventListener('click', async () => {
             const uid = userToSuspend.uid;
             const isCurrentlySuspended = userToSuspend.isSuspended;
+            const reason = isCurrentlySuspended ? '' : (suspendReasonInput?.value?.trim() || 'Suspended by manager');
             
             suspendModal.classList.add('hidden');
             clearInterval(suspendCountdownTimer);
@@ -2920,7 +3092,7 @@
             setStatus(`${isCurrentlySuspended ? 'Unsuspending' : 'Suspending'} user...`, false);
 
             try {
-                const result = await userManager.toggleUserSuspension(uid, isCurrentlySuspended);
+                const result = await userManager.toggleUserSuspension(uid, isCurrentlySuspended, reason);
                 if (result.success) {
                     setStatus(`User ${uid} ${result.suspended ? 'suspended' : 'unsuspended'} successfully.`);
                     await loadAppData(true);
@@ -3613,8 +3785,8 @@
             userManager.setFilter('sortBy', sortSelect.value);
             if (emailDomainSelect) userManager.setFilter('emailDomain', emailDomainSelect.value);
             if (integritySelect) userManager.setFilter('integrity', integritySelect.value);
-            if (deletePendingSelect) userManager.setFilter('deletePending', deletePendingSelect.value);
             if (suspendedSelect) userManager.setFilter('suspended', suspendedSelect.value);
+            if (suspensionReasonSelect) userManager.setFilter('suspensionReason', suspensionReasonSelect.value);
             if (hasUsernameSelect) userManager.setFilter('hasUsername', hasUsernameSelect.value);
             if (dateStart) userManager.setFilter('dateStart', dateStart.value);
             if (dateEnd) userManager.setFilter('dateEnd', dateEnd.value);
@@ -3626,8 +3798,8 @@
         sortSelect.addEventListener('change', updateFilters);
         emailDomainSelect.addEventListener('change', updateFilters);
         if (integritySelect) integritySelect.addEventListener('change', updateFilters);
-        deletePendingSelect.addEventListener('change', updateFilters);
-        suspendedSelect.addEventListener('change', updateFilters);
+        if (suspendedSelect) suspendedSelect.addEventListener('change', updateFilters);
+        if (suspensionReasonSelect) suspensionReasonSelect.addEventListener('change', updateFilters);
         hasUsernameSelect.addEventListener('change', updateFilters);
         dateStart.addEventListener('change', updateFilters);
         dateEnd.addEventListener('change', updateFilters);
