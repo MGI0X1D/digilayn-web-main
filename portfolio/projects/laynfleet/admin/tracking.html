@@ -24,7 +24,7 @@
     <!-- ===================== TOP MISSION CONTROL HEADER ===================== -->
     <header class="tracker-header">
       <div class="flex items-center gap-4">
-        <a href="../../../../index.html" class="header-brand">
+        <a href="index.html" class="header-brand" title="Return to LaynFleet Overview">
           <div class="brand-icon-wrap">
             <span>LF</span>
             <span class="brand-ping-dot"></span>
@@ -65,8 +65,12 @@
 
       <!-- Right Header Actions -->
       <div class="header-actions">
-        <a href="index.html" class="btn-header" title="Return to LaynFleet Manager Console">
-          <span>⚙️</span> <span>Manager</span>
+        <a href="index.html" class="btn-header" title="Return to LaynFleet Overview">
+          <span>▦</span> <span>Overview</span>
+        </a>
+
+        <a href="index.html#drivers" class="btn-header" title="View Fleet Drivers Console">
+          <span>🚗</span> <span>Drivers</span>
         </a>
 
         <a href="../../../../portfolio.html" class="btn-header" title="Digilayn Portfolio">
@@ -285,7 +289,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <!-- Firebase Project Configuration -->
-  <script src="../../security/firebase-config.js"></script>
+  <script src="firebase-config.js"></script>
 
   <!-- Live Tracking Controller & Telemetry Engine -->
   <script src="tracking.js"></script>
