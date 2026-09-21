@@ -1,5 +1,5 @@
 /**
- * live-tracking.js — Live Driver Location Monitoring Operations Center
+ * tracking.js — Live Driver Location Monitoring Operations Center
  * Digilayn / LaynFleet Fleet Telemetry & Live Map System
  * 
  * 100% REAL DATA ONLY:
@@ -15,15 +15,7 @@
   // ---------------------------------------------------------------------------
   // Configuration & Defaults
   // ---------------------------------------------------------------------------
-  const FIREBASE_CONFIG = global.LAYNFLEET_FIREBASE_CONFIG || {
-    apiKey: 'AIzaSyANCpYHeLyWkgVtWL06xpI7XsP08xu9GPA',
-    authDomain: 'digilayn-projects.firebaseapp.com',
-    projectId: 'digilayn-projects',
-    storageBucket: 'digilayn-projects.firebasestorage.app',
-    messagingSenderId: '95485356681',
-    appId: '1:95485356681:web:3cf619a266961009e17458',
-    measurementId: 'G-27H9WZSCGQ'
-  };
+  const firebaseConfig = global.LAYNFLEET_FIREBASE_CONFIG;
 
   // Default initial camera center (South Africa / Gauteng / Poortjie region)
   const DEFAULT_MAP_CENTER = [-26.4385, 27.8542];
@@ -48,15 +40,15 @@
     selectedDriverId: null,
     isFollowMode: false,
     soundEnabled: true,
-    activeTileStyle: 'dark'
+    activeMapStyle: 'dark'
   };
 
   // Map & Layers State
   let map = null;
-  let currentTileLayer = null;
-  const markerLayers = new Map(); // uid -> L.marker
-  const routeLayers = new Map(); // uid -> L.layerGroup
-  const breadcrumbHistory = new Map(); // uid -> array of [lat, lng]
+  let infoWindow = null;
+  const markerLayers = new Map(); // uid -> google.maps.Marker
+  const routeLayers = new Map(); // uid -> Google Maps overlays
+  const breadcrumbHistory = new Map(); // uid -> recent Google Maps positions
 
   // Firebase instances
   let db = null;
@@ -64,51 +56,16 @@
   let unsubFirestore = [];
 
   // ---------------------------------------------------------------------------
-  // Tile Layer Definitions
+  // Google Maps styles
   // ---------------------------------------------------------------------------
-  const TILE_PROVIDERS = {
-    dark: {
-      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-      options: {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
-      }
-    },
-    light: {
-      url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-      options: {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
-      }
-    },
-    voyager: {
-      url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      options: {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
-      }
-    },
-    satellite: {
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      options: {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-        maxZoom: 19
-      }
-    }
-  };
-
-  // ---------------------------------------------------------------------------
-  // Clean Crisp Vehicle Icons (SVG paths)
-  // ---------------------------------------------------------------------------
-  const VEHICLE_SVGS = {
-    sedan: `<svg viewBox="0 0 24 24" class="marker-icon-svg"><path fill="currentColor" d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/><circle fill="currentColor" cx="7.5" cy="14.5" r="1.5"/><circle fill="currentColor" cx="16.5" cy="14.5" r="1.5"/></svg>`,
-    suv: `<svg viewBox="0 0 24 24" class="marker-icon-svg"><path fill="currentColor" d="M19 8l-2-4H7L5 8H3v8h2v2h2v-2h10v2h2v-2h2V8h-2zm-12-2h10l1 2H6l1-2zm12 8H5v-4h14v4z"/><circle fill="currentColor" cx="7.5" cy="13.5" r="1.5"/><circle fill="currentColor" cx="16.5" cy="13.5" r="1.5"/></svg>`,
-    van: `<svg viewBox="0 0 24 24" class="marker-icon-svg"><path fill="currentColor" d="M20 8h-3V4H4c-1.1 0-2 .9-2 2v10h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-4-3zM7 17c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm12 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-8l2.5 3H17V9h1z"/></svg>`,
-    tuktuk: `<svg viewBox="0 0 24 24" class="marker-icon-svg"><path fill="currentColor" d="M15.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM5 12c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5zm14-8.5c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5zM12 10.5L9.5 8l-2 2 4.5 4.5 4.5-4.5-2-2L12 10.5z"/></svg>`
-  };
+  const DARK_MAP_STYLES = [
+    { elementType: 'geometry', stylers: [{ color: '#17202d' }] },
+    { elementType: 'labels.text.fill', stylers: [{ color: '#a8b5c5' }] },
+    { elementType: 'labels.text.stroke', stylers: [{ color: '#17202d' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#34455a' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0c1522' }] },
+    { featureType: 'poi', stylers: [{ visibility: 'off' }] }
+  ];
 
   // ---------------------------------------------------------------------------
   // Helper Utilities
@@ -143,14 +100,6 @@
     return clean.replace(/^\+/, '');
   }
 
-  function getVehicleSvg(type) {
-    const t = String(type || '').toLowerCase();
-    if (t.includes('xl') || t.includes('suv')) return VEHICLE_SVGS.suv;
-    if (t.includes('delivery') || t.includes('van') || t.includes('bakkie')) return VEHICLE_SVGS.van;
-    if (t.includes('tuktuk') || t.includes('bike')) return VEHICLE_SVGS.tuktuk;
-    return VEHICLE_SVGS.sedan;
-  }
-
   function cardinalDirection(heading) {
     if (heading == null || isNaN(heading)) return 'N';
     const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -174,97 +123,82 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Leaflet Map Initialization
+  // Google Maps initialization
   // ---------------------------------------------------------------------------
   function initMap() {
     const isDark = document.documentElement.classList.contains('dark');
-    state.activeTileStyle = isDark ? 'dark' : 'light';
+    state.activeMapStyle = isDark ? 'dark' : 'light';
 
-    map = L.map('map', {
-      center: DEFAULT_MAP_CENTER,
+    map = new google.maps.Map($('map'), {
+      center: { lat: DEFAULT_MAP_CENTER[0], lng: DEFAULT_MAP_CENTER[1] },
       zoom: DEFAULT_MAP_ZOOM,
       zoomControl: false,
-      attributionControl: false
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      gestureHandling: 'greedy'
     });
-
-    L.control.attribution({ position: 'bottomright' }).addTo(map);
-    setTileLayer(state.activeTileStyle);
-
-    map.on('click', (e) => {
-      if (e.originalEvent && e.originalEvent.target && e.originalEvent.target.closest('.leaflet-marker-icon')) {
-        return;
-      }
-      deselectDriver();
-    });
+    infoWindow = new google.maps.InfoWindow();
+    setMapStyle(state.activeMapStyle);
+    map.addListener('click', deselectDriver);
+    syncMapLayers();
 
     window.addEventListener('themeChanged', () => {
       const darkNow = document.documentElement.classList.contains('dark');
-      if (state.activeTileStyle === 'dark' || state.activeTileStyle === 'light') {
-        setTileLayer(darkNow ? 'dark' : 'light');
+      if (state.activeMapStyle === 'dark' || state.activeMapStyle === 'light') {
+        setMapStyle(darkNow ? 'dark' : 'light');
       }
     });
   }
 
-  function setTileLayer(styleKey) {
-    if (!TILE_PROVIDERS[styleKey]) styleKey = 'dark';
-    state.activeTileStyle = styleKey;
-
-    if (currentTileLayer) {
-      map.removeLayer(currentTileLayer);
+  function setMapStyle(styleKey) {
+    if (!['dark', 'light', 'voyager', 'satellite'].includes(styleKey)) styleKey = 'dark';
+    state.activeMapStyle = styleKey;
+    if (map) {
+      map.setOptions({
+        mapTypeId: styleKey === 'voyager' ? 'terrain' : styleKey === 'satellite' ? 'hybrid' : 'roadmap',
+        styles: styleKey === 'dark' ? DARK_MAP_STYLES : []
+      });
     }
 
-    const prov = TILE_PROVIDERS[styleKey];
-    currentTileLayer = L.tileLayer(prov.url, prov.options);
-    currentTileLayer.addTo(map);
-
-    document.querySelectorAll('[data-tile-style]').forEach((btn) => {
-      btn.classList.toggle('is-active', btn.dataset.tileStyle === styleKey);
+    document.querySelectorAll('[data-map-style]').forEach((btn) => {
+      btn.classList.toggle('is-active', btn.dataset.mapStyle === styleKey);
     });
   }
 
   // ---------------------------------------------------------------------------
-  // Custom Vehicle Marker Generator
+  // Driver markers
   // ---------------------------------------------------------------------------
   function createDriverMarker(driver) {
     const status = driver.computedStatus || 'offline';
-    const heading = Math.round(driver.location.heading || 0);
-    const speed = Math.round(driver.location.speed || 0);
-    const vSvg = getVehicleSvg(driver.vehicle?.type);
     const name = driver.user?.displayName || driver.vehicle?.plate || 'Driver';
-
-    const html = `
-      <div class="driver-marker-wrap status-${status}">
-        <div class="marker-radar-wave ${status}"></div>
-        <div class="marker-vehicle-pin status-${status}" style="transform: rotate(${heading}deg);">
-          ${vSvg}
-        </div>
-        ${speed > 0 ? `<div class="marker-speed-tag">${speed} km/h</div>` : ''}
-        <div class="marker-name-tag">${escapeHtml(name)}</div>
-      </div>
-    `;
-
-    const icon = L.divIcon({
-      html: html,
-      className: 'custom-driver-leaflet-icon',
-      iconSize: [48, 48],
-      iconAnchor: [24, 24],
-      popupAnchor: [0, -26]
+    const marker = new google.maps.Marker({
+      map,
+      position: { lat: driver.location.lat, lng: driver.location.lng },
+      title: name,
+      label: { text: initials(name), color: '#fff', fontWeight: '700' },
+      icon: markerIcon(status),
+      zIndex: status === 'intrip' ? 1000 : status === 'online' ? 500 : 100
     });
 
-    const marker = L.marker([driver.location.lat, driver.location.lng], {
-      icon: icon,
-      zIndexOffset: status === 'intrip' ? 1000 : status === 'online' ? 500 : 100
-    });
-
-    marker.on('click', () => {
+    marker.addListener('click', () => {
       selectDriver(driver.uid, true);
+      infoWindow.setContent(getDriverPopupHtml(state.drivers.get(driver.uid) || driver));
+      infoWindow.open({ map, anchor: marker });
     });
-
-    marker.bindPopup(() => getDriverPopupHtml(driver), {
-      className: 'driver-map-popup'
-    });
-
     return marker;
+  }
+
+  function markerIcon(status) {
+    const colors = { intrip: '#3b82f6', online: '#22c55e', idle: '#f59e0b', offline: '#64748b' };
+    return {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 19,
+      fillColor: colors[status] || colors.offline,
+      fillOpacity: 1,
+      strokeColor: '#fff',
+      strokeWeight: 2
+    };
   }
 
   function getDriverPopupHtml(driver) {
@@ -308,20 +242,21 @@
       // Find active booking for this driver
       const activeBk = state.rawActiveBookings.find((b) => b.driverId === uid);
 
-      // Coordinates from RTDB or Firestore currentLocation
-      const lat = rtdbEntry.latitude != null ? rtdbEntry.latitude : (rtdbEntry.lat != null ? rtdbEntry.lat : (fDoc.currentLocation?.latitude || fDoc.location?.latitude || null));
-      const lng = rtdbEntry.longitude != null ? rtdbEntry.longitude : (rtdbEntry.lng != null ? rtdbEntry.lng : (fDoc.currentLocation?.longitude || fDoc.location?.longitude || null));
-      const heading = rtdbEntry.heading != null ? rtdbEntry.heading : (rtdbEntry.bearing != null ? rtdbEntry.bearing : (fDoc.currentLocation?.heading || 0));
+      // RTDB is the only verified source of driver coordinates and presence.
+      const lat = rtdbEntry.lat;
+      const lng = rtdbEntry.lng;
+      const heading = rtdbEntry.heading != null ? rtdbEntry.heading : 0;
       const speed = rtdbEntry.speed != null ? rtdbEntry.speed : 0;
-      const updatedAt = rtdbEntry.updatedAt || fDoc.updatedAt || null;
+      const updatedAt = rtdbEntry.locationUpdatedAt || rtdbEntry.updatedAt || null;
 
       // Real status calculation
-      const ageMs = updatedAt ? (Date.now() - (typeof updatedAt === 'number' ? updatedAt : (updatedAt.toDate ? updatedAt.toDate().getTime() : Date.now()))) : Infinity;
-      const isFresh = ageMs < 65000;
-      const isOnline = (rtdbEntry.online === true || fDoc.online === true) && isFresh;
+      const ageMs = typeof updatedAt === 'number' ? Date.now() - updatedAt : Infinity;
+      const isFresh = ageMs >= 0 && ageMs <= 60000;
+      const isOnline = fDoc.approvalStatus === 'APPROVED' && fDoc.online === true &&
+        rtdbEntry.online === true && isFresh;
 
       let computedStatus = 'offline';
-      if (activeBk) {
+      if (activeBk && isOnline) {
         computedStatus = 'intrip';
       } else if (isOnline && speed > 2) {
         computedStatus = 'online';
@@ -335,18 +270,19 @@
         photoUrl: fDoc.photoUrl || user.photoUrl || '',
         phone: fDoc.phone || user.phone || '',
         vehicle: fDoc.vehicle || {},
-        approvalStatus: fDoc.approvalStatus || 'APPROVED',
-        ratingAvg: fDoc.ratingAvg || 5.0,
+        approvalStatus: fDoc.approvalStatus || 'UNKNOWN',
+        ratingAvg: fDoc.ratingAvg || 0,
         ratingCount: fDoc.ratingCount || 0,
         location: {
           lat: lat != null ? Number(lat) : null,
           lng: lng != null ? Number(lng) : null,
           heading: Number(heading),
           speed: Number(speed),
-          accuracy: rtdbEntry.accuracy || 10,
+          accuracy: rtdbEntry.accuracy ?? null,
           updatedAt: updatedAt
         },
-        hasGpsLock: lat != null && lng != null,
+        hasGpsLock: Number.isFinite(Number(lat)) && Number.isFinite(Number(lng)) &&
+          lat != null && lng != null,
         computedStatus,
         activeBooking: activeBk || null
       });
@@ -521,152 +457,101 @@
     if (!map) return;
 
     const currentUids = new Set();
-    const liveCoords = [];
 
     state.drivers.forEach((driver, uid) => {
       if (!driver.hasGpsLock) {
-        // Driver has no GPS broadcast: remove marker if any
-        if (markerLayers.has(uid)) {
-          map.removeLayer(markerLayers.get(uid));
-          markerLayers.delete(uid);
-        }
-        if (routeLayers.has(uid)) {
-          map.removeLayer(routeLayers.get(uid));
-          routeLayers.delete(uid);
-        }
+        clearDriverMapLayers(uid);
         return;
       }
 
       currentUids.add(uid);
-      const latlng = [driver.location.lat, driver.location.lng];
-      liveCoords.push(latlng);
+      const position = { lat: driver.location.lat, lng: driver.location.lng };
 
-      // Marker sync
       let marker = markerLayers.get(uid);
       if (!marker) {
         marker = createDriverMarker(driver);
-        marker.addTo(map);
         markerLayers.set(uid, marker);
       } else {
-        marker.setLatLng(latlng);
-        const vSvg = getVehicleSvg(driver.vehicle?.type);
-        const heading = Math.round(driver.location.heading || 0);
-        const speed = Math.round(driver.location.speed || 0);
-        const status = driver.computedStatus;
         const name = driver.user?.displayName || driver.vehicle?.plate || 'Driver';
-
-        const updatedHtml = `
-          <div class="driver-marker-wrap status-${status}">
-            <div class="marker-radar-wave ${status}"></div>
-            <div class="marker-vehicle-pin status-${status}" style="transform: rotate(${heading}deg);">
-              ${vSvg}
-            </div>
-            ${speed > 0 ? `<div class="marker-speed-tag">${speed} km/h</div>` : ''}
-            <div class="marker-name-tag">${escapeHtml(name)}</div>
-          </div>
-        `;
-
-        const updatedIcon = L.divIcon({
-          html: updatedHtml,
-          className: 'custom-driver-leaflet-icon',
-          iconSize: [48, 48],
-          iconAnchor: [24, 24],
-          popupAnchor: [0, -26]
-        });
-
-        marker.setIcon(updatedIcon);
-        marker.setZIndexOffset(status === 'intrip' ? 1000 : status === 'online' ? 500 : 100);
+        marker.setPosition(position);
+        marker.setTitle(name);
+        marker.setLabel({ text: initials(name), color: '#fff', fontWeight: '700' });
+        marker.setIcon(markerIcon(driver.computedStatus));
+        marker.setZIndex(driver.computedStatus === 'intrip' ? 1000 : driver.computedStatus === 'online' ? 500 : 100);
       }
 
-      // Breadcrumb history
       if (!breadcrumbHistory.has(uid)) breadcrumbHistory.set(uid, []);
       const history = breadcrumbHistory.get(uid);
-      if (!history.length || (history[history.length - 1][0] !== latlng[0] || history[history.length - 1][1] !== latlng[1])) {
-        history.push(latlng);
+      if (!history.length || history[history.length - 1].lat !== position.lat || history[history.length - 1].lng !== position.lng) {
+        history.push(position);
         if (history.length > 25) history.shift();
       }
 
-      // Active trip routes
       syncRouteLayer(driver);
     });
 
-    // Cleanup stale markers
     markerLayers.forEach((marker, uid) => {
-      if (!currentUids.has(uid)) {
-        map.removeLayer(marker);
-        markerLayers.delete(uid);
-        if (routeLayers.has(uid)) {
-          map.removeLayer(routeLayers.get(uid));
-          routeLayers.delete(uid);
-        }
-      }
+      if (!currentUids.has(uid)) clearDriverMapLayers(uid);
     });
 
     if (state.isFollowMode && state.selectedDriverId) {
       const selDriver = state.drivers.get(state.selectedDriverId);
       if (selDriver && selDriver.hasGpsLock) {
-        map.panTo([selDriver.location.lat, selDriver.location.lng], { animate: true, duration: 0.8 });
+        map.panTo({ lat: selDriver.location.lat, lng: selDriver.location.lng });
       }
     }
   }
 
+  function clearDriverMapLayers(uid) {
+    markerLayers.get(uid)?.setMap(null);
+    markerLayers.delete(uid);
+    (routeLayers.get(uid) || []).forEach((overlay) => overlay.setMap(null));
+    routeLayers.delete(uid);
+    breadcrumbHistory.delete(uid);
+  }
+
   function syncRouteLayer(driver) {
     const uid = driver.uid;
-    let rLayerGroup = routeLayers.get(uid);
-
-    if (!rLayerGroup) {
-      rLayerGroup = L.layerGroup();
-      rLayerGroup.addTo(map);
-      routeLayers.set(uid, rLayerGroup);
-    }
-
-    rLayerGroup.clearLayers();
+    (routeLayers.get(uid) || []).forEach((overlay) => overlay.setMap(null));
+    const overlays = [];
 
     if (driver.activeBooking) {
       const b = driver.activeBooking;
-      const p1 = b.pickupLocation ? [b.pickupLocation.latitude || b.pickupLocation.lat, b.pickupLocation.longitude || b.pickupLocation.lng] : null;
-      const p2 = b.dropoffLocation ? [b.dropoffLocation.latitude || b.dropoffLocation.lat, b.dropoffLocation.longitude || b.dropoffLocation.lng] : null;
-
-      if (p2 && driver.hasGpsLock) {
-        const curr = [driver.location.lat, driver.location.lng];
-        const polyline = L.polyline([curr, p2], {
-          color: '#3b82f6',
-          weight: 4,
-          opacity: 0.85,
-          dashArray: '8, 8',
-          lineCap: 'round'
-        });
-        rLayerGroup.addLayer(polyline);
-
-        const destPin = L.circleMarker(p2, {
-          radius: 8,
-          fillColor: '#ef4444',
-          fillOpacity: 1,
-          color: '#ffffff',
-          weight: 2
-        }).bindTooltip(`🏁 ${escapeHtml(b.destinationAddress || b.dropoffAddress || 'Dropoff')}`, { permanent: false });
-        rLayerGroup.addLayer(destPin);
+      const destination = b.dropoffLocation;
+      const lat = Number(destination?.latitude ?? destination?.lat);
+      const lng = Number(destination?.longitude ?? destination?.lng);
+      if (destination && Number.isFinite(lat) && Number.isFinite(lng)) {
+        const end = { lat, lng };
+        overlays.push(new google.maps.Polyline({
+          map,
+          path: [{ lat: driver.location.lat, lng: driver.location.lng }, end],
+          strokeColor: '#3b82f6', strokeWeight: 4, strokeOpacity: 0.85
+        }));
+        overlays.push(new google.maps.Circle({
+          map, center: end, radius: 18,
+          fillColor: '#ef4444', fillOpacity: 1,
+          strokeColor: '#fff', strokeWeight: 2
+        }));
       }
     }
 
-    if (driver.uid === state.selectedDriverId && driver.hasGpsLock) {
+    if (uid === state.selectedDriverId && driver.hasGpsLock) {
       const history = breadcrumbHistory.get(uid) || [];
       if (history.length > 1) {
-        const crumbLine = L.polyline(history, {
-          color: '#22c55e',
-          weight: 3,
-          opacity: 0.5,
-          dashArray: '4, 6'
-        });
-        rLayerGroup.addLayer(crumbLine);
+        overlays.push(new google.maps.Polyline({
+          map, path: history,
+          strokeColor: '#22c55e', strokeWeight: 3, strokeOpacity: 0.5
+        }));
       }
     }
+    routeLayers.set(uid, overlays);
   }
 
   // ---------------------------------------------------------------------------
   // Driver Inspector
   // ---------------------------------------------------------------------------
   function selectDriver(uid, focusOnMap = false) {
+    const previousDriverId = state.selectedDriverId;
     state.selectedDriverId = uid;
     const driver = state.drivers.get(uid);
 
@@ -682,11 +567,17 @@
     renderInspector(driver);
 
     if (focusOnMap && driver.hasGpsLock && map) {
-      map.flyTo([driver.location.lat, driver.location.lng], 15, { duration: 1.2 });
+      map.panTo({ lat: driver.location.lat, lng: driver.location.lng });
+      map.setZoom(15);
     }
 
     const inspectorEl = $('driver-inspector');
     if (inspectorEl) inspectorEl.classList.remove('is-hidden');
+    if (map && previousDriverId && previousDriverId !== uid) {
+      const previousDriver = state.drivers.get(previousDriverId);
+      if (previousDriver?.hasGpsLock) syncRouteLayer(previousDriver);
+    }
+    if (map && driver.hasGpsLock) syncRouteLayer(driver);
   }
 
   function deselectDriver() {
@@ -700,6 +591,10 @@
 
     const inspectorEl = $('driver-inspector');
     if (inspectorEl) inspectorEl.classList.add('is-hidden');
+    infoWindow?.close();
+    if (map) state.drivers.forEach((driver) => {
+      if (driver.hasGpsLock) syncRouteLayer(driver);
+    });
   }
 
   function renderInspector(driver) {
@@ -723,7 +618,8 @@
 
     $('inspector-avatar').innerHTML = avatarHtml;
     $('inspector-name').textContent = name;
-    $('inspector-rating').textContent = driver.ratingAvg ? `★ ${Number(driver.ratingAvg).toFixed(1)} (${driver.ratingCount || 0} rides)` : '★ 5.0';
+    $('inspector-rating').textContent = driver.ratingCount > 0 && driver.ratingAvg
+      ? `★ ${Number(driver.ratingAvg).toFixed(1)} (${driver.ratingCount} rides)` : 'No rating yet';
     $('inspector-status-badge').className = `driver-status-tag ${status}`;
     $('inspector-status-badge').textContent = status.toUpperCase();
 
@@ -775,7 +671,7 @@
     updateFollowModeUI();
     if (state.isFollowMode && state.selectedDriverId) {
       const driver = state.drivers.get(state.selectedDriverId);
-      if (driver && driver.hasGpsLock) map.panTo([driver.location.lat, driver.location.lng], { animate: true });
+      if (driver && driver.hasGpsLock) map.panTo({ lat: driver.location.lat, lng: driver.location.lng });
     }
   }
 
@@ -790,26 +686,30 @@
     if (!map) return;
     const validDrivers = Array.from(state.drivers.values()).filter((d) => d.hasGpsLock);
     if (!validDrivers.length) {
-      map.setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
+      map.setCenter({ lat: DEFAULT_MAP_CENTER[0], lng: DEFAULT_MAP_CENTER[1] });
+      map.setZoom(DEFAULT_MAP_ZOOM);
       return;
     }
-    const latlngs = validDrivers.map((d) => [d.location.lat, d.location.lng]);
-    const bounds = L.latLngBounds(latlngs);
-    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
+    const bounds = new google.maps.LatLngBounds();
+    validDrivers.forEach((driver) => bounds.extend({ lat: driver.location.lat, lng: driver.location.lng }));
+    map.fitBounds(bounds, 60);
+    google.maps.event.addListenerOnce(map, 'idle', () => {
+      if (map.getZoom() > 15) map.setZoom(15);
+    });
   }
 
   // ---------------------------------------------------------------------------
   // Live Firebase Listeners (Real Data)
   // ---------------------------------------------------------------------------
   function attachFirebaseListeners() {
-    if (typeof firebase === 'undefined') {
-      console.error('Firebase SDK not loaded.');
+    if (typeof firebase === 'undefined' || !firebaseConfig?.apiKey || !firebaseConfig?.databaseURL) {
+      console.error('Firebase SDK or shared Firebase configuration not loaded.');
       return;
     }
 
     try {
       if (!firebase.apps.length) {
-        firebase.initializeApp(FIREBASE_CONFIG);
+        firebase.initializeApp(firebaseConfig);
       }
       db = firebase.firestore();
       rtdb = typeof firebase.database === 'function' ? firebase.database() : null;
@@ -846,7 +746,7 @@
 
       // 3. Firestore Active Bookings Collection
       const bookingsCol = db.collection('laynfleet').doc('main').collection('bookings');
-      const unsubBookings = bookingsCol.where('status', 'in', ['ACCEPTED', 'EN_ROUTE', 'ARRIVED', 'IN_TRIP'])
+      const unsubBookings = bookingsCol.where('status', 'in', ['ACCEPTED', 'EN_ROUTE', 'ARRIVED', 'IN_TRIP', 'AT_DESTINATION', 'RETURN_TRIP'])
         .onSnapshot((snap) => {
           state.rawActiveBookings = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
           consolidateFleet();
@@ -889,8 +789,8 @@
       });
     }
 
-    document.querySelectorAll('[data-tile-style]').forEach((btn) => {
-      btn.addEventListener('click', () => setTileLayer(btn.dataset.tileStyle));
+    document.querySelectorAll('[data-map-style]').forEach((btn) => {
+      btn.addEventListener('click', () => setMapStyle(btn.dataset.mapStyle));
     });
 
     const fitBtn = $('btn-fit-fleet');
@@ -905,7 +805,7 @@
       sidebarToggle.addEventListener('click', () => {
         sidebar.classList.toggle('is-collapsed');
         sidebarToggle.innerHTML = sidebar.classList.contains('is-collapsed') ? '➔' : '◀';
-        setTimeout(() => map && map.invalidateSize(), 300);
+        setTimeout(() => map && google.maps.event.trigger(map, 'resize'), 300);
       });
     }
 
@@ -916,14 +816,43 @@
   // ---------------------------------------------------------------------------
   // App Bootstrapper
   // ---------------------------------------------------------------------------
-  function boot() {
-    initMap();
-    initDOM();
-    attachFirebaseListeners();
+  function loadGoogleMaps() {
+    if (!firebaseConfig?.apiKey) {
+      showToast('Google Maps API key is unavailable.', 'error');
+      return;
+    }
+    global.initLaynFleetTrackingMap = () => {
+      initMap();
+      setTimeout(fitAllDrivers, 1500);
+    };
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(firebaseConfig.apiKey)}&loading=async&callback=initLaynFleetTrackingMap`;
+    script.onerror = () => showToast('Google Maps could not load. Check the browser key and connection.', 'error');
+    document.head.appendChild(script);
+  }
 
-    setTimeout(() => {
-      fitAllDrivers();
-    }, 1500);
+  function boot() {
+    initDOM();
+    if (typeof firebase === 'undefined' || !firebaseConfig?.apiKey) {
+      console.error('Firebase configuration is unavailable.');
+      return;
+    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    loadGoogleMaps();
+    firebase.auth().onAuthStateChanged((user) => {
+      if (!user || user.email?.toLowerCase() !== global.MANAGER_EMAIL?.toLowerCase()) {
+        unsubFirestore.forEach((unsubscribe) => unsubscribe());
+        unsubFirestore = [];
+        window.location.replace('index.html');
+        return;
+      }
+      if (unsubFirestore.length === 0) {
+        attachFirebaseListeners();
+        setInterval(consolidateFleet, 15000);
+      }
+    });
+
   }
 
   global.LaynFleetTracker = {

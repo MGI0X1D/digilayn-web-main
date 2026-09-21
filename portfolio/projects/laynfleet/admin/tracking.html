@@ -12,9 +12,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
 
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
   <!-- Digilayn Theme Handler -->
   <script src="../../../../scripts/theme.js"></script>
 
@@ -130,24 +127,24 @@
         </div>
       </aside>
 
-      <!-- RIGHT: LEAFLET MAP & HUD -->
+      <!-- RIGHT: GOOGLE MAP & HUD -->
       <main class="tracker-map-wrap">
         <div id="map"></div>
 
         <!-- Floating Map Overlay Controls -->
         <div class="map-floating-controls">
-          <!-- Layer Style Switcher -->
+          <!-- Map Style Switcher -->
           <div class="control-pill-group">
-            <button class="map-control-btn is-active" data-tile-style="dark" data-tooltip="Dark Ops Map">
+            <button class="map-control-btn is-active" data-map-style="dark" data-tooltip="Dark Ops Map">
               🕶️
             </button>
-            <button class="map-control-btn" data-tile-style="light" data-tooltip="Clean Light Map">
+            <button class="map-control-btn" data-map-style="light" data-tooltip="Clean Light Map">
               ☀️
             </button>
-            <button class="map-control-btn" data-tile-style="voyager" data-tooltip="Vibrant Street Map">
+            <button class="map-control-btn" data-map-style="voyager" data-tooltip="Terrain Map">
               🗺️
             </button>
-            <button class="map-control-btn" data-tile-style="satellite" data-tooltip="Satellite Hybrid">
+            <button class="map-control-btn" data-map-style="satellite" data-tooltip="Satellite Hybrid">
               🛰️
             </button>
           </div>
@@ -190,7 +187,7 @@
               </div>
               <div>
                 <h3 id="inspector-name" style="font-size:15px; font-weight:800;">—</h3>
-                <span id="inspector-rating" style="font-size:11px; color:#f59e0b; font-weight:700;">★ 5.0</span>
+                <span id="inspector-rating" style="font-size:11px; color:#f59e0b; font-weight:700;">—</span>
               </div>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
@@ -281,9 +278,6 @@
   </div>
 
   <!-- ===================== SCRIPTS ===================== -->
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <!-- Firebase Compat v9.23.0 -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>

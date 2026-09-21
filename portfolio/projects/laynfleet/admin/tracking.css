@@ -1199,136 +1199,21 @@ body {
   background: #1eb854;
 }
 
-/* Custom Vehicle Markers (Leaflet Custom DivIcon) */
-.driver-marker-wrap {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.marker-radar-wave {
-  position: absolute;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-}
-
-.marker-radar-wave.online {
-  border: 2px solid var(--online);
-  animation: radar-ping 2.5s cubic-bezier(0, 0.2, 0.8, 1) infinite;
-}
-
-.marker-radar-wave.intrip {
-  border: 2px solid var(--intrip);
-  animation: radar-ping 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
-}
-
-.marker-vehicle-pin {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--panel);
-  border: 2px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  transition: transform 0.3s ease, border-color 0.2s ease;
-  position: relative;
-  z-index: 2;
-}
-
-.marker-vehicle-pin.status-online {
-  border-color: var(--online);
-  box-shadow: 0 0 14px var(--online-glow);
-}
-
-.marker-vehicle-pin.status-intrip {
-  border-color: var(--intrip);
-  box-shadow: 0 0 14px var(--intrip-glow);
-}
-
-.marker-vehicle-pin.status-idle {
-  border-color: var(--idle);
-}
-
-.marker-vehicle-pin.status-offline {
-  border-color: var(--offline);
-  opacity: 0.7;
-}
-
-.marker-icon-svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-  transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1);
-}
-
-.marker-speed-tag {
-  position: absolute;
-  top: -10px;
-  background: var(--panel);
-  color: var(--text);
-  font-size: 9px;
-  font-weight: 800;
-  padding: 1px 5px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  font-family: monospace;
-}
-
-.marker-name-tag {
-  position: absolute;
-  bottom: -12px;
-  background: var(--panel-glass);
-  color: var(--text);
-  font-size: 9px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  max-width: 80px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Custom Leaflet Popup Styling */
-.leaflet-popup-content-wrapper {
-  background: var(--panel-glass) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-md) !important;
-  color: var(--text) !important;
-  box-shadow: var(--shadow-lg) !important;
-  padding: 0 !important;
-}
-
-.leaflet-popup-content {
-  margin: 12px 14px !important;
-  line-height: 1.4 !important;
-}
-
-.leaflet-popup-tip {
-  background: var(--panel) !important;
-  border: 1px solid var(--border);
-}
-
 .map-popup-card {
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-width: 200px;
+}
+
+.gm-style-iw-c,
+.gm-style-iw-tc::after {
+  background: var(--panel) !important;
+  color: var(--text) !important;
+}
+
+html.dark .gm-ui-hover-effect {
+  filter: invert(1);
 }
 
 .popup-driver-name {
