@@ -283,6 +283,7 @@
         },
         hasGpsLock: Number.isFinite(Number(lat)) && Number.isFinite(Number(lng)) &&
           lat != null && lng != null,
+        lastPresence: window.LaynFleetDriverOrder.lastPresence(fDoc, rtdbEntry),
         computedStatus,
         activeBooking: activeBk || null
       });
@@ -355,6 +356,11 @@
 
       return true;
     });
+
+    list.sort((a, b) => window.LaynFleetDriverOrder.compare(
+      { uid: a.uid, online: a.computedStatus !== 'offline', lastPresence: a.lastPresence },
+      { uid: b.uid, online: b.computedStatus !== 'offline', lastPresence: b.lastPresence }
+    ));
 
     if (!list.length) {
       host.innerHTML = `

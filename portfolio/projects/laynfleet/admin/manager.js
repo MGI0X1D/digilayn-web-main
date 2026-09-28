@@ -565,7 +565,7 @@
     const rtdbEntry = state.driverLocations && state.driverLocations[uid];
     const isRtdbOnline = rtdbEntry && rtdbEntry.online === true;
     const rtdbAge = (rtdbEntry && rtdbEntry.updatedAt) ? (Date.now() - rtdbEntry.updatedAt) : Infinity;
-    const isFresh = isRtdbOnline && rtdbAge < 65000;
+    const isFresh = isRtdbOnline && rtdbAge >= 0 && rtdbAge < 65000;
     const onlineBadge = (d.approvalStatus === 'APPROVED' && d.online && isFresh)
       ? '<span class="badge badge-online">● Online Now</span>'
       : (d.approvalStatus === 'APPROVED' && d.online && !isFresh)
@@ -1374,7 +1374,7 @@
   // RENDER: overview
   // ---------------------------------------------------------------------------
   function renderOverview() {
-    const pending = state.drivers.filter((d) => d.approvalStatus === 'PENDING');
+    const pending = sortDriversByPresence(state.drivers.filter((d) => d.approvalStatus === 'PENDING'));
     const approved = state.drivers.filter((d) => d.approvalStatus === 'APPROVED');
     const onlineCount = approved.filter(isDriverOnlineAndActive).length;
     const activeBookings = state.bookings.filter((b) => isBookingActive(b.status)).length;
@@ -1430,6 +1430,24 @@
   // ---------------------------------------------------------------------------
   // RENDER: drivers
   // ---------------------------------------------------------------------------
+  function driverOrderKey(driver, now) {
+    const location = state.driverLocations && state.driverLocations[driver.uid];
+    const age = location && typeof location.updatedAt === 'number' ? now - location.updatedAt : Infinity;
+    return {
+      uid: driver.uid,
+      online: driver.approvalStatus === 'APPROVED' && driver.online === true &&
+        location?.online === true && age >= 0 && age < 65000,
+      lastPresence: window.LaynFleetDriverOrder.lastPresence(driver, location)
+    };
+  }
+
+  function sortDriversByPresence(drivers) {
+    const now = Date.now();
+    return drivers.sort((a, b) => window.LaynFleetDriverOrder.compare(
+      driverOrderKey(a, now), driverOrderKey(b, now)
+    ));
+  }
+
   function renderDrivers() {
     const counts = { PENDING: 0, APPROVED: 0, DEMOTED: 0, REJECTED: 0 };
     state.drivers.forEach((d) => { counts[d.approvalStatus] = (counts[d.approvalStatus] || 0) + 1; });
@@ -1439,9 +1457,9 @@
     $('count-rejected').textContent = counts.REJECTED || 0;
 
     const term = state.search.toLowerCase();
-    const list = state.drivers
+    const list = sortDriversByPresence(state.drivers
       .filter((d) => d.approvalStatus === state.driverTab)
-      .filter((d) => matchesDriver(d, term));
+      .filter((d) => matchesDriver(d, term)));
 
     const host = $('drivers-list');
     if (!list.length) {
@@ -1483,7 +1501,7 @@
       const rtdbEntry = state.driverLocations && state.driverLocations[d.uid];
       const isRtdbOnline = rtdbEntry && rtdbEntry.online === true;
       const rtdbAge = (rtdbEntry && rtdbEntry.updatedAt) ? (Date.now() - rtdbEntry.updatedAt) : Infinity;
-      const isFresh = isRtdbOnline && rtdbAge < 65000;
+      const isFresh = isRtdbOnline && rtdbAge >= 0 && rtdbAge < 65000;
 
       if (d.online && isFresh) {
         onlineBadge = '<span class="badge badge-online">Online</span>';
