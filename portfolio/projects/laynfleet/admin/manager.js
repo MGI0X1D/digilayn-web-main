@@ -3251,6 +3251,40 @@
     { type: 'TUK_TUK', label: 'Tuk Tuk', defaultRate: 6.0, defaultMin: 15.0 }
   ];
 
+  let pricingResolutionPending = false;
+  $('pricing-proposals-list').addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-pricing-decision]');
+    if (!button || pricingResolutionPending) return;
+    const proposalId = button.dataset.proposalId;
+    const decision = button.dataset.pricingDecision;
+    const proposal = state.pricingProposals.find((item) => item.id === proposalId);
+    if (!proposal) return toast('Proposal unavailable. Refresh pricing.', 'error');
+    const approving = decision === 'APPROVED';
+    const reason = window.prompt(`Reason for force ${approving ? 'approval' : 'decline'} (required, maximum 500 characters):`);
+    if (reason === null) return;
+    if (!reason.trim() || reason.trim().length > 500) {
+      return toast('Enter a reason of 1–500 characters.', 'error');
+    }
+    const effect = approving
+      ? `Apply R${Number(proposal.proposedRatePerKm).toFixed(2)}/km, minimum R${Number(proposal.proposedMinimumFare).toFixed(2)}, return +${Number(proposal.proposedReturnTripPercent)}% for ${proposal.vehicleType}?`
+      : `Decline this ${proposal.vehicleType} proposal and keep the current rates?`;
+    if (!window.confirm(`${effect} This bypasses the vote threshold and closes the proposal. Existing votes will be preserved in history.\n\nReason: ${reason.trim()}`)) return;
+    pricingResolutionPending = true;
+    const buttons = [...document.querySelectorAll('[data-pricing-decision]')];
+    buttons.forEach((item) => { item.disabled = true; });
+    try {
+      const resolve = firebase.app().functions('us-central1').httpsCallable('managerResolvePricingProposal');
+      await resolve({ proposalId, decision, reason: reason.trim() });
+      toast(approving ? 'Proposal force approved.' : 'Proposal force declined.', 'success');
+    } catch (error) {
+      console.error('manager pricing resolution failed', error);
+      toast(error.message || 'Pricing resolution failed. Refresh and check the proposal.', 'error');
+    } finally {
+      pricingResolutionPending = false;
+      renderPricing();
+    }
+  });
+
   async function loadPricingVoterProfiles(records) {
     const voterUids = new Set(records.flatMap((record) => Object.keys(record.votes || {})));
     await Promise.all([...voterUids].map((uid) => getUser(uid)));
@@ -3391,6 +3425,10 @@
                 </div>
               </div>
               ${renderPricingVoters(prop)}
+              <div class="pricing-manager-actions">
+                <button type="button" class="btn btn-primary" ${pricingResolutionPending ? 'disabled' : ''} data-pricing-decision="APPROVED" data-proposal-id="${escapeHtml(prop.id)}">Force approve</button>
+                <button type="button" class="btn btn-danger" ${pricingResolutionPending ? 'disabled' : ''} data-pricing-decision="REJECTED" data-proposal-id="${escapeHtml(prop.id)}">Force decline</button>
+              </div>
             </div>
           `;
         }).join('');
@@ -3414,7 +3452,7 @@
               <td><strong>${escapeHtml(vTypeObj.label)}</strong></td>
               <td><strong>R${Number(h.proposedRatePerKm).toFixed(2)}/km</strong> (Min R${Number(h.proposedMinimumFare).toFixed(2)})</td>
               <td>R${Number(h.currentRatePerKm).toFixed(2)}/km</td>
-              <td>${statusBadge}</td>
+              <td>${statusBadge}${h.resolutionMethod === 'MANAGER_OVERRIDE' ? `<div class="muted">Manager override<br>${escapeHtml(h.resolutionReason)}<br>${escapeHtml(h.resolvedByEmail)}</div>` : ''}</td>
               <td>${Number(h.yesVoteCount || 0)} YES / ${Number(h.noVoteCount || 0)} NO${renderPricingVoters(h)}</td>
               <td>${escapeHtml(h.proposerName || 'Driver')}</td>
             </tr>

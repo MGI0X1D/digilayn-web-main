@@ -1382,3 +1382,5 @@ html:not(.dark) .pill-danger { color: #991b1b; }
 .pricing-voters summary { cursor: pointer; color: var(--brand); font-weight: 600; }
 .pricing-voters-scroll { overflow-x: auto; margin-top: 8px; }
 .pricing-voter-uid { overflow-wrap: anywhere; font-size: 11px; }
+
+.pricing-manager-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
