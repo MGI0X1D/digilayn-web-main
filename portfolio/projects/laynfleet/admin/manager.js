@@ -3266,7 +3266,7 @@
       return toast('Enter a reason of 1–500 characters.', 'error');
     }
     const effect = approving
-      ? `Apply R${Number(proposal.proposedRatePerKm).toFixed(2)}/km, minimum R${Number(proposal.proposedMinimumFare).toFixed(2)}, return +${Number(proposal.proposedReturnTripPercent)}% for ${proposal.vehicleType}?`
+      ? `Apply R${Number(proposal.proposedRatePerKm).toFixed(2)}/km, minimum R${Number(proposal.proposedMinimumFare).toFixed(2)}, return +${Number(proposal.proposedReturnTripPercent)}%, ${curveLabel(proposal.proposedCurveScaleKm)} for ${proposal.vehicleType}?`
       : `Decline this ${proposal.vehicleType} proposal and keep the current rates?`;
     if (!window.confirm(`${effect} This bypasses the vote threshold and closes the proposal. Existing votes will be preserved in history.\n\nReason: ${reason.trim()}`)) return;
     pricingResolutionPending = true;
@@ -3289,6 +3289,12 @@
     const voterUids = new Set(records.flatMap((record) => Object.keys(record.votes || {})));
     await Promise.all([...voterUids].map((uid) => getUser(uid)));
     if (auth.currentUser) renderPricing();
+  }
+
+  function curveLabel(value) {
+    return (typeof value === 'number' && isFinite(value) && value > 0)
+      ? `curve ${Number(value).toFixed(1)} km`
+      : 'straight line';
   }
 
   function renderPricingVoters(proposal) {
@@ -3358,13 +3364,14 @@
         const doc = ratesMap.get(vp.type);
         const ratePerKm = (doc && typeof doc.ratePerKm === 'number') ? doc.ratePerKm : vp.defaultRate;
         const minFare = (doc && typeof doc.minimumFare === 'number') ? doc.minimumFare : vp.defaultMin;
+        const curveScaleKm = (doc && typeof doc.curveScaleKm === 'number') ? doc.curveScaleKm : null;
         const hasActiveProposal = doc && Boolean(doc.activeProposalId);
         const updatedAtStr = doc && doc.updatedAt ? formatDate(doc.updatedAt) : 'Seed Baseline';
 
         return `
           <tr>
             <td><strong>${escapeHtml(vp.label)}</strong></td>
-            <td><strong>R${ratePerKm.toFixed(2)}</strong> / km</td>
+            <td><strong>R${ratePerKm.toFixed(2)}</strong> / km<div class="muted" style="font-size:11px;">${curveLabel(curveScaleKm)}</div></td>
             <td>R${minFare.toFixed(2)}</td>
             <td>
               ${hasActiveProposal
@@ -3419,10 +3426,12 @@
                 <div>
                   <span class="muted" style="font-size: 11px; text-transform: uppercase;">Proposed Rate</span>
                   <div style="font-size: 16px; font-weight: 800; color: var(--brand);">R${Number(prop.proposedRatePerKm).toFixed(2)}/km · Min R${Number(prop.proposedMinimumFare).toFixed(2)}</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">${curveLabel(prop.proposedCurveScaleKm)}</div>
                 </div>
                 <div>
                   <span class="muted" style="font-size: 11px; text-transform: uppercase;">Current Rate</span>
                   <div style="font-size: 14px; color: var(--text-dim);">R${Number(prop.currentRatePerKm).toFixed(2)}/km · Min R${Number(prop.currentMinimumFare).toFixed(2)}</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">${curveLabel(prop.currentCurveScaleKm)}</div>
                 </div>
               </div>
 
@@ -3463,7 +3472,7 @@
             <tr>
               <td>${formatDate(h.resolvedAt || h.createdAt)}</td>
               <td><strong>${escapeHtml(vTypeObj.label)}</strong></td>
-              <td><strong>R${Number(h.proposedRatePerKm).toFixed(2)}/km</strong> (Min R${Number(h.proposedMinimumFare).toFixed(2)})</td>
+              <td><strong>R${Number(h.proposedRatePerKm).toFixed(2)}/km</strong> (Min R${Number(h.proposedMinimumFare).toFixed(2)})<div class="muted">${curveLabel(h.proposedCurveScaleKm)}</div></td>
               <td>R${Number(h.currentRatePerKm).toFixed(2)}/km</td>
               <td>${statusBadge}${h.resolutionMethod === 'MANAGER_OVERRIDE' ? `<div class="muted">Manager override<br>${escapeHtml(h.resolutionReason)}<br>${escapeHtml(h.resolvedByEmail)}</div>` : ''}</td>
               <td>${Number(h.yesVoteCount || 0)} YES / ${Number(h.noVoteCount || 0)} NO${renderPricingVoters(h)}</td>
