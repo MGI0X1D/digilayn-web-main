@@ -1376,3 +1376,9 @@ html:not(.dark) .pill-danger { color: #991b1b; }
   }
 }
 
+
+/* Recorded pricing votes, available in live proposals and audit history. */
+.pricing-voters { margin-top: 12px; }
+.pricing-voters summary { cursor: pointer; color: var(--brand); font-weight: 600; }
+.pricing-voters-scroll { overflow-x: auto; margin-top: 8px; }
+.pricing-voter-uid { overflow-wrap: anywhere; font-size: 11px; }

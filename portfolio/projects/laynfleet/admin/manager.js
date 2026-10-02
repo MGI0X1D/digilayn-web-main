@@ -1193,6 +1193,7 @@
     unsub.push(
       pricingProposalsCol.onSnapshot((snap) => {
         state.pricingProposals = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        void loadPricingVoterProfiles(state.pricingProposals);
         const badge = $('nav-badge-pricing');
         if (badge) {
           badge.textContent = state.pricingProposals.length;
@@ -1208,6 +1209,7 @@
     unsub.push(
       pricingHistoryCol.orderBy('createdAt', 'desc').limit(100).onSnapshot((snap) => {
         state.pricingHistory = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        void loadPricingVoterProfiles(state.pricingHistory);
         renderPricing();
       }, (err) => {
         console.warn('pricing history listener', err);
@@ -3249,6 +3251,41 @@
     { type: 'TUK_TUK', label: 'Tuk Tuk', defaultRate: 6.0, defaultMin: 15.0 }
   ];
 
+  async function loadPricingVoterProfiles(records) {
+    const voterUids = new Set(records.flatMap((record) => Object.keys(record.votes || {})));
+    await Promise.all([...voterUids].map((uid) => getUser(uid)));
+    if (auth.currentUser) renderPricing();
+  }
+
+  function renderPricingVoters(proposal) {
+    const votes = proposal.votes;
+    if (!votes || typeof votes !== 'object' || Array.isArray(votes)) {
+      return '<p class="muted">Voter records unavailable.</p>';
+    }
+    const entries = Object.entries(votes);
+    if (!entries.length) return '<p class="muted">No individual voter records recorded.</p>';
+    const rows = entries.map(([uid, record]) => {
+      const profile = userCache.get(uid);
+      const name = profile && typeof profile.displayName === 'string' && profile.displayName.trim()
+        ? profile.displayName : 'Profile unavailable';
+      const choice = record && (record.choice === 'YES' || record.choice === 'NO')
+        ? record.choice : 'Vote unavailable';
+      const votedAt = record && record.votedAt;
+      return `<tr>
+        <td><strong>${escapeHtml(name)}</strong><br><span class="muted pricing-voter-uid">${escapeHtml(uid)}</span></td>
+        <td>${escapeHtml(choice)}</td>
+        <td>${formatDate(votedAt)}</td>
+      </tr>`;
+    }).join('');
+    return `<details class="pricing-voters">
+      <summary>View voters (${entries.length})</summary>
+      <div class="pricing-voters-scroll"><table class="data-table">
+        <thead><tr><th>Voter</th><th>Vote</th><th>Voted at</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </details>`;
+  }
+
   function renderPricing() {
     const ratesTableEl = $('pricing-rates-table');
     const proposalsListEl = $('pricing-proposals-list');
@@ -3353,6 +3390,7 @@
                   <div style="height: 100%; width: ${progressPct}%; background: var(--brand); border-radius: 4px;"></div>
                 </div>
               </div>
+              ${renderPricingVoters(prop)}
             </div>
           `;
         }).join('');
@@ -3377,7 +3415,7 @@
               <td><strong>R${Number(h.proposedRatePerKm).toFixed(2)}/km</strong> (Min R${Number(h.proposedMinimumFare).toFixed(2)})</td>
               <td>R${Number(h.currentRatePerKm).toFixed(2)}/km</td>
               <td>${statusBadge}</td>
-              <td>${Number(h.yesVoteCount || 0)} YES / ${Number(h.noVoteCount || 0)} NO</td>
+              <td>${Number(h.yesVoteCount || 0)} YES / ${Number(h.noVoteCount || 0)} NO${renderPricingVoters(h)}</td>
               <td>${escapeHtml(h.proposerName || 'Driver')}</td>
             </tr>
           `;
