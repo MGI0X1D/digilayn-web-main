@@ -3296,7 +3296,20 @@
     if (!votes || typeof votes !== 'object' || Array.isArray(votes)) {
       return '<p class="muted">Voter records unavailable.</p>';
     }
-    const entries = Object.entries(votes);
+    const voteTime = (record) => {
+      const timestamp = record && record.votedAt;
+      const milliseconds = typeof timestamp === 'number' ? timestamp
+        : timestamp && typeof timestamp.toMillis === 'function' ? timestamp.toMillis()
+        : timestamp instanceof Date ? timestamp.getTime() : NaN;
+      return Number.isFinite(milliseconds) && milliseconds > 0 ? milliseconds : null;
+    };
+    const entries = Object.entries(votes).sort(([uidA, voteA], [uidB, voteB]) => {
+      const timeA = voteTime(voteA);
+      const timeB = voteTime(voteB);
+      if (timeA === null && timeB !== null) return 1;
+      if (timeB === null && timeA !== null) return -1;
+      return (timeA !== null && timeB !== null ? timeA - timeB : 0) || uidA.localeCompare(uidB);
+    });
     if (!entries.length) return '<p class="muted">No individual voter records recorded.</p>';
     const rows = entries.map(([uid, record]) => {
       const profile = userCache.get(uid);
