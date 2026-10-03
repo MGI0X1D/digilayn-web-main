@@ -102,7 +102,7 @@
   }
 
   function isBookingActive(status) {
-    return ['ACCEPTED', 'EN_ROUTE', 'ARRIVED', 'IN_TRIP', 'QUOTED', 'PENDING'].includes(status);
+    return ['ACCEPTED', 'SCHEDULED_CONFIRMED', 'EN_ROUTE', 'ARRIVED', 'IN_TRIP', 'QUOTED', 'PENDING'].includes(status);
   }
 
   function getBookingDate(b) {
@@ -999,8 +999,8 @@
     section: 'overview',
     search: '',
     bookingFilters: {
-      quickTab: 'all',          // 'all', 'active', 'COMPLETED', 'CANCELLED'
-      status: 'all',            // 'all', 'active', 'PENDING', 'QUOTED', 'ACCEPTED', 'EN_ROUTE', 'ARRIVED', 'IN_TRIP', 'COMPLETED', 'CANCELLED'
+      quickTab: 'all',          // 'all', 'active', 'SCHEDULED_CONFIRMED', 'COMPLETED', 'CANCELLED'
+      status: 'all',            // 'all', 'active', 'PENDING', 'QUOTED', 'ACCEPTED', 'SCHEDULED_CONFIRMED', 'EN_ROUTE', 'ARRIVED', 'IN_TRIP', 'COMPLETED', 'CANCELLED'
       type: 'all',              // 'all', 'STANDARD', 'XL', ...
       driverAssigned: 'all',    // 'all', 'assigned', 'unassigned'
       datePreset: 'all',        // 'all', 'today', 'yesterday', '7days', '30days', 'custom'
@@ -1711,11 +1711,13 @@
     // Quick Tab counts on entire bookings list
     const totalCount = state.bookings.length;
     const activeCount = state.bookings.filter((b) => isBookingActive(b.status)).length;
+    const scheduledCount = state.bookings.filter((b) => b.status === 'SCHEDULED_CONFIRMED').length;
     const completedCount = state.bookings.filter((b) => b.status === 'COMPLETED').length;
     const cancelledCount = state.bookings.filter((b) => String(b.status || '').startsWith('CANCELLED')).length;
 
     if ($('count-booking-all')) $('count-booking-all').textContent = totalCount;
     if ($('count-booking-active')) $('count-booking-active').textContent = activeCount;
+    if ($('count-booking-scheduled')) $('count-booking-scheduled').textContent = scheduledCount;
     if ($('count-booking-completed')) $('count-booking-completed').textContent = completedCount;
     if ($('count-booking-cancelled')) $('count-booking-cancelled').textContent = cancelledCount;
 
@@ -1749,9 +1751,11 @@
     // Filter pipeline
     let list = state.bookings.filter((b) => {
       // 1. Quick Tab filter
-      if (bf.quickTab === 'active' && !isBookingActive(b.status)) return false;
-      if (bf.quickTab === 'COMPLETED' && b.status !== 'COMPLETED') return false;
-      if (bf.quickTab === 'CANCELLED' && !String(b.status || '').startsWith('CANCELLED')) return false;
+      const qTab = String(bf.quickTab || '').toUpperCase();
+      if (qTab === 'ACTIVE' && !isBookingActive(b.status)) return false;
+      if (qTab === 'SCHEDULED_CONFIRMED' && b.status !== 'SCHEDULED_CONFIRMED') return false;
+      if (qTab === 'COMPLETED' && b.status !== 'COMPLETED') return false;
+      if (qTab === 'CANCELLED' && !String(b.status || '').startsWith('CANCELLED')) return false;
 
       // 2. Specific Status filter
       if (bf.status !== 'all') {
@@ -1967,6 +1971,11 @@
             <span class="detail-item-label">Created At</span>
             <span class="detail-item-value">${escapeHtml(formatDate(b.createdAt))}</span>
           </div>
+          ${b.scheduledTime ? `
+            <div class="detail-item">
+              <span class="detail-item-label">Scheduled Pickup</span>
+              <span class="detail-item-value">${escapeHtml(formatDate(b.scheduledTime))}</span>
+            </div>` : ''}
           <div class="detail-item">
             <span class="detail-item-label">Payment Method</span>
             <span class="detail-item-value">${escapeHtml(b.paymentMethod || 'Cash / In-app')}</span>
@@ -2091,7 +2100,7 @@
   function statusBadgeHtml(status) {
     const map = {
       PENDING: 'badge-pending', QUOTED: 'badge-pending',
-      ACCEPTED: 'badge-driver', EN_ROUTE: 'badge-driver', ARRIVED: 'badge-driver', IN_TRIP: 'badge-driver',
+      ACCEPTED: 'badge-driver', SCHEDULED_CONFIRMED: 'badge-driver', EN_ROUTE: 'badge-driver', ARRIVED: 'badge-driver', IN_TRIP: 'badge-driver',
       COMPLETED: 'badge-approved',
       CANCELLED: 'badge-rejected', CANCELLED_NO_DRIVER: 'badge-rejected'
     };
@@ -3898,7 +3907,7 @@ This applies immediately to all connected devices.`,
     if (!tabName) return;
     state.bookingFilters.quickTab = tabName;
     document.querySelectorAll('#booking-quick-tabs [data-booking-tab]').forEach((t) =>
-      t.classList.toggle('is-active', t.getAttribute('data-booking-tab') === tabName));
+      t.classList.toggle('is-active', (t.getAttribute('data-booking-tab') || '').toUpperCase() === String(tabName).toUpperCase()));
     renderBookings();
   }
 
