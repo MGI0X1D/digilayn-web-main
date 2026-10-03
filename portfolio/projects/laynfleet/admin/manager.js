@@ -1117,6 +1117,7 @@
   // ---------------------------------------------------------------------------
   function attachListeners() {
     detachListeners();
+    unsub.push(window.LaynFleetNotices.attach(db));
 
     // Drivers (application docs = the drivers collection).
     unsub.push(driversCol.onSnapshot(async (snap) => {
@@ -3878,6 +3879,7 @@ This applies immediately to all connected devices.`,
     bookings: ['Bookings', 'Live and historical rides with detailed filters'],
     reviews: ['Reviews & Moderation', 'Scrutinize feedback, moderate ratings, and contact reviewers'],
     pricing: ['Pricing & Governance', 'Democratic driver-determined fleet rates, live voting progress, and audit history'],
+    notices: ['Rider Notices', 'Publish news, information, warnings and promotions for all riders'],
     appcontrol: ['App Control & System State', 'Manage maintenance kill switches, version requirements, and live launch gates']
   };
 

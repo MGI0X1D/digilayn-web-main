@@ -71,6 +71,7 @@
         <button class="nav-item" data-section="bookings"><span class="nav-glyph">🧾</span> Bookings</button>
         <button class="nav-item" data-section="reviews"><span class="nav-glyph">⭐</span> Reviews <span id="nav-badge-reviews" class="nav-badge is-hidden">0</span></button>
         <button class="nav-item" data-section="pricing"><span class="nav-glyph">🏷️</span> Pricing &amp; Governance <span id="nav-badge-pricing" class="nav-badge is-hidden">0</span></button>
+        <button class="nav-item" data-section="notices"><span class="nav-glyph">📣</span> Rider Notices</button>
         <button class="nav-item" data-section="appcontrol"><span class="nav-glyph">⚙️</span> App Control <span id="nav-badge-appcontrol" class="nav-badge is-hidden">!</span></button>
       </nav>
 
@@ -155,6 +156,33 @@
       <!-- RIDERS -->
       <section id="section-riders" class="section">
         <div id="riders-list" class="table-wrap"></div>
+      </section>
+
+      <!-- RIDER DASHBOARD NOTICES -->
+      <section id="section-notices" class="section">
+        <div class="panel">
+          <div class="panel-head"><h2 id="notice-editor-title">New notice</h2><button id="notice-new" type="button" class="btn btn-sm">New / clear editor</button></div>
+          <form id="notice-form" class="notice-editor">
+            <p>Shown first on every Rider dashboard. Each save creates a revised version that can reappear after dismissal.</p>
+            <div class="notice-form-grid">
+              <label class="field"><span class="field-label">Type</span><select id="notice-type" class="field-input" required>
+                <option value="INFORMATION">Information</option><option value="NEWS">News</option><option value="WARNING">Warning</option><option value="PROMOTION">Promotion</option>
+              </select></label>
+              <label class="field"><span class="field-label">Display order (lower first)</span><input id="notice-order" class="field-input" type="number" min="0" max="10000" step="1" value="0" required></label>
+              <label class="field notice-wide"><span class="field-label">Title</span><input id="notice-title" class="field-input" maxlength="120" required></label>
+              <label class="field notice-wide"><span class="field-label">Message (blank hides the notice)</span><textarea id="notice-message" class="field-input" rows="5" maxlength="2000"></textarea></label>
+              <label class="field"><span class="field-label">Starts at · SAST (optional)</span><input id="notice-start" class="field-input" type="datetime-local"></label>
+              <label class="field"><span class="field-label">Ends at · SAST (optional)</span><input id="notice-end" class="field-input" type="datetime-local"></label>
+            </div>
+            <div class="notice-settings">
+              <label><input id="notice-enabled" type="checkbox"> Published / visible</label>
+              <label><input id="notice-dismissible" type="checkbox"> Riders may dismiss this version</label>
+            </div>
+            <button id="notice-save" type="submit" class="btn btn-primary" disabled>Save revision</button>
+            <p id="notice-status" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+        <div class="panel"><div class="panel-head"><h2>All notices</h2></div><div id="notice-list" class="notice-list"></div></div>
       </section>
 
       <!-- BOOKINGS -->
@@ -775,6 +803,7 @@
 
   <script src="firebase-config.js"></script>
   <script src="driver-order.js"></script>
+  <script src="dashboard-notices.js"></script>
   <script src="manager.js"></script>
 </body>
 </html>
