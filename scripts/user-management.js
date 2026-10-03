@@ -82,7 +82,7 @@ class UserManagement {
       username: source.username || usernameReservations[0]?.username || "",
       email: authData?.email || source.email || "",
       phone: authData?.phone || source.phone || "",
-      photoUrl: authData?.photoUrl || source.photoUrl || storageObjects.find((item) => String(item.contentType).startsWith("image/"))?.downloadUrl || "",
+      photoUrl: source.photoUrl || authData?.photoUrl || storageObjects.find((item) => String(item.contentType).startsWith("image/"))?.downloadUrl || "",
       suspended: !!source.suspended,
       suspendedReason: source.suspendedReason || "",
       applications: source.applications || {}, roles: source.roles || {}, devices: source.devices || {},
